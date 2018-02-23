@@ -662,19 +662,14 @@ double freq_int_heat[NUM_FILTER_STEPS_FOR_Ts], freq_int_ion[NUM_FILTER_STEPS_FOR
 
 	//New in v1.4
 	if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {
-      filling_factor_of_HI_zp = 1 - ION_EFF_FACTOR * Splined_Fcollzp_mean / (1.0 - x_e_ave); // fcoll including f_esc
-      fprintf(stderr, "z'=%f, filling factor of HI is %e, without x_e would be %e, time=%06.2f min\n",
-		zp,filling_factor_of_HI_zp,1 - ION_EFF_FACTOR * Splined_Fcollzp_mean,(double)clock()/CLOCKS_PER_SEC/60.0);
+	  filling_factor_of_HI_zp = 1 - ION_EFF_FACTOR * Splined_Fcollzp_mean / (1.0 - x_e_ave); // fcoll including f_esc
 	}
 	else {
-      filling_factor_of_HI_zp = 1 - HII_EFF_FACTOR * FgtrM_st(zp, M_MIN) / (1.0 - x_e_ave);
-      fprintf(stderr, "z'=%f, filling factor of HI is %e, without x_e would be %e, time=%06.2f min\n",
-	      zp, filling_factor_of_HI_zp, 1 - HII_EFF_FACTOR * FgtrM_st(zp, M_MIN), (double)clock()/CLOCKS_PER_SEC/60.0);
+	  filling_factor_of_HI_zp = 1 - HII_EFF_FACTOR * FgtrM_st(zp, M_MIN) / (1.0 - x_e_ave);
 	}
 
     if (filling_factor_of_HI_zp > 1) filling_factor_of_HI_zp=1;
-    fprintf(LOG, "z'=%f, filling factor of HI is %e, time=%06.2f min\n",
-	    zp, filling_factor_of_HI_zp, (double)clock()/CLOCKS_PER_SEC/60.0);
+    if (filling_factor_of_HI_zp < 0) filling_factor_of_HI_zp=0;
 
     // let's initialize an array of redshifts (z'') corresponding to the 
     // far edge of the dz'' filtering shells
@@ -768,7 +763,7 @@ double freq_int_heat[NUM_FILTER_STEPS_FOR_Ts], freq_int_ion[NUM_FILTER_STEPS_FOR
       }
 
       lower_int_limit = FMAX(nu_tau_one(zp, zpp, x_e_ave, filling_factor_of_HI_zp), NU_X_THRESH);
-      if (filling_factor_of_HI_zp < 0) filling_factor_of_HI_zp = 0; // for global evol; nu_tau_one above treats negative (post_reionization) inferred filling factors properly
+
 /***************  PARALLELIZED LOOP ******************************************************************/
       // set up frequency integral table for later interpolation for the cell's x_e value
 #pragma omp parallel shared(freq_int_heat_tbl, freq_int_ion_tbl, COMPUTE_Ts, freq_int_lya_tbl, zp, R_ct, x_e_ave, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, lower_int_limit) private(x_e_ct)

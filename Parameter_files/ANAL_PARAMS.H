@@ -57,6 +57,7 @@
 
 /*****************   END OF MAIN PHYSICAL PARAMETERS.  ADDITIONAL OPTIONS ARE PRESENT BELOW THIS LINE *********/
 /**************************************************************************************************************/
+/**************************************************************************************************************/
 
 
 /*
@@ -112,7 +113,7 @@
   The current implementation is very naive and add a factor ~6 to the memory requirements.
   Reference: Scoccimarro R., 1998, MNRAS, 299, 1097-1118 Appendix D  
 */
-#define SECOND_ORDER_LPT_CORRECTIONS (int) (0)
+#define SECOND_ORDER_LPT_CORRECTIONS (int) (1)
 
 /*
   Allows one to set a flag allowing find_HII_bubbles to skip constructing the 
@@ -171,32 +172,23 @@
 #define N_POISSON (int) (-1)
 
 
-/*
+/*                                                                                                    
   Parameter choice of whether to use velocity corrections in 21-cm fields
   1=use velocities in delta_T; 0=do not use velocities
 
-  NOTE: The approximation used to include peculiar velocity effects works 
-  only in the linear regime, so be careful using this (see Mesinger+2010)
-*/
-#define T_USE_VELOCITIES (int) (1)
+and 
 
-/*                                                                                                    
   Maximum velocity gradient along the line of sight in units of the hubble parameter at z.
   This is only used in computing the 21cm fields.
   Note, setting this too high can add spurious 21cm power in the early stages, due to the
   1-e^-tau ~ tau approximation (see my 21cm intro paper and mao+2011).  However, this is still
-  a good approximation at the <~10% level.  Future builds will include the mao+ model for
+  a good approximation at the <~10% level. 
   redshift space distortions.
+  NOTE: since v1.4, the default is to ignore this approximation, using SUBCELL_RSD below
 */
+#define T_USE_VELOCITIES (int) (1)
 #define MAX_DVDR (float) (0.2)
 
-/*
-  Component of the velocity to be used in 21-cm temperature maps
-  1 = x
-  2 = y
-  3 = z
-*/
-#define VELOCITY_COMPONENT (int) (3)
 
 /*
  Whether to include line-of-sight redshift space distortions. 
@@ -277,8 +269,16 @@ Filter for the Halo or density field used to generate ionization field
 #define INITIAL_REDSHIFT (float) 300 // used to perturb field
 
 /************  END USER CHANGABLE DEFINITIONS  **************/
+/************************************************************************************************/
+/************************************************************************************************/
 
 #define HII_EFF_FACTOR (float) ( N_GAMMA_UV * STELLAR_BARYON_FRAC * ESC_FRAC) 
+
+/*
+  Component of the velocity to be used in 21-cm temperature maps
+  3 = z
+*/
+#define VELOCITY_COMPONENT (int) (3)
 
 #define L_FACTOR (float) (0.620350491) // factor relating cube length to filter radius = (4PI/3)^(-1/3)
 
