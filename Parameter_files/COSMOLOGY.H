@@ -29,7 +29,7 @@
    and a DELTA_R_FACTOR (see ANAL_PARAMS.H) dependence, as (will be) shown in Mesinger+.
    For converged mass functions at z~5-10, set DELTA_R_FACTOR=1.1 and SHETH_b~0.15 SHETH_c~0.05 (work in progress)
 
-   For most purposes, a larger step size is quite sufficient and provides an excelent match
+   For most purposes, a larger step size is quite sufficient and provides an excellent match
    to N-body and smoother mass functions, though the b and c parameters should be changed
    to make up for some "stepping-over" massive collapsed halos (see Mesinger, Perna, Haiman (2005)
    and Mesinger et al., in preparation)

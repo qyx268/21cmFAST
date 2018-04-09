@@ -1,0 +1,1230 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+A	Cosmo_c_files/recombinations.c	/^typedef struct {double z, gamma12_bg, T4, A, C_0, beta, avenH; int usecaseB;} RR_par;$/;"	m	struct:__anon3	file:
+A10_HYPERFINE	Boxes/Ts_evolution/COSMOLOGY.H	109;"	d
+A10_HYPERFINE	Output_files/Ts_outs/COSMOLOGY.H	109;"	d
+A10_HYPERFINE	Parameter_files/COSMOLOGY.H	109;"	d
+ALPHA_ESC	Programs/heating_helper_progs.c	/^float F_STAR10,F_ESC10,ALPHA_STAR,ALPHA_ESC,M_TURN,T_AST,Mlim_Fstar,Mlim_Fesc,M_MIN,Splined_Fcoll;\/\/,Splined_Fcollz_mean; \/\/ New in v1.4$/;"	v
+ALPHA_STAR	Programs/heating_helper_progs.c	/^float F_STAR10,F_ESC10,ALPHA_STAR,ALPHA_ESC,M_TURN,T_AST,Mlim_Fstar,Mlim_Fesc,M_MIN,Splined_Fcoll;\/\/,Splined_Fcollz_mean; \/\/ New in v1.4$/;"	v
+ALPHA_UVB	Boxes/Ts_evolution/ANAL_PARAMS.H	55;"	d
+ALPHA_UVB	Output_files/Ts_outs/ANAL_PARAMS.H	55;"	d
+ALPHA_UVB	Parameter_files/ANAL_PARAMS.H	55;"	d
+A_MHR	Cosmo_c_files/recombinations.c	/^double A_MHR(double z){$/;"	f
+A_NPTS	Cosmo_c_files/recombinations.c	18;"	d	file:
+A_acc	Cosmo_c_files/recombinations.c	/^static gsl_interp_accel *A_acc;$/;"	v	file:
+A_aux_integral	Cosmo_c_files/recombinations.c	/^double A_aux_integral(double z){$/;"	f
+A_params	Cosmo_c_files/recombinations.c	/^static double A_table[A_NPTS], A_params[A_NPTS];$/;"	v	file:
+A_spline	Cosmo_c_files/recombinations.c	/^static gsl_spline *A_spline;$/;"	v	file:
+A_table	Cosmo_c_files/recombinations.c	/^static double A_table[A_NPTS], A_params[A_NPTS];$/;"	v	file:
+BODE_e	Boxes/Ts_evolution/COSMOLOGY.H	52;"	d
+BODE_e	Output_files/Ts_outs/COSMOLOGY.H	52;"	d
+BODE_e	Parameter_files/COSMOLOGY.H	52;"	d
+BODE_n	Boxes/Ts_evolution/COSMOLOGY.H	53;"	d
+BODE_n	Output_files/Ts_outs/COSMOLOGY.H	53;"	d
+BODE_n	Parameter_files/COSMOLOGY.H	53;"	d
+BODE_v	Boxes/Ts_evolution/COSMOLOGY.H	54;"	d
+BODE_v	Output_files/Ts_outs/COSMOLOGY.H	54;"	d
+BODE_v	Parameter_files/COSMOLOGY.H	54;"	d
+BOX_LEN	Boxes/Ts_evolution/INIT_PARAMS.H	33;"	d
+BOX_LEN	Output_files/Ts_outs/INIT_PARAMS.H	33;"	d
+BOX_LEN	Parameter_files/INIT_PARAMS.H	33;"	d
+C	Boxes/Ts_evolution/COSMOLOGY.H	76;"	d
+C	Output_files/Ts_outs/COSMOLOGY.H	76;"	d
+C	Parameter_files/COSMOLOGY.H	76;"	d
+CC	Programs/Makefile	/^CC      = gcc -fopenmp -mtune=core2 -march=core2 -m64 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_THREAD_SAFE #for my mac pro 64bit$/;"	m
+CLUMPING_FACTOR	Boxes/Ts_evolution/HEAT_PARAMS.H	50;"	d
+CLUMPING_FACTOR	Output_files/Ts_outs/HEAT_PARAMS.H	50;"	d
+CLUMPING_FACTOR	Parameter_files/HEAT_PARAMS.H	50;"	d
+CMperMPC	Boxes/Ts_evolution/COSMOLOGY.H	84;"	d
+CMperMPC	Output_files/Ts_outs/COSMOLOGY.H	84;"	d
+CMperMPC	Parameter_files/COSMOLOGY.H	84;"	d
+CONVERT_TO_DELTA	Programs/delta_ps.c	11;"	d	file:
+COSMOLOGY_H	Boxes/Ts_evolution/COSMOLOGY.H	2;"	d
+COSMOLOGY_H	Output_files/Ts_outs/COSMOLOGY.H	2;"	d
+COSMOLOGY_H	Parameter_files/COSMOLOGY.H	2;"	d
+COSMO_DIR	Programs/Makefile	/^COSMO_DIR = ..\/Cosmo_c_files$/;"	m
+COSMO_FILES	Programs/Makefile	/^COSMO_FILES = 	${PARAMETER_DIR}\/COSMOLOGY.H \\$/;"	m
+CPPFLAGS	Programs/Makefile	/^CPPFLAGS = -I\/home\/yqin\/programs\/fftw-3.3.7\/include\/$/;"	m
+C_0	Cosmo_c_files/recombinations.c	/^typedef struct {double z, gamma12_bg, T4, A, C_0, beta, avenH; int usecaseB;} RR_par;$/;"	m	struct:__anon3	file:
+C_INDEX	Boxes/Ts_evolution/INIT_PARAMS.H	61;"	d
+C_INDEX	Output_files/Ts_outs/INIT_PARAMS.H	61;"	d
+C_INDEX	Parameter_files/INIT_PARAMS.H	61;"	d
+C_MHR	Cosmo_c_files/recombinations.c	/^double C_MHR(double z){$/;"	f
+C_NPTS	Cosmo_c_files/recombinations.c	23;"	d	file:
+C_acc	Cosmo_c_files/recombinations.c	/^static gsl_interp_accel *C_acc;$/;"	v	file:
+C_params	Cosmo_c_files/recombinations.c	/^static double C_table[C_NPTS], C_params[C_NPTS];$/;"	v	file:
+C_spline	Cosmo_c_files/recombinations.c	/^static gsl_spline *C_spline;$/;"	v	file:
+C_table	Cosmo_c_files/recombinations.c	/^static double C_table[C_NPTS], C_params[C_NPTS];$/;"	v	file:
+Cl	Programs/kSZ_power.c	/^  float *Cl = NULL,*L = NULL;$/;"	v
+Count	Programs/kSZ_power.c	/^  int *Count = NULL;$/;"	v
+D	Boxes/Ts_evolution/INIT_PARAMS.H	51;"	d
+D	Output_files/Ts_outs/INIT_PARAMS.H	51;"	d
+D	Parameter_files/INIT_PARAMS.H	51;"	d
+DEBUG_ON	Boxes/Ts_evolution/HEAT_PARAMS.H	126;"	d
+DEBUG_ON	Output_files/Ts_outs/HEAT_PARAMS.H	126;"	d
+DEBUG_ON	Parameter_files/HEAT_PARAMS.H	126;"	d
+DELTA_CRIT_MODE	Boxes/Ts_evolution/ANAL_PARAMS.H	237;"	d
+DELTA_CRIT_MODE	Output_files/Ts_outs/ANAL_PARAMS.H	237;"	d
+DELTA_CRIT_MODE	Parameter_files/ANAL_PARAMS.H	237;"	d
+DELTA_K	Boxes/Ts_evolution/INIT_PARAMS.H	54;"	d
+DELTA_K	Output_files/Ts_outs/INIT_PARAMS.H	54;"	d
+DELTA_K	Parameter_files/INIT_PARAMS.H	54;"	d
+DELTA_R_FACTOR	Boxes/Ts_evolution/ANAL_PARAMS.H	218;"	d
+DELTA_R_FACTOR	Output_files/Ts_outs/ANAL_PARAMS.H	218;"	d
+DELTA_R_FACTOR	Parameter_files/ANAL_PARAMS.H	218;"	d
+DELTA_R_HII_FACTOR	Boxes/Ts_evolution/ANAL_PARAMS.H	220;"	d
+DELTA_R_HII_FACTOR	Output_files/Ts_outs/ANAL_PARAMS.H	220;"	d
+DELTA_R_HII_FACTOR	Parameter_files/ANAL_PARAMS.H	220;"	d
+DEL_CURR	Cosmo_c_files/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+DEL_CURR	Programs/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+DIM	Boxes/Ts_evolution/INIT_PARAMS.H	34;"	d
+DIM	Output_files/Ts_outs/INIT_PARAMS.H	34;"	d
+DIM	Parameter_files/INIT_PARAMS.H	34;"	d
+DIM	Pics/sliceplot.py	/^        DIM = int("" + path.split("_")[-2])$/;"	v
+DIM	Pics/sliceplot.py	/^        DIM = int("" + path.split("_")[-3])$/;"	v
+DIMENSIONAL_T_POWER_SPEC	Boxes/Ts_evolution/ANAL_PARAMS.H	216;"	d
+DIMENSIONAL_T_POWER_SPEC	Output_files/Ts_outs/ANAL_PARAMS.H	216;"	d
+DIMENSIONAL_T_POWER_SPEC	Parameter_files/ANAL_PARAMS.H	216;"	d
+Deltac	Boxes/Ts_evolution/COSMOLOGY.H	48;"	d
+Deltac	Output_files/Ts_outs/COSMOLOGY.H	48;"	d
+Deltac	Parameter_files/COSMOLOGY.H	48;"	d
+Deltac_nonlinear	Cosmo_c_files/cosmo_progs.c	/^double Deltac_nonlinear(float z){$/;"	f
+E	Boxes/Ts_evolution/COSMOLOGY.H	66;"	d
+E	Output_files/Ts_outs/COSMOLOGY.H	66;"	d
+E	Parameter_files/COSMOLOGY.H	66;"	d
+EFF_START	Programs/drive_xHIscroll.c	29;"	d	file:
+EFF_STEP	Programs/drive_xHIscroll.c	31;"	d	file:
+EFF_STOP	Programs/drive_xHIscroll.c	30;"	d	file:
+EPS2	Cosmo_c_files/ps.c	32;"	d	file:
+EPS2	Programs/ps.c	32;"	d	file:
+ERFC_NPTS	Cosmo_c_files/ps.c	18;"	d	file:
+ERFC_NPTS	Programs/ps.c	18;"	d	file:
+ERFC_PARAM_DELTA	Cosmo_c_files/ps.c	19;"	d	file:
+ERFC_PARAM_DELTA	Programs/ps.c	19;"	d	file:
+ESC_FRAC	Boxes/Ts_evolution/ANAL_PARAMS.H	30;"	d
+ESC_FRAC	Output_files/Ts_outs/ANAL_PARAMS.H	30;"	d
+ESC_FRAC	Parameter_files/ANAL_PARAMS.H	30;"	d
+ESC_PL	Boxes/Ts_evolution/ANAL_PARAMS.H	31;"	d
+ESC_PL	Output_files/Ts_outs/ANAL_PARAMS.H	31;"	d
+ESC_PL	Parameter_files/ANAL_PARAMS.H	31;"	d
+EVOLVE_DENSITY_LINEARLY	Boxes/Ts_evolution/ANAL_PARAMS.H	93;"	d
+EVOLVE_DENSITY_LINEARLY	Output_files/Ts_outs/ANAL_PARAMS.H	93;"	d
+EVOLVE_DENSITY_LINEARLY	Parameter_files/ANAL_PARAMS.H	93;"	d
+FILTER	Boxes/Ts_evolution/COSMOLOGY.H	49;"	d
+FILTER	Output_files/Ts_outs/COSMOLOGY.H	49;"	d
+FILTER	Parameter_files/COSMOLOGY.H	49;"	d
+FIND_BUBBLE_ALGORITHM	Boxes/Ts_evolution/ANAL_PARAMS.H	139;"	d
+FIND_BUBBLE_ALGORITHM	Output_files/Ts_outs/ANAL_PARAMS.H	139;"	d
+FIND_BUBBLE_ALGORITHM	Parameter_files/ANAL_PARAMS.H	139;"	d
+FLIP_BOX	Programs/redshift_interpolate_boxes.c	5;"	d	file:
+FMAX	Cosmo_c_files/misc.c	13;"	d	file:
+FMIN	Cosmo_c_files/misc.c	17;"	d	file:
+FORMAT	Programs/delta_ps.c	10;"	d	file:
+FOURPI	Boxes/Ts_evolution/COSMOLOGY.H	69;"	d
+FOURPI	Output_files/Ts_outs/COSMOLOGY.H	69;"	d
+FOURPI	Parameter_files/COSMOLOGY.H	69;"	d
+FRACT_FLOAT_ERR	Boxes/Ts_evolution/COSMOLOGY.H	73;"	d
+FRACT_FLOAT_ERR	Output_files/Ts_outs/COSMOLOGY.H	73;"	d
+FRACT_FLOAT_ERR	Parameter_files/COSMOLOGY.H	73;"	d
+FREE_ARG	Cosmo_c_files/ps.c	25;"	d	file:
+FREE_ARG	Programs/ps.c	25;"	d	file:
+FUNC	Cosmo_c_files/ps.c	30;"	d	file:
+FUNC	Programs/ps.c	30;"	d	file:
+FUNC2	Cosmo_c_files/ps.c	31;"	d	file:
+FUNC2	Programs/ps.c	31;"	d	file:
+F_ESC10	Programs/heating_helper_progs.c	/^float F_STAR10,F_ESC10,ALPHA_STAR,ALPHA_ESC,M_TURN,T_AST,Mlim_Fstar,Mlim_Fesc,M_MIN,Splined_Fcoll;\/\/,Splined_Fcollz_mean; \/\/ New in v1.4$/;"	v
+F_STAR10	Programs/heating_helper_progs.c	/^float F_STAR10,F_ESC10,ALPHA_STAR,ALPHA_ESC,M_TURN,T_AST,Mlim_Fstar,Mlim_Fesc,M_MIN,Splined_Fcoll;\/\/,Splined_Fcollz_mean; \/\/ New in v1.4$/;"	v
+Fcoll	Programs/find_HII_bubbles.c	/^float *Fcoll;$/;"	v
+FcollLow_spline	Cosmo_c_files/ps.c	/^static gsl_spline *FcollLow_spline;$/;"	v	file:
+FcollLow_spline	Programs/ps.c	/^static gsl_spline *FcollLow_spline;$/;"	v	file:
+FcollLow_spline_acc	Cosmo_c_files/ps.c	/^static gsl_interp_accel *FcollLow_spline_acc;$/;"	v	file:
+FcollLow_spline_acc	Programs/ps.c	/^static gsl_interp_accel *FcollLow_spline_acc;$/;"	v	file:
+FcollLow_zpp_spline	Programs/heating_helper_progs.c	/^gsl_spline *FcollLow_zpp_spline[NUM_FILTER_STEPS_FOR_Ts];$/;"	v
+FcollLow_zpp_spline_acc	Programs/heating_helper_progs.c	/^gsl_interp_accel *FcollLow_zpp_spline_acc[NUM_FILTER_STEPS_FOR_Ts];$/;"	v
+FcollSpline	Programs/ps.c	/^void FcollSpline(float Overdensity, float *splined_value)$/;"	f
+FcollSpline_SFR	Cosmo_c_files/ps.c	/^void FcollSpline_SFR(float Overdensity, float *splined_value){$/;"	f
+FcollSpline_SFR	Programs/ps.c	/^void FcollSpline_SFR(float Overdensity, float *splined_value){$/;"	f
+Fcoll_spline	Cosmo_c_files/ps.c	/^static gsl_spline *Fcoll_spline;$/;"	v	file:
+Fcoll_spline	Programs/ps.c	/^static gsl_spline *Fcoll_spline;$/;"	v	file:
+Fcoll_spline_GL_high	Programs/ps.c	/^float *Overdense_spline_gsl,*Overdense_spline_GL_high,*Fcoll_spline_gsl,*Fcoll_spline_GL_high,*xi_low,*xi_high,*wi_high,*wi_low;$/;"	v
+Fcoll_spline_GL_low	Programs/ps.c	/^float *second_derivs_low_GL,*second_derivs_high_GL,*Overdense_spline_GL_low,*Fcoll_spline_GL_low;$/;"	v
+Fcoll_spline_SFR	Cosmo_c_files/ps.c	/^float *Overdense_spline_SFR,*Fcoll_spline_SFR,*second_derivs_SFR;$/;"	v
+Fcoll_spline_SFR	Programs/ps.c	/^float *Overdense_spline_SFR,*Fcoll_spline_SFR,*second_derivs_SFR;$/;"	v
+Fcoll_spline_acc	Cosmo_c_files/ps.c	/^static gsl_interp_accel *Fcoll_spline_acc;$/;"	v	file:
+Fcoll_spline_acc	Programs/ps.c	/^static gsl_interp_accel *Fcoll_spline_acc;$/;"	v	file:
+Fcoll_spline_gsl	Programs/ps.c	/^float *Overdense_spline_gsl,*Overdense_spline_GL_high,*Fcoll_spline_gsl,*Fcoll_spline_GL_high,*xi_low,*xi_high,*wi_high,*wi_low;$/;"	v
+Fcoll_spline_params	Programs/ps.c	/^static double Fcoll_spline_params[SPLINE_NPTS], log_Fcoll_spline_table[SPLINE_NPTS];$/;"	v	file:
+FcollzX_spline	Cosmo_c_files/ps.c	/^static gsl_spline *FcollzX_spline;$/;"	v	file:
+FcollzX_spline_acc	Cosmo_c_files/ps.c	/^static gsl_interp_accel *FcollzX_spline_acc;$/;"	v	file:
+FcollzX_val	Cosmo_c_files/ps.c	/^static double z_X_val[zpp_interp_points],FcollzX_val[zpp_interp_points]; $/;"	v	file:
+Fcollz_SFR_high_table	Cosmo_c_files/ps.c	/^float *Overdense_high_table, **Fcollz_SFR_high_table;$/;"	v
+Fcollz_spline	Cosmo_c_files/ps.c	/^static gsl_spline *Fcollz_spline;$/;"	v	file:
+Fcollz_spline_acc	Cosmo_c_files/ps.c	/^static gsl_interp_accel *Fcollz_spline_acc;$/;"	v	file:
+Fcollz_val	Cosmo_c_files/ps.c	/^static double z_val[zpp_interp_points],Fcollz_val[zpp_interp_points]; \/\/ For Ts.c$/;"	v	file:
+FgtrConditionalM_SFR	Cosmo_c_files/ps.c	/^double FgtrConditionalM_SFR(double z, double M1, double M2, double delta1, double delta2, double MassTurnover, double Alpha_star, double Alpha_esc, double Fstar10, double Fesc10, double Mlim_Fstar, double Mlim_Fesc) {$/;"	f
+FgtrConditionalM_SFR	Programs/ps.c	/^double FgtrConditionalM_SFR(double z, double M1, double M2, double delta1, double delta2, double MassTurnover, double Alpha_star, double Alpha_esc, double Fstar10, double Fesc10) {$/;"	f
+FgtrConditionalM_second	Cosmo_c_files/ps.c	/^float FgtrConditionalM_second(float z, float M1, float M2, float MFeedback, float alpha, float delta1, float delta2) {$/;"	f
+FgtrConditionalM_second	Programs/ps.c	/^float FgtrConditionalM_second(float z, float M1, float M2, float MFeedback, float alpha, float delta1, float delta2) {$/;"	f
+FgtrConditionallnM	Programs/ps.c	/^float FgtrConditionallnM(float M1, struct parameters_gsl_int_ parameters_gsl_int) {$/;"	f
+FgtrConditionallnM_GL_SFR	Cosmo_c_files/ps.c	/^float FgtrConditionallnM_GL_SFR(float lnM, struct parameters_gsl_SFR_con_int_ parameters_gsl_SFR_con){$/;"	f
+FgtrConditionallnM_GL_SFR	Programs/ps.c	/^float FgtrConditionallnM_GL_SFR(float lnM, struct parameters_gsl_SFR_con_int_ parameters_gsl_SFR_con){$/;"	f
+FgtrM	Cosmo_c_files/ps.c	/^double FgtrM(double z, double M){$/;"	f
+FgtrM	Programs/ps.c	/^double FgtrM(double z, double M){$/;"	f
+FgtrM_bias	Cosmo_c_files/ps.c	/^double FgtrM_bias(double z, double M, double del_bias, double sig_bias){$/;"	f
+FgtrM_bias	Programs/ps.c	/^double FgtrM_bias(double z, double M, double del_bias, double sig_bias){$/;"	f
+FgtrM_bias_BL08	Cosmo_c_files/ps.c	/^double FgtrM_bias_BL08(double z, double M, double del_bias, double sig_bias){$/;"	f
+FgtrM_bias_BL08	Programs/ps.c	/^double FgtrM_bias_BL08(double z, double M, double del_bias, double sig_bias){$/;"	f
+FgtrM_general	Programs/ps.c	/^double FgtrM_general(float z, float M1, float M_Max, float M2, float MFeedback, float alpha, float delta1, float delta2) {$/;"	f
+FgtrM_st	Cosmo_c_files/ps.c	/^double FgtrM_st(double z, double M){$/;"	f
+FgtrM_st	Programs/ps.c	/^double FgtrM_st(double z, double M){$/;"	f
+FgtrM_st_DPL	Programs/ps.c	/^double FgtrM_st_DPL(double z, double Mmin, double MFeedback, double M_i, double alpha_pl, double beta_pl){$/;"	f
+FgtrM_st_PL	Programs/ps.c	/^double FgtrM_st_PL(double z, double Mmin, double MFeedback, double alpha_pl){$/;"	f
+FgtrM_st_SFR	Cosmo_c_files/ps.c	/^double FgtrM_st_SFR(double z, double MassTurnover, double Alpha_star, double Alpha_esc, double Fstar10, double Fesc10, double Mlim_Fstar, double Mlim_Fesc){$/;"	f
+FgtrM_st_SFR	Programs/ps.c	/^double FgtrM_st_SFR(double z, double M, double MassTurnover, double Alpha_star, double Alpha_esc, double Fstar10, double Fesc10){$/;"	f
+FgtrM_st_SFR_X_z	Cosmo_c_files/ps.c	/^void FgtrM_st_SFR_X_z(float z, float *splined_value){$/;"	f
+FgtrM_st_SFR_z	Cosmo_c_files/ps.c	/^void FgtrM_st_SFR_z(float z, float *splined_value){$/;"	f
+FgtrlnM_general	Programs/ps.c	/^double FgtrlnM_general(double lnM, void *params) {$/;"	f
+G	Boxes/Ts_evolution/COSMOLOGY.H	70;"	d
+G	Output_files/Ts_outs/COSMOLOGY.H	70;"	d
+G	Parameter_files/COSMOLOGY.H	70;"	d
+G_AB_Jy	Boxes/Ts_evolution/COSMOLOGY.H	95;"	d
+G_AB_Jy	Output_files/Ts_outs/COSMOLOGY.H	95;"	d
+G_AB_Jy	Parameter_files/COSMOLOGY.H	95;"	d
+Gamma_SS	Cosmo_c_files/recombinations.c	/^double Gamma_SS(double Gamma_bg, double D, double T_4, double z){$/;"	f
+GaussLegendreQuad_FcollSFR	Cosmo_c_files/ps.c	/^float GaussLegendreQuad_FcollSFR(int n, float z, float M2, float delta1, float delta2, float MassTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc) {$/;"	f
+GaussLegendreQuad_FcollSFR	Programs/ps.c	/^float GaussLegendreQuad_FcollSFR(int n, float z, float M2, float delta1, float delta2, float MassTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10) {$/;"	f
+GaussLegengreQuad_Fcoll	Programs/ps.c	/^float GaussLegengreQuad_Fcoll(int n, float z, float M2, float MFeedback, float alpha, float delta1, float delta2)$/;"	f
+HALO_FILTER	Boxes/Ts_evolution/ANAL_PARAMS.H	246;"	d
+HALO_FILTER	Output_files/Ts_outs/ANAL_PARAMS.H	246;"	d
+HALO_FILTER	Parameter_files/ANAL_PARAMS.H	246;"	d
+HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY	Programs/heating_helper_progs.c	/^int HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY; \/\/ New in v1.4$/;"	v
+HEAT_FILTER	Boxes/Ts_evolution/HEAT_PARAMS.H	47;"	d
+HEAT_FILTER	Output_files/Ts_outs/HEAT_PARAMS.H	47;"	d
+HEAT_FILTER	Parameter_files/HEAT_PARAMS.H	47;"	d
+HII_C_INDEX	Boxes/Ts_evolution/ANAL_PARAMS.H	294;"	d
+HII_C_INDEX	Output_files/Ts_outs/ANAL_PARAMS.H	294;"	d
+HII_C_INDEX	Parameter_files/ANAL_PARAMS.H	294;"	d
+HII_D	Boxes/Ts_evolution/ANAL_PARAMS.H	285;"	d
+HII_D	Output_files/Ts_outs/ANAL_PARAMS.H	285;"	d
+HII_D	Parameter_files/ANAL_PARAMS.H	285;"	d
+HII_DIM	Boxes/Ts_evolution/INIT_PARAMS.H	36;"	d
+HII_DIM	Output_files/Ts_outs/INIT_PARAMS.H	36;"	d
+HII_DIM	Parameter_files/INIT_PARAMS.H	36;"	d
+HII_EFF_FACTOR	Boxes/Ts_evolution/ANAL_PARAMS.H	275;"	d
+HII_EFF_FACTOR	Output_files/Ts_outs/ANAL_PARAMS.H	275;"	d
+HII_EFF_FACTOR	Parameter_files/ANAL_PARAMS.H	275;"	d
+HII_FILTER	Boxes/Ts_evolution/ANAL_PARAMS.H	254;"	d
+HII_FILTER	Output_files/Ts_outs/ANAL_PARAMS.H	254;"	d
+HII_FILTER	Parameter_files/ANAL_PARAMS.H	254;"	d
+HII_KSPACE_NUM_PIXELS	Boxes/Ts_evolution/ANAL_PARAMS.H	291;"	d
+HII_KSPACE_NUM_PIXELS	Output_files/Ts_outs/ANAL_PARAMS.H	291;"	d
+HII_KSPACE_NUM_PIXELS	Parameter_files/ANAL_PARAMS.H	291;"	d
+HII_MID	Boxes/Ts_evolution/ANAL_PARAMS.H	287;"	d
+HII_MID	Output_files/Ts_outs/ANAL_PARAMS.H	287;"	d
+HII_MID	Parameter_files/ANAL_PARAMS.H	287;"	d
+HII_MIDDLE	Boxes/Ts_evolution/ANAL_PARAMS.H	286;"	d
+HII_MIDDLE	Output_files/Ts_outs/ANAL_PARAMS.H	286;"	d
+HII_MIDDLE	Parameter_files/ANAL_PARAMS.H	286;"	d
+HII_ROUND_ERR	Boxes/Ts_evolution/ANAL_PARAMS.H	127;"	d
+HII_ROUND_ERR	Output_files/Ts_outs/ANAL_PARAMS.H	127;"	d
+HII_ROUND_ERR	Parameter_files/ANAL_PARAMS.H	127;"	d
+HII_R_FFT_INDEX	Boxes/Ts_evolution/ANAL_PARAMS.H	295;"	d
+HII_R_FFT_INDEX	Output_files/Ts_outs/ANAL_PARAMS.H	295;"	d
+HII_R_FFT_INDEX	Parameter_files/ANAL_PARAMS.H	295;"	d
+HII_R_INDEX	Boxes/Ts_evolution/ANAL_PARAMS.H	296;"	d
+HII_R_INDEX	Output_files/Ts_outs/ANAL_PARAMS.H	296;"	d
+HII_R_INDEX	Parameter_files/ANAL_PARAMS.H	296;"	d
+HII_TOT_FFT_NUM_PIXELS	Boxes/Ts_evolution/ANAL_PARAMS.H	290;"	d
+HII_TOT_FFT_NUM_PIXELS	Output_files/Ts_outs/ANAL_PARAMS.H	290;"	d
+HII_TOT_FFT_NUM_PIXELS	Parameter_files/ANAL_PARAMS.H	290;"	d
+HII_TOT_NUM_PIXELS	Boxes/Ts_evolution/ANAL_PARAMS.H	289;"	d
+HII_TOT_NUM_PIXELS	Output_files/Ts_outs/ANAL_PARAMS.H	289;"	d
+HII_TOT_NUM_PIXELS	Parameter_files/ANAL_PARAMS.H	289;"	d
+HII_filter	Programs/bubble_helper_progs.c	/^void HII_filter(fftwf_complex *box, int filter_type, float R){$/;"	f
+HI_filling_factor_zp	Programs/heating_helper_progs.c	/^  double x_e, zp, zpp, HI_filling_factor_zp;$/;"	m	struct:__anon2	file:
+HI_ion_crosssec	Cosmo_c_files/cosmo_progs.c	/^double HI_ion_crosssec(double nu){$/;"	f
+HeII_NUIONIZATION	Boxes/Ts_evolution/COSMOLOGY.H	98;"	d
+HeII_NUIONIZATION	Output_files/Ts_outs/COSMOLOGY.H	98;"	d
+HeII_NUIONIZATION	Parameter_files/COSMOLOGY.H	98;"	d
+HeII_ion_crosssec	Cosmo_c_files/cosmo_progs.c	/^double HeII_ion_crosssec(double nu){$/;"	f
+HeI_NUIONIZATION	Boxes/Ts_evolution/COSMOLOGY.H	99;"	d
+HeI_NUIONIZATION	Output_files/Ts_outs/COSMOLOGY.H	99;"	d
+HeI_NUIONIZATION	Parameter_files/COSMOLOGY.H	99;"	d
+HeI_ion_crosssec	Cosmo_c_files/cosmo_progs.c	/^double HeI_ion_crosssec(double nu){$/;"	f
+He_No	Boxes/Ts_evolution/COSMOLOGY.H	104;"	d
+He_No	Output_files/Ts_outs/COSMOLOGY.H	104;"	d
+He_No	Parameter_files/COSMOLOGY.H	104;"	d
+Ho	Boxes/Ts_evolution/COSMOLOGY.H	100;"	d
+Ho	Output_files/Ts_outs/COSMOLOGY.H	100;"	d
+Ho	Parameter_files/COSMOLOGY.H	100;"	d
+INHOMO_RECO	Boxes/Ts_evolution/ANAL_PARAMS.H	42;"	d
+INHOMO_RECO	Output_files/Ts_outs/ANAL_PARAMS.H	42;"	d
+INHOMO_RECO	Parameter_files/ANAL_PARAMS.H	42;"	d
+INITIAL_REDSHIFT	Boxes/Ts_evolution/ANAL_PARAMS.H	269;"	d
+INITIAL_REDSHIFT	Output_files/Ts_outs/ANAL_PARAMS.H	269;"	d
+INITIAL_REDSHIFT	Parameter_files/ANAL_PARAMS.H	269;"	d
+Ion_Eff_Factor_SFR	Programs/ps.c	/^double Ion_Eff_Factor_SFR(double f_star10, double f_esc10){$/;"	f
+KAPPA_10_NPTS	Programs/heating_helper_progs.c	9;"	d	file:
+KAPPA_10_elec_NPTS	Programs/heating_helper_progs.c	10;"	d	file:
+KAPPA_10_pH_NPTS	Programs/heating_helper_progs.c	11;"	d	file:
+KAPPA_EH_FILENAME	Boxes/Ts_evolution/HEAT_PARAMS.H	104;"	d
+KAPPA_EH_FILENAME	Output_files/Ts_outs/HEAT_PARAMS.H	104;"	d
+KAPPA_EH_FILENAME	Parameter_files/HEAT_PARAMS.H	104;"	d
+KAPPA_PH_FILENAME	Boxes/Ts_evolution/HEAT_PARAMS.H	105;"	d
+KAPPA_PH_FILENAME	Output_files/Ts_outs/HEAT_PARAMS.H	105;"	d
+KAPPA_PH_FILENAME	Parameter_files/HEAT_PARAMS.H	105;"	d
+KSPACE_NUM_PIXELS	Boxes/Ts_evolution/INIT_PARAMS.H	57;"	d
+KSPACE_NUM_PIXELS	Output_files/Ts_outs/INIT_PARAMS.H	57;"	d
+KSPACE_NUM_PIXELS	Parameter_files/INIT_PARAMS.H	57;"	d
+L	Programs/kSZ_power.c	/^  float *Cl = NULL,*L = NULL;$/;"	v
+LDFLAGS	Programs/Makefile	/^LDFLAGS = -L\/home\/yqin\/programs\/fftw-3.3.7\/lib -lgsl -lgslcblas -lfftw3f_omp -lfftw3f -lm$/;"	m
+LN10	Boxes/Ts_evolution/COSMOLOGY.H	63;"	d
+LN10	Output_files/Ts_outs/COSMOLOGY.H	63;"	d
+LN10	Parameter_files/COSMOLOGY.H	63;"	d
+LOG	Programs/find_HII_bubbles.c	/^FILE *LOG;$/;"	v
+LOG	Programs/find_halos.c	/^FILE *LOG;$/;"	v
+LOG	Programs/heating_helper_progs.c	/^FILE *LOG;$/;"	v
+LOG	Programs/kSZ_power.c	/^FILE *LOG;$/;"	v
+LOG	Programs/redshift_interpolate_boxes.c	/^FILE *LOG;$/;"	v
+LOS_RANDOM_SEED	Boxes/Ts_evolution/ANAL_PARAMS.H	267;"	d
+LOS_RANDOM_SEED	Output_files/Ts_outs/ANAL_PARAMS.H	267;"	d
+LOS_RANDOM_SEED	Parameter_files/ANAL_PARAMS.H	267;"	d
+L_FACTOR	Boxes/Ts_evolution/ANAL_PARAMS.H	283;"	d
+L_FACTOR	Output_files/Ts_outs/ANAL_PARAMS.H	283;"	d
+L_FACTOR	Parameter_files/ANAL_PARAMS.H	283;"	d
+L_X	Boxes/Ts_evolution/HEAT_PARAMS.H	21;"	d
+L_X	Output_files/Ts_outs/HEAT_PARAMS.H	21;"	d
+L_X	Parameter_files/HEAT_PARAMS.H	21;"	d
+LimitMass_Fesc	Cosmo_c_files/ps.c	/^	double LimitMass_Fesc;$/;"	m	struct:parameters_gsl_SFR_con_int_	file:
+LimitMass_Fesc	Cosmo_c_files/ps.c	/^	double LimitMass_Fesc;$/;"	m	struct:parameters_gsl_SFR_int_	file:
+LimitMass_Fstar	Cosmo_c_files/ps.c	/^	double LimitMass_Fstar;$/;"	m	struct:parameters_gsl_SFR_con_int_	file:
+LimitMass_Fstar	Cosmo_c_files/ps.c	/^	double LimitMass_Fstar;$/;"	m	struct:parameters_gsl_SFR_int_	file:
+LinearSegmentedColormap	Pics/sliceplot.py	/^from matplotlib.colors import LinearSegmentedColormap$/;"	i
+Lsun	Boxes/Ts_evolution/COSMOLOGY.H	88;"	d
+Lsun	Output_files/Ts_outs/COSMOLOGY.H	88;"	d
+Lsun	Parameter_files/COSMOLOGY.H	88;"	d
+Ly_alpha_ANG	Boxes/Ts_evolution/COSMOLOGY.H	80;"	d
+Ly_alpha_ANG	Output_files/Ts_outs/COSMOLOGY.H	80;"	d
+Ly_alpha_ANG	Parameter_files/COSMOLOGY.H	80;"	d
+Ly_alpha_HZ	Boxes/Ts_evolution/COSMOLOGY.H	75;"	d
+Ly_alpha_HZ	Output_files/Ts_outs/COSMOLOGY.H	75;"	d
+Ly_alpha_HZ	Parameter_files/COSMOLOGY.H	75;"	d
+Ly_beta_ANG	Boxes/Ts_evolution/COSMOLOGY.H	81;"	d
+Ly_beta_ANG	Output_files/Ts_outs/COSMOLOGY.H	81;"	d
+Ly_beta_ANG	Parameter_files/COSMOLOGY.H	81;"	d
+Ly_gamma_ANG	Boxes/Ts_evolution/COSMOLOGY.H	82;"	d
+Ly_gamma_ANG	Output_files/Ts_outs/COSMOLOGY.H	82;"	d
+Ly_gamma_ANG	Parameter_files/COSMOLOGY.H	82;"	d
+Lya_crosssec	Cosmo_c_files/cosmo_progs.c	/^double Lya_crosssec(double nu, double T){$/;"	f
+Lya_dopwidth	Cosmo_c_files/cosmo_progs.c	/^double Lya_dopwidth(double T){$/;"	f
+MAX_DVDR	Boxes/Ts_evolution/ANAL_PARAMS.H	190;"	d
+MAX_DVDR	Output_files/Ts_outs/ANAL_PARAMS.H	190;"	d
+MAX_DVDR	Parameter_files/ANAL_PARAMS.H	190;"	d
+MAX_MAX	Programs/gen_size_distr.c	7;"	d	file:
+MAX_TK	Programs/Ts.c	92;"	d	file:
+MF_spline	Programs/ps.c	/^static gsl_spline *MF_spline, *MF_spline_densgtr1;$/;"	v	file:
+MF_spline_densgtr1	Programs/ps.c	/^static gsl_spline *MF_spline, *MF_spline_densgtr1;$/;"	v	file:
+MFspline_acc	Programs/ps.c	/^static gsl_interp_accel *MFspline_acc, *MFspline_densgtr1_acc;$/;"	v	file:
+MFspline_densgtr1_acc	Programs/ps.c	/^static gsl_interp_accel *MFspline_acc, *MFspline_densgtr1_acc;$/;"	v	file:
+MFspline_params	Programs/ps.c	/^static double log_MFspline_table[SPLINE_NPTS], MFspline_params[SPLINE_NPTS];$/;"	v	file:
+MFspline_params_densgtr1	Programs/ps.c	/^static double log_MFspline_table_densgtr1[SPLINE_NPTS], MFspline_params_densgtr1[SPLINE_NPTS];$/;"	v	file:
+MHR_rr	Cosmo_c_files/recombinations.c	/^double MHR_rr (double lnD, void *params){$/;"	f
+MID	Boxes/Ts_evolution/INIT_PARAMS.H	52;"	d
+MID	Output_files/Ts_outs/INIT_PARAMS.H	52;"	d
+MID	Parameter_files/INIT_PARAMS.H	52;"	d
+MIDDLE	Boxes/Ts_evolution/INIT_PARAMS.H	50;"	d
+MIDDLE	Output_files/Ts_outs/INIT_PARAMS.H	50;"	d
+MIDDLE	Parameter_files/INIT_PARAMS.H	50;"	d
+MM	Cosmo_c_files/ps.c	27;"	d	file:
+MM	Programs/ps.c	27;"	d	file:
+M_Feed	Programs/ps.c	/^    double M_Feed;$/;"	m	struct:parameters_gsl_ST_int_	file:
+M_Feed	Programs/ps.c	/^    double M_Feed;$/;"	m	struct:parameters_gsl_int_	file:
+M_J_WDM	Cosmo_c_files/ps.c	/^double M_J_WDM(){$/;"	f
+M_J_WDM	Programs/ps.c	/^double M_J_WDM(){$/;"	f
+M_MIN	Programs/heating_helper_progs.c	/^float F_STAR10,F_ESC10,ALPHA_STAR,ALPHA_ESC,M_TURN,T_AST,Mlim_Fstar,Mlim_Fesc,M_MIN,Splined_Fcoll;\/\/,Splined_Fcollz_mean; \/\/ New in v1.4$/;"	v
+M_MIN_at_z	Programs/heating_helper_progs.c	/^float M_MIN_at_z, M_MIN_at_zp;$/;"	v
+M_MIN_at_zp	Programs/heating_helper_progs.c	/^float M_MIN_at_z, M_MIN_at_zp;$/;"	v
+M_TURN	Programs/heating_helper_progs.c	/^float F_STAR10,F_ESC10,ALPHA_STAR,ALPHA_ESC,M_TURN,T_AST,Mlim_Fstar,Mlim_Fesc,M_MIN,Splined_Fcoll;\/\/,Splined_Fcollz_mean; \/\/ New in v1.4$/;"	v
+M_TURNOVER	Boxes/Ts_evolution/ANAL_PARAMS.H	32;"	d
+M_TURNOVER	Output_files/Ts_outs/ANAL_PARAMS.H	32;"	d
+M_TURNOVER	Parameter_files/ANAL_PARAMS.H	32;"	d
+M_WDM	Boxes/Ts_evolution/COSMOLOGY.H	9;"	d
+M_WDM	Output_files/Ts_outs/COSMOLOGY.H	9;"	d
+M_WDM	Parameter_files/COSMOLOGY.H	9;"	d
+M_jeans_general	Cosmo_c_files/cosmo_progs.c	/^double M_jeans_general(float z, float Del, float T, float mu){$/;"	f
+M_jeans_neutralIGM	Cosmo_c_files/cosmo_progs.c	/^double M_jeans_neutralIGM(float z){$/;"	f
+Mass_Spline	Cosmo_c_files/ps.c	/^float *Mass_Spline, *Sigma_Spline, *dSigmadm_Spline, *second_derivs_sigma, *second_derivs_dsigma;$/;"	v
+Mass_Spline	Programs/ps.c	/^float *Mass_Spline, *Sigma_Spline, *dSigmadm_Spline, *second_derivs_sigma, *second_derivs_dsigma;$/;"	v
+Mass_limit	Cosmo_c_files/ps.c	/^float Mass_limit (float logM, float PL, float FRAC) {$/;"	f
+Mass_limit_bisection	Cosmo_c_files/ps.c	/^float Mass_limit_bisection(float Mmin, float Mmax, float PL, float FRAC){$/;"	f
+Mdrop	Cosmo_c_files/ps.c	/^    double Mdrop;$/;"	m	struct:parameters_gsl_SFR_con_int_	file:
+Mdrop	Cosmo_c_files/ps.c	/^    double Mdrop;$/;"	m	struct:parameters_gsl_SFR_int_	file:
+Mdrop	Programs/ps.c	/^    double Mdrop;$/;"	m	struct:parameters_gsl_SFR_con_int_	file:
+Mdrop	Programs/ps.c	/^    double Mdrop;$/;"	m	struct:parameters_gsl_SFR_int_	file:
+MidpointNormalize	Pics/sliceplot.py	/^class MidpointNormalize(Normalize):$/;"	c
+Mlim_Fesc	Programs/heating_helper_progs.c	/^float F_STAR10,F_ESC10,ALPHA_STAR,ALPHA_ESC,M_TURN,T_AST,Mlim_Fstar,Mlim_Fesc,M_MIN,Splined_Fcoll;\/\/,Splined_Fcollz_mean; \/\/ New in v1.4$/;"	v
+Mlim_Fstar	Programs/heating_helper_progs.c	/^float F_STAR10,F_ESC10,ALPHA_STAR,ALPHA_ESC,M_TURN,T_AST,Mlim_Fstar,Mlim_Fesc,M_MIN,Splined_Fcoll;\/\/,Splined_Fcollz_mean; \/\/ New in v1.4$/;"	v
+Msun	Boxes/Ts_evolution/COSMOLOGY.H	86;"	d
+Msun	Output_files/Ts_outs/COSMOLOGY.H	86;"	d
+Msun	Parameter_files/COSMOLOGY.H	86;"	d
+MtoR	Cosmo_c_files/ps.c	/^double MtoR(double M){$/;"	f
+MtoR	Programs/ps.c	/^double MtoR(double M){$/;"	f
+MtoRvir	Cosmo_c_files/cosmo_progs.c	/^float MtoRvir(float z, double M){$/;"	f
+MtoVcir	Cosmo_c_files/cosmo_progs.c	/^float MtoVcir(float z, double M){$/;"	f
+Mval	Cosmo_c_files/ps.c	/^    double Mval;$/;"	m	struct:parameters_gsl_SFR_con_int_	file:
+Mval	Programs/ps.c	/^    double Mval;$/;"	m	struct:parameters_gsl_SFR_con_int_	file:
+Mval	Programs/ps.c	/^    double Mval;$/;"	m	struct:parameters_gsl_int_	file:
+N	Programs/kSZ_power.c	/^  long N, Nf;$/;"	v
+NGL_SFR	Cosmo_c_files/ps.c	49;"	d	file:
+NGL_SFR	Programs/ps.c	49;"	d	file:
+NGLhigh	Cosmo_c_files/ps.c	39;"	d	file:
+NGLhigh	Programs/ps.c	39;"	d	file:
+NGLlow	Cosmo_c_files/ps.c	40;"	d	file:
+NGLlow	Programs/ps.c	40;"	d	file:
+NGaussLegendre	Cosmo_c_files/ps.c	36;"	d	file:
+NGaussLegendre	Programs/ps.c	36;"	d	file:
+NMass	Cosmo_c_files/ps.c	44;"	d	file:
+NMass	Programs/ps.c	44;"	d	file:
+NO_LIGHT	Programs/heating_helper_progs.c	/^int NO_LIGHT;$/;"	v
+NR_END	Cosmo_c_files/ps.c	24;"	d	file:
+NR_END	Programs/ps.c	24;"	d	file:
+NSFR_high	Cosmo_c_files/ps.c	47;"	d	file:
+NSFR_high	Programs/ps.c	47;"	d	file:
+NSFR_low	Cosmo_c_files/ps.c	48;"	d	file:
+NSFR_low	Programs/ps.c	48;"	d	file:
+NSPEC_MAX	Programs/heating_helper_progs.c	7;"	d	file:
+NSTACK	Cosmo_c_files/ps.c	28;"	d	file:
+NSTACK	Programs/ps.c	28;"	d	file:
+NUIONIZATION	Boxes/Ts_evolution/COSMOLOGY.H	97;"	d
+NUIONIZATION	Output_files/Ts_outs/COSMOLOGY.H	97;"	d
+NUIONIZATION	Parameter_files/COSMOLOGY.H	97;"	d
+NUMCORES	Boxes/Ts_evolution/INIT_PARAMS.H	39;"	d
+NUMCORES	Output_files/Ts_outs/INIT_PARAMS.H	39;"	d
+NUMCORES	Parameter_files/INIT_PARAMS.H	39;"	d
+NUM_FILTER_STEPS_FOR_Ts	Boxes/Ts_evolution/HEAT_PARAMS.H	73;"	d
+NUM_FILTER_STEPS_FOR_Ts	Output_files/Ts_outs/HEAT_PARAMS.H	73;"	d
+NUM_FILTER_STEPS_FOR_Ts	Parameter_files/HEAT_PARAMS.H	73;"	d
+NUM_HIGH_LEVEL_RNG	Programs/init.c	18;"	d	file:
+NUM_TRIALS	Programs/gen_size_distr.c	4;"	d	file:
+NU_X_BAND_MAX	Boxes/Ts_evolution/HEAT_PARAMS.H	22;"	d
+NU_X_BAND_MAX	Output_files/Ts_outs/HEAT_PARAMS.H	22;"	d
+NU_X_BAND_MAX	Parameter_files/HEAT_PARAMS.H	22;"	d
+NU_X_THRESH	Boxes/Ts_evolution/HEAT_PARAMS.H	32;"	d
+NU_X_THRESH	Output_files/Ts_outs/HEAT_PARAMS.H	32;"	d
+NU_X_THRESH	Parameter_files/HEAT_PARAMS.H	32;"	d
+NU_over_EV	Boxes/Ts_evolution/COSMOLOGY.H	96;"	d
+NU_over_EV	Output_files/Ts_outs/COSMOLOGY.H	96;"	d
+NU_over_EV	Parameter_files/COSMOLOGY.H	96;"	d
+NV_ANG	Boxes/Ts_evolution/COSMOLOGY.H	83;"	d
+NV_ANG	Output_files/Ts_outs/COSMOLOGY.H	83;"	d
+NV_ANG	Parameter_files/COSMOLOGY.H	83;"	d
+N_GAMMA_UV	Boxes/Ts_evolution/ANAL_PARAMS.H	27;"	d
+N_GAMMA_UV	Output_files/Ts_outs/ANAL_PARAMS.H	27;"	d
+N_GAMMA_UV	Parameter_files/ANAL_PARAMS.H	27;"	d
+N_POISSON	Boxes/Ts_evolution/ANAL_PARAMS.H	172;"	d
+N_POISSON	Output_files/Ts_outs/ANAL_PARAMS.H	172;"	d
+N_POISSON	Parameter_files/ANAL_PARAMS.H	172;"	d
+N_RSD_STEPS	Boxes/Ts_evolution/ANAL_PARAMS.H	209;"	d
+N_RSD_STEPS	Output_files/Ts_outs/ANAL_PARAMS.H	209;"	d
+N_RSD_STEPS	Parameter_files/ANAL_PARAMS.H	209;"	d
+N_b0	Boxes/Ts_evolution/COSMOLOGY.H	105;"	d
+N_b0	Output_files/Ts_outs/COSMOLOGY.H	105;"	d
+N_b0	Parameter_files/COSMOLOGY.H	105;"	d
+N_nu	Boxes/Ts_evolution/COSMOLOGY.H	51;"	d
+N_nu	Output_files/Ts_outs/COSMOLOGY.H	51;"	d
+N_nu	Parameter_files/COSMOLOGY.H	51;"	d
+Nf	Programs/kSZ_power.c	/^  long N, Nf;$/;"	v
+Nhigh	Cosmo_c_files/ps.c	42;"	d	file:
+Nhigh	Programs/ps.c	42;"	d	file:
+Nlow	Cosmo_c_files/ps.c	43;"	d	file:
+Nlow	Programs/ps.c	43;"	d	file:
+No	Boxes/Ts_evolution/COSMOLOGY.H	103;"	d
+No	Output_files/Ts_outs/COSMOLOGY.H	103;"	d
+No	Parameter_files/COSMOLOGY.H	103;"	d
+Normalize	Pics/sliceplot.py	/^from matplotlib.colors import Normalize$/;"	i
+Nsteps_zp	Programs/heating_helper_progs.c	/^int Nsteps_zp; \/\/New in v1.4 $/;"	v
+OBJ_FILES	Programs/Makefile	/^OBJ_FILES = init \\$/;"	m
+OMb	Boxes/Ts_evolution/COSMOLOGY.H	18;"	d
+OMb	Output_files/Ts_outs/COSMOLOGY.H	18;"	d
+OMb	Parameter_files/COSMOLOGY.H	18;"	d
+OMk	Boxes/Ts_evolution/COSMOLOGY.H	20;"	d
+OMk	Output_files/Ts_outs/COSMOLOGY.H	20;"	d
+OMk	Parameter_files/COSMOLOGY.H	20;"	d
+OMl	Boxes/Ts_evolution/COSMOLOGY.H	17;"	d
+OMl	Output_files/Ts_outs/COSMOLOGY.H	17;"	d
+OMl	Parameter_files/COSMOLOGY.H	17;"	d
+OMm	Boxes/Ts_evolution/COSMOLOGY.H	16;"	d
+OMm	Output_files/Ts_outs/COSMOLOGY.H	16;"	d
+OMm	Parameter_files/COSMOLOGY.H	16;"	d
+OMn	Boxes/Ts_evolution/COSMOLOGY.H	19;"	d
+OMn	Output_files/Ts_outs/COSMOLOGY.H	19;"	d
+OMn	Parameter_files/COSMOLOGY.H	19;"	d
+OMr	Boxes/Ts_evolution/COSMOLOGY.H	21;"	d
+OMr	Output_files/Ts_outs/COSMOLOGY.H	21;"	d
+OMr	Parameter_files/COSMOLOGY.H	21;"	d
+OMtot	Boxes/Ts_evolution/COSMOLOGY.H	22;"	d
+OMtot	Output_files/Ts_outs/COSMOLOGY.H	22;"	d
+OMtot	Parameter_files/COSMOLOGY.H	22;"	d
+OPTIMIZE	Boxes/Ts_evolution/ANAL_PARAMS.H	260;"	d
+OPTIMIZE	Output_files/Ts_outs/ANAL_PARAMS.H	260;"	d
+OPTIMIZE	Parameter_files/ANAL_PARAMS.H	260;"	d
+OPTIMIZE_MIN_MASS	Boxes/Ts_evolution/ANAL_PARAMS.H	264;"	d
+OPTIMIZE_MIN_MASS	Output_files/Ts_outs/ANAL_PARAMS.H	264;"	d
+OPTIMIZE_MIN_MASS	Parameter_files/ANAL_PARAMS.H	264;"	d
+OUTFILE	Programs/kSZ_power.c	/^char OUTFILE[400];$/;"	v
+Overdense_high_table	Cosmo_c_files/ps.c	/^float *Overdense_high_table, **Fcollz_SFR_high_table;$/;"	v
+Overdense_spline_GL_high	Programs/ps.c	/^float *Overdense_spline_gsl,*Overdense_spline_GL_high,*Fcoll_spline_gsl,*Fcoll_spline_GL_high,*xi_low,*xi_high,*wi_high,*wi_low;$/;"	v
+Overdense_spline_GL_low	Programs/ps.c	/^float *second_derivs_low_GL,*second_derivs_high_GL,*Overdense_spline_GL_low,*Fcoll_spline_GL_low;$/;"	v
+Overdense_spline_SFR	Cosmo_c_files/ps.c	/^float *Overdense_spline_SFR,*Fcoll_spline_SFR,*second_derivs_SFR;$/;"	v
+Overdense_spline_SFR	Programs/ps.c	/^float *Overdense_spline_SFR,*Fcoll_spline_SFR,*second_derivs_SFR;$/;"	v
+Overdense_spline_gsl	Programs/ps.c	/^float *Overdense_spline_gsl,*Overdense_spline_GL_high,*Fcoll_spline_gsl,*Fcoll_spline_GL_high,*xi_low,*xi_high,*wi_high,*wi_low;$/;"	v
+PARALLEL_APPROX	Programs/kSZ_power.c	55;"	d	file:
+PARAMETER_DIR	Programs/Makefile	/^PARAMETER_DIR = ..\/Parameter_files$/;"	m
+PHI_INDEX	Programs/init.c	520;"	d	file:
+PI	Boxes/Ts_evolution/COSMOLOGY.H	67;"	d
+PI	Output_files/Ts_outs/COSMOLOGY.H	67;"	d
+PI	Parameter_files/COSMOLOGY.H	67;"	d
+POWER_INDEX	Boxes/Ts_evolution/COSMOLOGY.H	24;"	d
+POWER_INDEX	Output_files/Ts_outs/COSMOLOGY.H	24;"	d
+POWER_INDEX	Parameter_files/COSMOLOGY.H	24;"	d
+POWER_SPECTRUM	Boxes/Ts_evolution/COSMOLOGY.H	50;"	d
+POWER_SPECTRUM	Output_files/Ts_outs/COSMOLOGY.H	50;"	d
+POWER_SPECTRUM	Parameter_files/COSMOLOGY.H	50;"	d
+PS_ION_EFF	Programs/heating_helper_progs.c	/^double growth_factor_zp, dgrowth_factor_dzp, PS_ION_EFF;$/;"	v
+P_CUTOFF	Boxes/Ts_evolution/COSMOLOGY.H	8;"	d
+P_CUTOFF	Output_files/Ts_outs/COSMOLOGY.H	8;"	d
+P_CUTOFF	Parameter_files/COSMOLOGY.H	8;"	d
+Pop	Boxes/Ts_evolution/HEAT_PARAMS.H	113;"	d
+Pop	Output_files/Ts_outs/HEAT_PARAMS.H	113;"	d
+Pop	Parameter_files/HEAT_PARAMS.H	113;"	d
+Pop2_ion	Boxes/Ts_evolution/HEAT_PARAMS.H	119;"	d
+Pop2_ion	Output_files/Ts_outs/HEAT_PARAMS.H	119;"	d
+Pop2_ion	Parameter_files/HEAT_PARAMS.H	119;"	d
+Pop3_ion	Boxes/Ts_evolution/HEAT_PARAMS.H	120;"	d
+Pop3_ion	Output_files/Ts_outs/HEAT_PARAMS.H	120;"	d
+Pop3_ion	Parameter_files/HEAT_PARAMS.H	120;"	d
+R	Cosmo_c_files/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+R	Programs/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+RAM	Boxes/Ts_evolution/INIT_PARAMS.H	40;"	d
+RAM	Output_files/Ts_outs/INIT_PARAMS.H	40;"	d
+RAM	Parameter_files/INIT_PARAMS.H	40;"	d
+RANDOM_SEED	Boxes/Ts_evolution/INIT_PARAMS.H	32;"	d
+RANDOM_SEED	Output_files/Ts_outs/INIT_PARAMS.H	32;"	d
+RANDOM_SEED	Parameter_files/INIT_PARAMS.H	32;"	d
+RECFAST_FILENAME	Boxes/Ts_evolution/HEAT_PARAMS.H	102;"	d
+RECFAST_FILENAME	Output_files/Ts_outs/HEAT_PARAMS.H	102;"	d
+RECFAST_FILENAME	Parameter_files/HEAT_PARAMS.H	102;"	d
+RECFAST_NPTS	Programs/heating_helper_progs.c	8;"	d	file:
+REDSHIFT	Programs/kSZ_power.c	/^float REDSHIFT;$/;"	v
+RHOcrit	Boxes/Ts_evolution/COSMOLOGY.H	101;"	d
+RHOcrit	Output_files/Ts_outs/COSMOLOGY.H	101;"	d
+RHOcrit	Parameter_files/COSMOLOGY.H	101;"	d
+RHOcrit_cgs	Boxes/Ts_evolution/COSMOLOGY.H	102;"	d
+RHOcrit_cgs	Output_files/Ts_outs/COSMOLOGY.H	102;"	d
+RHOcrit_cgs	Parameter_files/COSMOLOGY.H	102;"	d
+RR_DEL_Z	Cosmo_c_files/recombinations.c	34;"	d	file:
+RR_DEL_lnGamma	Cosmo_c_files/recombinations.c	37;"	d	file:
+RR_Z_NPTS	Cosmo_c_files/recombinations.c	33;"	d	file:
+RR_acc	Cosmo_c_files/recombinations.c	/^static gsl_interp_accel *RR_acc[RR_Z_NPTS];$/;"	v	file:
+RR_lnGamma_NPTS	Cosmo_c_files/recombinations.c	35;"	d	file:
+RR_lnGamma_min	Cosmo_c_files/recombinations.c	36;"	d	file:
+RR_par	Cosmo_c_files/recombinations.c	/^typedef struct {double z, gamma12_bg, T4, A, C_0, beta, avenH; int usecaseB;} RR_par;$/;"	t	typeref:struct:__anon3	file:
+RR_spline	Cosmo_c_files/recombinations.c	/^static gsl_spline *RR_spline[RR_Z_NPTS];$/;"	v	file:
+RR_table	Cosmo_c_files/recombinations.c	/^static double RR_table[RR_Z_NPTS][RR_lnGamma_NPTS], lnGamma_values[RR_lnGamma_NPTS];$/;"	v	file:
+R_BUBBLE_MAX	Boxes/Ts_evolution/ANAL_PARAMS.H	81;"	d
+R_BUBBLE_MAX	Output_files/Ts_outs/ANAL_PARAMS.H	81;"	d
+R_BUBBLE_MAX	Parameter_files/ANAL_PARAMS.H	81;"	d
+R_BUBBLE_MIN	Boxes/Ts_evolution/ANAL_PARAMS.H	145;"	d
+R_BUBBLE_MIN	Output_files/Ts_outs/ANAL_PARAMS.H	145;"	d
+R_BUBBLE_MIN	Parameter_files/ANAL_PARAMS.H	145;"	d
+R_CUTOFF	Cosmo_c_files/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+R_CUTOFF	Programs/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+R_FFT_INDEX	Boxes/Ts_evolution/INIT_PARAMS.H	62;"	d
+R_FFT_INDEX	Output_files/Ts_outs/INIT_PARAMS.H	62;"	d
+R_FFT_INDEX	Parameter_files/INIT_PARAMS.H	62;"	d
+R_INDEX	Boxes/Ts_evolution/INIT_PARAMS.H	63;"	d
+R_INDEX	Output_files/Ts_outs/INIT_PARAMS.H	63;"	d
+R_INDEX	Parameter_files/INIT_PARAMS.H	63;"	d
+R_OVERLAP_FACTOR	Boxes/Ts_evolution/ANAL_PARAMS.H	230;"	d
+R_OVERLAP_FACTOR	Output_files/Ts_outs/ANAL_PARAMS.H	230;"	d
+R_OVERLAP_FACTOR	Parameter_files/ANAL_PARAMS.H	230;"	d
+R_XLy_MAX	Boxes/Ts_evolution/HEAT_PARAMS.H	66;"	d
+R_XLy_MAX	Output_files/Ts_outs/HEAT_PARAMS.H	66;"	d
+R_XLy_MAX	Parameter_files/HEAT_PARAMS.H	66;"	d
+R_smooth_density	Boxes/Ts_evolution/ANAL_PARAMS.H	108;"	d
+R_smooth_density	Output_files/Ts_outs/ANAL_PARAMS.H	108;"	d
+R_smooth_density	Parameter_files/ANAL_PARAMS.H	108;"	d
+R_values	Programs/heating_helper_progs.c	/^double zpp_edge[NUM_FILTER_STEPS_FOR_Ts], sigma_atR[NUM_FILTER_STEPS_FOR_Ts], sigma_Tmin[NUM_FILTER_STEPS_FOR_Ts], ST_over_PS[NUM_FILTER_STEPS_FOR_Ts], sum_lyn[NUM_FILTER_STEPS_FOR_Ts], R_values[NUM_FILTER_STEPS_FOR_Ts];$/;"	v
+Rsun	Boxes/Ts_evolution/COSMOLOGY.H	87;"	d
+Rsun	Output_files/Ts_outs/COSMOLOGY.H	87;"	d
+Rsun	Parameter_files/COSMOLOGY.H	87;"	d
+RtoM	Cosmo_c_files/ps.c	/^double RtoM(double R){$/;"	f
+RtoM	Programs/ps.c	/^double RtoM(double R){$/;"	f
+SAMPLING_INTERVAL	Programs/find_HII_bubbles.c	/^unsigned long long SAMPLING_INTERVAL = (((unsigned long long)(HII_TOT_NUM_PIXELS\/1.0e6)) + 1); \/\/used to sample density field to compute mean collapsed fraction$/;"	v
+SECOND_ORDER_LPT_CORRECTIONS	Boxes/Ts_evolution/ANAL_PARAMS.H	116;"	d
+SECOND_ORDER_LPT_CORRECTIONS	Output_files/Ts_outs/ANAL_PARAMS.H	116;"	d
+SECOND_ORDER_LPT_CORRECTIONS	Parameter_files/ANAL_PARAMS.H	116;"	d
+SHARP_CUTOFF	Boxes/Ts_evolution/ANAL_PARAMS.H	68;"	d
+SHARP_CUTOFF	Output_files/Ts_outs/ANAL_PARAMS.H	68;"	d
+SHARP_CUTOFF	Parameter_files/ANAL_PARAMS.H	68;"	d
+SHETH_A	Boxes/Ts_evolution/COSMOLOGY.H	58;"	d
+SHETH_A	Output_files/Ts_outs/COSMOLOGY.H	58;"	d
+SHETH_A	Parameter_files/COSMOLOGY.H	58;"	d
+SHETH_a	Boxes/Ts_evolution/COSMOLOGY.H	56;"	d
+SHETH_a	Output_files/Ts_outs/COSMOLOGY.H	56;"	d
+SHETH_a	Parameter_files/COSMOLOGY.H	56;"	d
+SHETH_b	Boxes/Ts_evolution/COSMOLOGY.H	39;"	d
+SHETH_b	Output_files/Ts_outs/COSMOLOGY.H	39;"	d
+SHETH_b	Parameter_files/COSMOLOGY.H	39;"	d
+SHETH_c	Boxes/Ts_evolution/COSMOLOGY.H	40;"	d
+SHETH_c	Output_files/Ts_outs/COSMOLOGY.H	40;"	d
+SHETH_c	Parameter_files/COSMOLOGY.H	40;"	d
+SHETH_p	Boxes/Ts_evolution/COSMOLOGY.H	57;"	d
+SHETH_p	Output_files/Ts_outs/COSMOLOGY.H	57;"	d
+SHETH_p	Parameter_files/COSMOLOGY.H	57;"	d
+SIGMA8	Boxes/Ts_evolution/COSMOLOGY.H	14;"	d
+SIGMA8	Output_files/Ts_outs/COSMOLOGY.H	14;"	d
+SIGMA8	Parameter_files/COSMOLOGY.H	14;"	d
+SIGMAT	Boxes/Ts_evolution/COSMOLOGY.H	64;"	d
+SIGMAT	Output_files/Ts_outs/COSMOLOGY.H	64;"	d
+SIGMAT	Parameter_files/COSMOLOGY.H	64;"	d
+SIGMA_HI	Boxes/Ts_evolution/COSMOLOGY.H	65;"	d
+SIGMA_HI	Output_files/Ts_outs/COSMOLOGY.H	65;"	d
+SIGMA_HI	Parameter_files/COSMOLOGY.H	65;"	d
+SIGN	Cosmo_c_files/misc.c	10;"	d	file:
+SIG_CURR	Cosmo_c_files/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+SIG_CURR	Programs/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+SIZE_BINSTEP	Programs/gen_size_distr.c	6;"	d	file:
+SIZE_RANDOM_SEED	Boxes/Ts_evolution/ANAL_PARAMS.H	266;"	d
+SIZE_RANDOM_SEED	Output_files/Ts_outs/ANAL_PARAMS.H	266;"	d
+SIZE_RANDOM_SEED	Parameter_files/ANAL_PARAMS.H	266;"	d
+SMOOTH_EVOLVED_DENSITY_FIELD	Boxes/Ts_evolution/ANAL_PARAMS.H	107;"	d
+SMOOTH_EVOLVED_DENSITY_FIELD	Output_files/Ts_outs/ANAL_PARAMS.H	107;"	d
+SMOOTH_EVOLVED_DENSITY_FIELD	Parameter_files/ANAL_PARAMS.H	107;"	d
+SPLINE_NPTS	Cosmo_c_files/ps.c	38;"	d	file:
+SPLINE_NPTS	Programs/ps.c	38;"	d	file:
+SQDEG_ALLSKY	Boxes/Ts_evolution/COSMOLOGY.H	94;"	d
+SQDEG_ALLSKY	Output_files/Ts_outs/COSMOLOGY.H	94;"	d
+SQDEG_ALLSKY	Parameter_files/COSMOLOGY.H	94;"	d
+START_REDSHIFT	Programs/kSZ_power.c	/^float START_REDSHIFT = -1; \/\/lowest redshift$/;"	v
+STELLAR_BARYON_FRAC	Boxes/Ts_evolution/ANAL_PARAMS.H	28;"	d
+STELLAR_BARYON_FRAC	Output_files/Ts_outs/ANAL_PARAMS.H	28;"	d
+STELLAR_BARYON_FRAC	Parameter_files/ANAL_PARAMS.H	28;"	d
+STELLAR_BARYON_PL	Boxes/Ts_evolution/ANAL_PARAMS.H	29;"	d
+STELLAR_BARYON_PL	Output_files/Ts_outs/ANAL_PARAMS.H	29;"	d
+STELLAR_BARYON_PL	Parameter_files/ANAL_PARAMS.H	29;"	d
+STELLAR_SPECTRA_FILENAME	Boxes/Ts_evolution/HEAT_PARAMS.H	103;"	d
+STELLAR_SPECTRA_FILENAME	Output_files/Ts_outs/HEAT_PARAMS.H	103;"	d
+STELLAR_SPECTRA_FILENAME	Parameter_files/HEAT_PARAMS.H	103;"	d
+ST_over_PS	Programs/heating_helper_progs.c	/^double zpp_edge[NUM_FILTER_STEPS_FOR_Ts], sigma_atR[NUM_FILTER_STEPS_FOR_Ts], sigma_Tmin[NUM_FILTER_STEPS_FOR_Ts], ST_over_PS[NUM_FILTER_STEPS_FOR_Ts], sum_lyn[NUM_FILTER_STEPS_FOR_Ts], R_values[NUM_FILTER_STEPS_FOR_Ts];$/;"	v
+SUBCELL_RSD	Boxes/Ts_evolution/ANAL_PARAMS.H	202;"	d
+SUBCELL_RSD	Output_files/Ts_outs/ANAL_PARAMS.H	202;"	d
+SUBCELL_RSD	Parameter_files/ANAL_PARAMS.H	202;"	d
+SWAP	Cosmo_c_files/ps.c	34;"	d	file:
+SWAP	Programs/ps.c	34;"	d	file:
+Salpha_tilde	Programs/heating_helper_progs.c	/^double Salpha_tilde(double TK, double TS, double tauGP)$/;"	f
+Sigma_Spline	Cosmo_c_files/ps.c	/^float *Mass_Spline, *Sigma_Spline, *dSigmadm_Spline, *second_derivs_sigma, *second_derivs_dsigma;$/;"	v
+Sigma_Spline	Programs/ps.c	/^float *Mass_Spline, *Sigma_Spline, *dSigmadm_Spline, *second_derivs_sigma, *second_derivs_dsigma;$/;"	v
+SperYR	Boxes/Ts_evolution/COSMOLOGY.H	85;"	d
+SperYR	Output_files/Ts_outs/COSMOLOGY.H	85;"	d
+SperYR	Parameter_files/COSMOLOGY.H	85;"	d
+Splined_Fcoll	Programs/heating_helper_progs.c	/^float F_STAR10,F_ESC10,ALPHA_STAR,ALPHA_ESC,M_TURN,T_AST,Mlim_Fstar,Mlim_Fesc,M_MIN,Splined_Fcoll;\/\/,Splined_Fcollz_mean; \/\/ New in v1.4$/;"	v
+T21	Boxes/Ts_evolution/COSMOLOGY.H	108;"	d
+T21	Output_files/Ts_outs/COSMOLOGY.H	108;"	d
+T21	Parameter_files/COSMOLOGY.H	108;"	d
+T4	Cosmo_c_files/recombinations.c	/^typedef struct {double z, gamma12_bg, T4, A, C_0, beta, avenH; int usecaseB;} RR_par;$/;"	m	struct:__anon3	file:
+TFmdm	Cosmo_c_files/ps.c	/^double TFmdm(double k){$/;"	f
+TFmdm	Programs/ps.c	/^double TFmdm(double k){$/;"	f
+TFset_parameters	Cosmo_c_files/ps.c	/^void TFset_parameters(){$/;"	f
+TFset_parameters	Programs/ps.c	/^void TFset_parameters(){$/;"	f
+TINY	Boxes/Ts_evolution/COSMOLOGY.H	72;"	d
+TINY	Output_files/Ts_outs/COSMOLOGY.H	72;"	d
+TINY	Parameter_files/COSMOLOGY.H	72;"	d
+TK_at_Z_HEAT_MAX	Boxes/Ts_evolution/HEAT_PARAMS.H	85;"	d
+TK_at_Z_HEAT_MAX	Output_files/Ts_outs/HEAT_PARAMS.H	85;"	d
+TK_at_Z_HEAT_MAX	Parameter_files/HEAT_PARAMS.H	85;"	d
+TOT_FFT_NUM_PIXELS	Boxes/Ts_evolution/INIT_PARAMS.H	56;"	d
+TOT_FFT_NUM_PIXELS	Output_files/Ts_outs/INIT_PARAMS.H	56;"	d
+TOT_FFT_NUM_PIXELS	Parameter_files/INIT_PARAMS.H	56;"	d
+TOT_NUM_PIXELS	Boxes/Ts_evolution/INIT_PARAMS.H	55;"	d
+TOT_NUM_PIXELS	Output_files/Ts_outs/INIT_PARAMS.H	55;"	d
+TOT_NUM_PIXELS	Parameter_files/INIT_PARAMS.H	55;"	d
+TWOPI	Boxes/Ts_evolution/COSMOLOGY.H	68;"	d
+TWOPI	Output_files/Ts_outs/COSMOLOGY.H	68;"	d
+TWOPI	Parameter_files/COSMOLOGY.H	68;"	d
+T_AST	Programs/heating_helper_progs.c	/^float F_STAR10,F_ESC10,ALPHA_STAR,ALPHA_ESC,M_TURN,T_AST,Mlim_Fstar,Mlim_Fesc,M_MIN,Splined_Fcoll;\/\/,Splined_Fcollz_mean; \/\/ New in v1.4$/;"	v
+T_RECFAST	Programs/heating_helper_progs.c	/^double T_RECFAST(float z, int flag)$/;"	f
+T_USE_VELOCITIES	Boxes/Ts_evolution/ANAL_PARAMS.H	189;"	d
+T_USE_VELOCITIES	Output_files/Ts_outs/ANAL_PARAMS.H	189;"	d
+T_USE_VELOCITIES	Parameter_files/ANAL_PARAMS.H	189;"	d
+T_cmb	Boxes/Ts_evolution/COSMOLOGY.H	89;"	d
+T_cmb	Output_files/Ts_outs/COSMOLOGY.H	89;"	d
+T_cmb	Parameter_files/COSMOLOGY.H	89;"	d
+T_gas_adiabatic	Cosmo_c_files/cosmo_progs.c	/^double T_gas_adiabatic(float z){$/;"	f
+Tc_eff	Programs/heating_helper_progs.c	/^double Tc_eff(double TK, double TS)$/;"	f
+Tcmb	Programs/kSZ_power.c	/^  float *Tcmb, *Tcmb_3D, *dtau_3D;$/;"	v
+Tcmb_3D	Programs/kSZ_power.c	/^  float *Tcmb, *Tcmb_3D, *dtau_3D;$/;"	v
+Tcmbf	Programs/kSZ_power.c	/^  fftwf_complex *Tcmbf = NULL;$/;"	v
+Ts_verbose	Boxes/Ts_evolution/HEAT_PARAMS.H	95;"	d
+Ts_verbose	Output_files/Ts_outs/HEAT_PARAMS.H	95;"	d
+Ts_verbose	Parameter_files/HEAT_PARAMS.H	95;"	d
+TtoM	Cosmo_c_files/cosmo_progs.c	/^float TtoM(float z, float T, float mu){$/;"	f
+USE_HALO_FIELD	Boxes/Ts_evolution/ANAL_PARAMS.H	157;"	d
+USE_HALO_FIELD	Output_files/Ts_outs/ANAL_PARAMS.H	157;"	d
+USE_HALO_FIELD	Parameter_files/ANAL_PARAMS.H	157;"	d
+USE_TS_IN_21CM	Boxes/Ts_evolution/HEAT_PARAMS.H	12;"	d
+USE_TS_IN_21CM	Output_files/Ts_outs/HEAT_PARAMS.H	12;"	d
+USE_TS_IN_21CM	Parameter_files/HEAT_PARAMS.H	12;"	d
+VELOCITY_COMPONENT	Boxes/Ts_evolution/ANAL_PARAMS.H	281;"	d
+VELOCITY_COMPONENT	Output_files/Ts_outs/ANAL_PARAMS.H	281;"	d
+VELOCITY_COMPONENT	Parameter_files/ANAL_PARAMS.H	281;"	d
+VOIGT_INIT	Cosmo_c_files/cosmo_progs.c	/^int VOIGT_INIT;$/;"	v
+VOLUME	Boxes/Ts_evolution/INIT_PARAMS.H	53;"	d
+VOLUME	Output_files/Ts_outs/INIT_PARAMS.H	53;"	d
+VOLUME	Parameter_files/INIT_PARAMS.H	53;"	d
+VOXEL_NF_CUTOFF	Programs/gen_size_distr.c	8;"	d	file:
+VcirtoT	Cosmo_c_files/cosmo_progs.c	/^float VcirtoT(float v, float mu){$/;"	f
+XION_at_Z_HEAT_MAX	Boxes/Ts_evolution/HEAT_PARAMS.H	86;"	d
+XION_at_Z_HEAT_MAX	Output_files/Ts_outs/HEAT_PARAMS.H	86;"	d
+XION_at_Z_HEAT_MAX	Parameter_files/HEAT_PARAMS.H	86;"	d
+X_LUMINOSITY	Programs/heating_helper_progs.c	/^double X_LUMINOSITY;$/;"	v
+X_RAY_SPEC_INDEX	Boxes/Ts_evolution/HEAT_PARAMS.H	38;"	d
+X_RAY_SPEC_INDEX	Output_files/Ts_outs/HEAT_PARAMS.H	38;"	d
+X_RAY_SPEC_INDEX	Parameter_files/HEAT_PARAMS.H	38;"	d
+Y_He	Boxes/Ts_evolution/COSMOLOGY.H	23;"	d
+Y_He	Output_files/Ts_outs/COSMOLOGY.H	23;"	d
+Y_He	Parameter_files/COSMOLOGY.H	23;"	d
+Z	Programs/drive_xHIscroll.c	24;"	d	file:
+ZEND	Programs/drive_zscroll_noTs.c	20;"	d	file:
+ZHIGH	Programs/drive_logZscroll_Ts.c	17;"	d	file:
+ZLOW	Programs/drive_logZscroll_Ts.c	16;"	d	file:
+ZPRIME_STEP_FACTOR	Boxes/Ts_evolution/HEAT_PARAMS.H	78;"	d
+ZPRIME_STEP_FACTOR	Output_files/Ts_outs/HEAT_PARAMS.H	78;"	d
+ZPRIME_STEP_FACTOR	Parameter_files/HEAT_PARAMS.H	78;"	d
+ZSTART	Programs/drive_zscroll_noTs.c	19;"	d	file:
+ZSTEP	Programs/drive_zscroll_noTs.c	21;"	d	file:
+Z_HEAT_MAX	Boxes/Ts_evolution/HEAT_PARAMS.H	57;"	d
+Z_HEAT_MAX	Output_files/Ts_outs/HEAT_PARAMS.H	57;"	d
+Z_HEAT_MAX	Parameter_files/HEAT_PARAMS.H	57;"	d
+Zreion_HeII	Boxes/Ts_evolution/COSMOLOGY.H	42;"	d
+Zreion_HeII	Output_files/Ts_outs/COSMOLOGY.H	42;"	d
+Zreion_HeII	Parameter_files/COSMOLOGY.H	42;"	d
+_ANAL_PARAM_H_	Boxes/Ts_evolution/ANAL_PARAMS.H	2;"	d
+_ANAL_PARAM_H_	Output_files/Ts_outs/ANAL_PARAMS.H	2;"	d
+_ANAL_PARAM_H_	Parameter_files/ANAL_PARAMS.H	2;"	d
+_BUBBLE_HELPERS_	Programs/bubble_helper_progs.c	2;"	d	file:
+_COSMO_PROGS_	Cosmo_c_files/cosmo_progs.c	7;"	d	file:
+_FILTER_	Programs/filter.c	2;"	d	file:
+_HEAT_PARAMS_H_	Boxes/Ts_evolution/HEAT_PARAMS.H	6;"	d
+_HEAT_PARAMS_H_	Output_files/Ts_outs/HEAT_PARAMS.H	6;"	d
+_HEAT_PARAMS_H_	Parameter_files/HEAT_PARAMS.H	6;"	d
+_INITS_PARAMETERS_H_	Boxes/Ts_evolution/INIT_PARAMS.H	7;"	d
+_INITS_PARAMETERS_H_	Output_files/Ts_outs/INIT_PARAMS.H	7;"	d
+_INITS_PARAMETERS_H_	Parameter_files/INIT_PARAMS.H	7;"	d
+_MISC_	Cosmo_c_files/misc.c	2;"	d	file:
+_PS_	Cosmo_c_files/ps.c	2;"	d	file:
+_PS_	Programs/ps.c	2;"	d	file:
+_RICO_	Cosmo_c_files/recombinations.c	2;"	d	file:
+__call__	Pics/sliceplot.py	/^    def __call__(self, value, clip=None):$/;"	m	class:MidpointNormalize	file:
+__init__	Pics/sliceplot.py	/^    def __init__(self, vmin=None, vmax=None, midpoint=None, clip=False):$/;"	m	class:MidpointNormalize
+_x_int_VARIABLES_DEFINED	Programs/elec_interp.c	9;"	d	file:
+adj_complex_conj	Programs/init.c	/^void adj_complex_conj(fftwf_complex *box){$/;"	f
+alphaA_10k	Boxes/Ts_evolution/COSMOLOGY.H	77;"	d
+alphaA_10k	Output_files/Ts_outs/COSMOLOGY.H	77;"	d
+alphaA_10k	Parameter_files/COSMOLOGY.H	77;"	d
+alphaB_10k	Boxes/Ts_evolution/COSMOLOGY.H	78;"	d
+alphaB_10k	Output_files/Ts_outs/COSMOLOGY.H	78;"	d
+alphaB_10k	Parameter_files/COSMOLOGY.H	78;"	d
+alphaB_20k	Boxes/Ts_evolution/COSMOLOGY.H	79;"	d
+alphaB_20k	Output_files/Ts_outs/COSMOLOGY.H	79;"	d
+alphaB_20k	Parameter_files/COSMOLOGY.H	79;"	d
+alpha_A	Cosmo_c_files/cosmo_progs.c	/^double alpha_A(double T){$/;"	f
+alpha_B	Cosmo_c_files/cosmo_progs.c	/^double alpha_B(double T){$/;"	f
+alpha_nu	Cosmo_c_files/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+alpha_nu	Programs/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+alpha_pl	Programs/ps.c	/^    double alpha_pl;$/;"	m	struct:parameters_gsl_ST_int_	file:
+alpha_pl	Programs/ps.c	/^    double alpha_pl;$/;"	m	struct:parameters_gsl_int_	file:
+anal_taudamp	Cosmo_c_files/cosmo_progs.c	/^double anal_taudamp(float z, float zstart, float zend){$/;"	f
+arcmintoMpc	Cosmo_c_files/cosmo_progs.c	/^double arcmintoMpc(float z, float arcmin){$/;"	f
+argparse	Pics/sliceplot.py	/^import sys, argparse$/;"	i
+args	Pics/sliceplot.py	/^args = parser.parse_args()$/;"	v
+aux_function	Cosmo_c_files/recombinations.c	/^double aux_function(double D, void *params){$/;"	f
+avenH	Cosmo_c_files/recombinations.c	/^typedef struct {double z, gamma12_bg, T4, A, C_0, beta, avenH; int usecaseB;} RR_par;$/;"	m	struct:__anon3	file:
+avoigt	Cosmo_c_files/cosmo_progs.c	/^double avoigt, cvoigt[31];$/;"	v
+barkana_I	Cosmo_c_files/cosmo_progs.c	/^double barkana_I (float x){$/;"	f
+basename	Pics/sliceplot.py	/^from os.path import basename$/;"	i
+beta	Cosmo_c_files/recombinations.c	/^typedef struct {double z, gamma12_bg, T4, A, C_0, beta, avenH; int usecaseB;} RR_par;$/;"	m	struct:__anon3	file:
+beta_MHR	Cosmo_c_files/recombinations.c	/^double beta_MHR(double z){$/;"	f
+beta_NPTS	Cosmo_c_files/recombinations.c	28;"	d	file:
+beta_acc	Cosmo_c_files/recombinations.c	/^static gsl_interp_accel *beta_acc;$/;"	v	file:
+beta_c	Cosmo_c_files/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+beta_c	Programs/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+beta_params	Cosmo_c_files/recombinations.c	/^static double beta_table[beta_NPTS], beta_params[beta_NPTS];$/;"	v	file:
+beta_spline	Cosmo_c_files/recombinations.c	/^static gsl_spline *beta_spline;$/;"	v	file:
+beta_table	Cosmo_c_files/recombinations.c	/^static double beta_table[beta_NPTS], beta_params[beta_NPTS];$/;"	v	file:
+bin_factor	Programs/filter_den_hist.c	5;"	d	file:
+bin_first_bin_ceil	Programs/filter_den_hist.c	6;"	d	file:
+bin_max	Programs/filter_den_hist.c	7;"	d	file:
+bisection	Cosmo_c_files/ps.c	/^void bisection(float *x, float xlow, float xup, int *iter){$/;"	f
+box_ct	Programs/heating_helper_progs.c	/^unsigned long long box_ct;$/;"	v
+c_bar	Pics/sliceplot.py	/^        c_bar = fig.colorbar(c_dens, orientation='vertical')$/;"	v
+c_dens	Pics/sliceplot.py	/^        c_dens = sub_fig.imshow(slice,cmap=cmap,norm=norm)$/;"	v
+check_region	Programs/bubble_helper_progs.c	/^void check_region(float * box, int dimensions, float Rsq_curr_index, int x, int y, int z, int x_min, int x_max, int y_min, int y_max, int z_min, int z_max){$/;"	f
+cm21_image_slice_withps	Pics/cm21_image_slice_withps.m	/^function cm21_image_slice_withps(infile, outfile, dim1, color_bar_flag, expand_factor, varargin)$/;"	f
+cmap	Pics/sliceplot.py	/^        cmap = LinearSegmentedColormap.from_list('mycmap', ['black', 'darkblue', 'yellow', 'red'])$/;"	v
+cmap	Pics/sliceplot.py	/^        cmap = LinearSegmentedColormap.from_list('mycmap', ['darkblue', 'green', 'yellow', 'red'])$/;"	v
+cmap	Pics/sliceplot.py	/^        cmap = LinearSegmentedColormap.from_list('mycmap', ['white','black'])$/;"	v
+cmap	Pics/sliceplot.py	/^        cmap = LinearSegmentedColormap.from_list('mycmap', ['yellow','red','black','green','blue'])$/;"	v
+comovingdistance	Cosmo_c_files/cosmo_progs.c	/^double comovingdistance(double z, double zsource){$/;"	f
+compare_floats	Cosmo_c_files/misc.c	/^int compare_floats (const void *a, const void *b)$/;"	f
+confDist	Programs/kSZ_power.c	/^double confDist(float z)$/;"	f
+const_zp_prefactor	Programs/heating_helper_progs.c	/^double const_zp_prefactor, dt_dzp, x_e_ave;$/;"	v
+copy_slice	Programs/redshift_interpolate_boxes.c	/^void copy_slice(fftwf_complex *box_interpolate, fftwf_complex *box_z1, fftwf_complex *box_z2, $/;"	f
+currZ	Programs/kSZ_power.c	/^double currZ;$/;"	v
+cvoigt	Cosmo_c_files/cosmo_progs.c	/^double avoigt, cvoigt[31];$/;"	v
+d2fact	Cosmo_c_files/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+d2fact	Programs/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+dFdlnM_st	Cosmo_c_files/ps.c	/^double dFdlnM_st (double lnM, void *params){$/;"	f
+dFdlnM_st	Programs/ps.c	/^double dFdlnM_st (double lnM, void *params){$/;"	f
+dFdlnM_st_DPL	Programs/ps.c	/^double dFdlnM_st_DPL (double lnM, void *params){$/;"	f
+dFdlnM_st_PL	Programs/ps.c	/^double dFdlnM_st_PL (double lnM, void *params){$/;"	f
+dFdlnM_st_SFR	Cosmo_c_files/ps.c	/^double dFdlnM_st_SFR(double lnM, void *params){$/;"	f
+dFdlnM_st_SFR	Programs/ps.c	/^double dFdlnM_st_SFR(double lnM, void *params){$/;"	f
+dFgtrConditionallnM_SFR	Cosmo_c_files/ps.c	/^double dFgtrConditionallnM_SFR(double lnM, void *params) {$/;"	f
+dFgtrConditionallnM_SFR	Programs/ps.c	/^double dFgtrConditionallnM_SFR(double lnM, void *params) {$/;"	f
+dNdM	Cosmo_c_files/ps.c	/^double dNdM(double z, double M){$/;"	f
+dNdM	Programs/ps.c	/^double dNdM(double z, double M){$/;"	f
+dNdM_conditional_second	Cosmo_c_files/ps.c	/^float dNdM_conditional_second(float z, float M1, float M2, float delta1, float delta2){$/;"	f
+dNdM_conditional_second	Programs/ps.c	/^float dNdM_conditional_second(float z, float M1, float M2, float delta1, float delta2){$/;"	f
+dNdM_st	Cosmo_c_files/ps.c	/^double dNdM_st(double z, double M){$/;"	f
+dNdM_st	Programs/ps.c	/^double dNdM_st(double z, double M){$/;"	f
+dSigmadm_Spline	Cosmo_c_files/ps.c	/^float *Mass_Spline, *Sigma_Spline, *dSigmadm_Spline, *second_derivs_sigma, *second_derivs_dsigma;$/;"	v
+dSigmadm_Spline	Programs/ps.c	/^float *Mass_Spline, *Sigma_Spline, *dSigmadm_Spline, *second_derivs_sigma, *second_derivs_dsigma;$/;"	v
+dT_comp	Programs/heating_helper_progs.c	/^double dT_comp(double z, double TK, double xe)$/;"	f
+dVdz	Cosmo_c_files/cosmo_progs.c	/^double dVdz(float z){$/;"	f
+d_A	Cosmo_c_files/cosmo_progs.c	/^double d_A(float z){$/;"	f
+d_L	Cosmo_c_files/cosmo_progs.c	/^double d_L(float z){$/;"	f
+d_L_derivs	Cosmo_c_files/cosmo_progs.c	/^double d_L_derivs(double z, void * params){$/;"	f
+data1	Pics/sliceplot.py	/^            data1 = scipy.ndimage.filters.gaussian_filter1d(data1, sigma=x_sigma, axis=1)$/;"	v
+data1	Pics/sliceplot.py	/^            data1 = scipy.ndimage.filters.gaussian_filter1d(data1, sigma=y_sigma, axis=0)$/;"	v
+data1	Pics/sliceplot.py	/^            data1 = scipy.ndimage.filters.gaussian_filter1d(data1, sigma=z_sigma, axis=2)$/;"	v
+data1	Pics/sliceplot.py	/^        data1 = scipy.ndimage.filters.gaussian_filter(data1, sigma=iso_sigma)$/;"	v
+data1	Pics/sliceplot.py	/^    data1 = data1.reshape((DIM, DIM, DIM), order='F')$/;"	v
+data1	Pics/sliceplot.py	/^    data1 = load_binary_data(path)$/;"	v
+dcom_dz	Cosmo_c_files/cosmo_progs.c	/^double dcom_dz(double z, void *params){$/;"	f
+ddicke_dz	Cosmo_c_files/ps.c	/^double ddicke_dz(double z){$/;"	f
+ddicke_dz	Programs/ps.c	/^double ddicke_dz(double z){$/;"	f
+ddickedt	Cosmo_c_files/ps.c	/^double ddickedt(double z){$/;"	f
+ddickedt	Programs/ps.c	/^double ddickedt(double z){$/;"	f
+del_traj_1	Programs/ps.c	/^    double del_traj_1;$/;"	m	struct:parameters_gsl_int_	file:
+del_traj_2	Programs/ps.c	/^    double del_traj_2;$/;"	m	struct:parameters_gsl_int_	file:
+del_z_index	Pics/sliceplot.py	/^            del_z_index = args.delzindex$/;"	v
+delta1	Cosmo_c_files/ps.c	/^    double delta1;$/;"	m	struct:parameters_gsl_SFR_con_int_	file:
+delta1	Programs/ps.c	/^    double delta1;$/;"	m	struct:parameters_gsl_SFR_con_int_	file:
+delta2	Cosmo_c_files/ps.c	/^    double delta2;$/;"	m	struct:parameters_gsl_SFR_con_int_	file:
+delta2	Programs/ps.c	/^    double delta2;$/;"	m	struct:parameters_gsl_SFR_con_int_	file:
+deltolindel	Cosmo_c_files/ps.c	/^double deltolindel(float del, float z){$/;"	f
+deltolindel	Programs/ps.c	/^double deltolindel(float del, float z){$/;"	f
+destroy_21cmMC_arrays	Programs/Ts.c	/^void destroy_21cmMC_arrays() {$/;"	f
+destroy_21cmMC_arrays	Programs/find_HII_bubbles.c	/^void destroy_21cmMC_arrays() {$/;"	f
+destruct_heat	Programs/heating_helper_progs.c	/^void destruct_heat()$/;"	f
+determine_zpp_max	Programs/heating_helper_progs.c	/^static float determine_zpp_max, determine_zpp_min,zpp_bin_width; \/\/ new in v1.4$/;"	v	file:
+determine_zpp_min	Programs/heating_helper_progs.c	/^static float determine_zpp_max, determine_zpp_min,zpp_bin_width; \/\/ new in v1.4$/;"	v	file:
+dfcoll_dz	Programs/heating_helper_progs.c	/^float dfcoll_dz(float z, float sigma_min, float del_bias, float sig_bias)$/;"	f
+dgausdx	Programs/filter_den_hist.c	/^float dgausdx(float x, float mean, float sigma){$/;"	f
+dgrowth_factor_dzp	Programs/heating_helper_progs.c	/^double growth_factor_zp, dgrowth_factor_dzp, PS_ION_EFF;$/;"	v
+dicke	Cosmo_c_files/ps.c	/^double dicke(double z){$/;"	f
+dicke	Programs/ps.c	/^double dicke(double z){$/;"	f
+distance	Programs/bubble_helper_progs.c	/^float distance(float x1, float y1, float z1, float x2, float y2, float z2){$/;"	f
+distance_coord	Programs/bubble_helper_progs.c	/^float distance_coord(float x1, float y1, float z1, $/;"	f
+dnbiasdM	Cosmo_c_files/ps.c	/^double dnbiasdM(double M, float z, double M_o, float del_o){$/;"	f
+dnbiasdM	Programs/ps.c	/^double dnbiasdM(double M, float z, double M_o, float del_o){$/;"	f
+doFFT	Programs/fftCMB.c	/^void doFFT(float *R, fftwf_complex *Rf, long Nf, int dim)$/;"	f
+doInverseFFT	Programs/fftCMB.c	/^void doInverseFFT(fftwf_complex *Rf, float *R, long N, int dim)$/;"	f
+dr	Programs/gen_size_distr.c	5;"	d	file:
+drdz	Cosmo_c_files/cosmo_progs.c	/^double drdz(float z){$/;"	f
+dsigma_dk	Cosmo_c_files/ps.c	/^double dsigma_dk(double k, void *params){$/;"	f
+dsigma_dk	Programs/ps.c	/^double dsigma_dk(double k, void *params){$/;"	f
+dsigmasq_dm	Cosmo_c_files/ps.c	/^double dsigmasq_dm(double k, void *params){$/;"	f
+dsigmasq_dm	Programs/ps.c	/^double dsigmasq_dm(double k, void *params){$/;"	f
+dsigmasqdm_z0	Cosmo_c_files/ps.c	/^double dsigmasqdm_z0(double M){$/;"	f
+dsigmasqdm_z0	Programs/ps.c	/^double dsigmasqdm_z0(double M){$/;"	f
+dt_dzp	Programs/heating_helper_progs.c	/^double const_zp_prefactor, dt_dzp, x_e_ave;$/;"	v
+dtau_3D	Programs/kSZ_power.c	/^  float *Tcmb, *Tcmb_3D, *dtau_3D;$/;"	v
+dtau_e_dz	Cosmo_c_files/cosmo_progs.c	/^double dtau_e_dz(double z, void *params){$/;"	f
+dtdz	Cosmo_c_files/cosmo_progs.c	/^double dtdz(float z){$/;"	f
+e_charge	Boxes/Ts_evolution/COSMOLOGY.H	93;"	d
+e_charge	Output_files/Ts_outs/COSMOLOGY.H	93;"	d
+e_charge	Parameter_files/COSMOLOGY.H	93;"	d
+endstr	Pics/sliceplot.py	/^            endstr = '_zindex'+str(z_index)+'-'+str(z_index+del_z_index)$/;"	v
+endstr	Pics/sliceplot.py	/^        endstr = '_yindex'+str(y_index)$/;"	v
+endstr	Pics/sliceplot.py	/^        endstr = '_zindex'+str(z_index)$/;"	v
+erfc_acc	Cosmo_c_files/ps.c	/^static gsl_interp_accel *erfc_acc;$/;"	v	file:
+erfc_acc	Programs/ps.c	/^static gsl_interp_accel *erfc_acc;$/;"	v	file:
+erfc_params	Cosmo_c_files/ps.c	/^static double log_erfc_table[ERFC_NPTS], erfc_params[ERFC_NPTS];$/;"	v	file:
+erfc_params	Programs/ps.c	/^static double log_erfc_table[ERFC_NPTS], erfc_params[ERFC_NPTS];$/;"	v	file:
+erfc_spline	Cosmo_c_files/ps.c	/^static gsl_spline *erfc_spline;$/;"	v	file:
+erfc_spline	Programs/ps.c	/^static gsl_spline *erfc_spline;$/;"	v	file:
+erfcc	Cosmo_c_files/misc.c	/^float erfcc(float x)$/;"	f
+evolveInt	Programs/heating_helper_progs.c	/^void evolveInt(float zp, float curr_delNL0[], double freq_int_heat[], $/;"	f
+f_H	Boxes/Ts_evolution/COSMOLOGY.H	106;"	d
+f_H	Output_files/Ts_outs/COSMOLOGY.H	106;"	d
+f_H	Parameter_files/COSMOLOGY.H	106;"	d
+f_He	Boxes/Ts_evolution/COSMOLOGY.H	107;"	d
+f_He	Output_files/Ts_outs/COSMOLOGY.H	107;"	d
+f_He	Parameter_files/COSMOLOGY.H	107;"	d
+f_alpha	Boxes/Ts_evolution/COSMOLOGY.H	74;"	d
+f_alpha	Output_files/Ts_outs/COSMOLOGY.H	74;"	d
+f_alpha	Parameter_files/COSMOLOGY.H	74;"	d
+f_baryon	Cosmo_c_files/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+f_baryon	Programs/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+f_jenkins	Cosmo_c_files/ps.c	/^double f_jenkins(float del, double sigsq){$/;"	f
+f_jenkins	Programs/ps.c	/^double f_jenkins(float del, double sigsq){$/;"	f
+f_nu	Cosmo_c_files/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+f_nu	Programs/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+fig	Pics/sliceplot.py	/^    fig = plt.figure(dpi=72)$/;"	v
+filename	Pics/sliceplot.py	/^    filename="" + path.split("\/")[-1]$/;"	v
+filter	Programs/filter.c	/^void filter(fftwf_complex *box, int filter_type, float R){$/;"	f
+frac_esc	Cosmo_c_files/ps.c	/^	double frac_esc;$/;"	m	struct:parameters_gsl_SFR_con_int_	file:
+frac_esc	Cosmo_c_files/ps.c	/^	double frac_esc;$/;"	m	struct:parameters_gsl_SFR_int_	file:
+frac_esc	Programs/ps.c	/^	double frac_esc;$/;"	m	struct:parameters_gsl_SFR_con_int_	file:
+frac_esc	Programs/ps.c	/^	double frac_esc;$/;"	m	struct:parameters_gsl_SFR_int_	file:
+frac_star	Cosmo_c_files/ps.c	/^	double frac_star;$/;"	m	struct:parameters_gsl_SFR_con_int_	file:
+frac_star	Cosmo_c_files/ps.c	/^	double frac_star;$/;"	m	struct:parameters_gsl_SFR_int_	file:
+frac_star	Programs/ps.c	/^	double frac_star;$/;"	m	struct:parameters_gsl_SFR_con_int_	file:
+frac_star	Programs/ps.c	/^	double frac_star;$/;"	m	struct:parameters_gsl_SFR_int_	file:
+frame1	Pics/sliceplot.py	/^        frame1 = plt.gca()$/;"	v
+frecycle	Programs/heating_helper_progs.c	/^double frecycle(int n)$/;"	f
+free_A_MHR	Cosmo_c_files/recombinations.c	/^void free_A_MHR(){$/;"	f
+free_C_MHR	Cosmo_c_files/recombinations.c	/^void free_C_MHR(){$/;"	f
+free_MHR	Cosmo_c_files/recombinations.c	/^void free_MHR(){$/;"	f
+free_beta_MHR	Cosmo_c_files/recombinations.c	/^void free_beta_MHR(){$/;"	f
+free_interpolation	Cosmo_c_files/ps.c	/^void free_interpolation() {$/;"	f
+free_lvector	Cosmo_c_files/ps.c	/^void free_lvector(unsigned long *v, long nl, long nh)$/;"	f
+free_lvector	Programs/ps.c	/^void free_lvector(unsigned long *v, long nl, long nh)$/;"	f
+free_ps	Cosmo_c_files/ps.c	/^void free_ps(){$/;"	f
+free_ps	Programs/ps.c	/^void free_ps(){$/;"	f
+free_vector	Cosmo_c_files/ps.c	/^void free_vector(float *v, long nl, long nh)$/;"	f
+free_vector	Programs/ps.c	/^void free_vector(float *v, long nl, long nh)$/;"	f
+g_x	Boxes/Ts_evolution/COSMOLOGY.H	10;"	d
+g_x	Output_files/Ts_outs/COSMOLOGY.H	10;"	d
+g_x	Parameter_files/COSMOLOGY.H	10;"	d
+gamma12_bg	Cosmo_c_files/recombinations.c	/^typedef struct {double z, gamma12_bg, T4, A, C_0, beta, avenH; int usecaseB;} RR_par;$/;"	m	struct:__anon3	file:
+gauleg	Cosmo_c_files/ps.c	/^void gauleg(float x1, float x2, float x[], float w[], int n)$/;"	f
+gauleg	Programs/ps.c	/^void gauleg(float x1, float x2, float x[], float w[], int n)$/;"	f
+get_M_min_ion	Cosmo_c_files/ps.c	/^double get_M_min_ion(float z){$/;"	f
+get_M_min_ion	Programs/ps.c	/^double get_M_min_ion(float z){$/;"	f
+get_M_min_xray	Cosmo_c_files/ps.c	/^double get_M_min_xray(float z){$/;"	f
+get_M_min_xray	Programs/ps.c	/^double get_M_min_xray(float z){$/;"	f
+get_R_c	Cosmo_c_files/ps.c	/^float get_R_c(){$/;"	f
+get_R_c	Programs/ps.c	/^float get_R_c(){$/;"	f
+get_Ts	Programs/heating_helper_progs.c	/^float get_Ts(float z, float delta, float TK, float xe, float Jalpha, float * curr_xalpha){$/;"	f
+gettime	Cosmo_c_files/cosmo_progs.c	/^double gettime(double z){$/;"	f
+griddata	Pics/sliceplot.py	/^from matplotlib.mlab import griddata$/;"	i
+growth_factor_zp	Programs/heating_helper_progs.c	/^double growth_factor_zp, dgrowth_factor_dzp, PS_ION_EFF;$/;"	v
+growth_zpp	Programs/heating_helper_progs.c	/^float growth_zpp; \/\/ New in v1.4$/;"	v
+gsl_rng_free_threaded	Programs/init.c	/^void gsl_rng_free_threaded (gsl_rng **r, int num_th){$/;"	f
+hlittle	Boxes/Ts_evolution/COSMOLOGY.H	15;"	d
+hlittle	Output_files/Ts_outs/COSMOLOGY.H	15;"	d
+hlittle	Parameter_files/COSMOLOGY.H	15;"	d
+hplank	Boxes/Ts_evolution/COSMOLOGY.H	71;"	d
+hplank	Output_files/Ts_outs/COSMOLOGY.H	71;"	d
+hplank	Parameter_files/COSMOLOGY.H	71;"	d
+hubble	Cosmo_c_files/cosmo_progs.c	/^double hubble(float z){$/;"	f
+hubbleZ	Programs/kSZ_power.c	/^double hubbleZ(float z)$/;"	f
+i	Programs/heating_helper_progs.c	/^int i; \/\/TEST$/;"	v
+init_21cmMC_arrays	Programs/Ts.c	/^void init_21cmMC_arrays() { $/;"	f
+init_21cmMC_arrays	Programs/find_HII_bubbles.c	/^void init_21cmMC_arrays() { \/\/ defined in Cosmo_c_files\/ps.c$/;"	f
+init_A_MHR	Cosmo_c_files/recombinations.c	/^void init_A_MHR(){$/;"	f
+init_C_MHR	Cosmo_c_files/recombinations.c	/^void init_C_MHR(){$/;"	f
+init_MHR	Cosmo_c_files/recombinations.c	/^void init_MHR(){$/;"	f
+init_beta_MHR	Cosmo_c_files/recombinations.c	/^void init_beta_MHR(){$/;"	f
+init_heat	Programs/heating_helper_progs.c	/^int init_heat()$/;"	f
+init_ps	Cosmo_c_files/ps.c	/^double init_ps(){$/;"	f
+init_ps	Programs/ps.c	/^double init_ps(){$/;"	f
+initialiseFcollSFR_spline	Cosmo_c_files/ps.c	/^void initialiseFcollSFR_spline(float z, float Mmax, float MassTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc){$/;"	f
+initialiseFcollSFR_spline	Programs/ps.c	/^void initialiseFcollSFR_spline(float z, float Mmin, float Mmax, float MassTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10){$/;"	f
+initialiseFcoll_spline	Programs/ps.c	/^void initialiseFcoll_spline(float z, float Mmin, float Mmax, float Mval, float MFeedback, float alphapl)$/;"	f
+initialiseGL_Fcoll	Programs/ps.c	/^void initialiseGL_Fcoll(int n_low, int n_high, float M_Min, float M_Max)$/;"	f
+initialiseGL_FcollSFR	Cosmo_c_files/ps.c	/^void initialiseGL_FcollSFR(int n, float M_TURN, float M_Max){$/;"	f
+initialiseGL_FcollSFR	Programs/ps.c	/^void initialiseGL_FcollSFR(int n, float M_Min, float M_Max){$/;"	f
+initialiseSplinedSigmaM	Cosmo_c_files/ps.c	/^void initialiseSplinedSigmaM(float M_Min, float M_Max)$/;"	f
+initialiseSplinedSigmaM	Programs/ps.c	/^void initialiseSplinedSigmaM(float M_Min, float M_Max)$/;"	f
+initialise_FgtrM_st_SFR_spline	Cosmo_c_files/ps.c	/^void initialise_FgtrM_st_SFR_spline(int Nbin, float zmin, float zmax, float MassTurn, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10){$/;"	f
+initialise_Xray_Fcollz_SFR_Conditional_table	Cosmo_c_files/ps.c	/^void initialise_Xray_Fcollz_SFR_Conditional_table(int Nsteps_zp, int Nfilter, float z[], double R[], float MassTurnover, float Alpha_star, float Fstar10){$/;"	f
+initialise_Xray_FgtrM_st_SFR_spline	Cosmo_c_files/ps.c	/^void initialise_Xray_FgtrM_st_SFR_spline(int Nbin, float zmin, float zmax, float MassTurn, float Alpha_star, float Fstar10){$/;"	f
+initialize	Programs/fftCMB.c	/^void initialize(float **K,float **Pk, int **Count, int flag)$/;"	f
+initialize_interp_arrays	Programs/elec_interp.c	/^void initialize_interp_arrays()$/;"	f
+integrand_in_nu_heat_integral	Programs/heating_helper_progs.c	/^double integrand_in_nu_heat_integral(double nu, void * params){$/;"	f
+integrand_in_nu_ion_integral	Programs/heating_helper_progs.c	/^double integrand_in_nu_ion_integral(double nu, void * params){$/;"	f
+integrand_in_nu_lya_integral	Programs/heating_helper_progs.c	/^double integrand_in_nu_lya_integral(double nu, void * params){$/;"	f
+integrate_over_nu	Programs/heating_helper_progs.c	/^double integrate_over_nu(double zp, double local_x_e, double lower_int_limit, int FLAG){$/;"	f
+interp_fheat	Programs/elec_interp.c	/^float interp_fheat(float En, float xHII_call)$/;"	f
+interp_n_Lya	Programs/elec_interp.c	/^float interp_n_Lya(float En, float xHII_call)$/;"	f
+interp_nion_HI	Programs/elec_interp.c	/^float interp_nion_HI(float En, float xHII_call)$/;"	f
+interp_nion_HeI	Programs/elec_interp.c	/^float interp_nion_HeI(float En, float xHII_call)$/;"	f
+interp_nion_HeII	Programs/elec_interp.c	/^float interp_nion_HeII(float En, float xHII_call)$/;"	f
+invsinh	Cosmo_c_files/cosmo_progs.c	/^double invsinh (double x){$/;"	f
+ion_eff	Programs/heating_helper_progs.c	/^  double nu_0, x_e, ion_eff;$/;"	m	struct:__anon1	file:
+iso_sigma	Pics/sliceplot.py	/^        iso_sigma = args.filter$/;"	v
+k_B	Boxes/Ts_evolution/COSMOLOGY.H	90;"	d
+k_B	Output_files/Ts_outs/COSMOLOGY.H	90;"	d
+k_B	Parameter_files/COSMOLOGY.H	90;"	d
+kappa_10	Programs/heating_helper_progs.c	/^double kappa_10(double TK, int flag)$/;"	f
+kappa_10_elec	Programs/heating_helper_progs.c	/^double kappa_10_elec(double T, int flag)$/;"	f
+kappa_10_pH	Programs/heating_helper_progs.c	/^double kappa_10_pH(double T, int flag)$/;"	f
+knum	Programs/fftCMB.c	/^int knum(int i)$/;"	f
+label	Pics/sliceplot.py	/^        label=str("" + path.split("_")[-1])$/;"	v
+label	Pics/sliceplot.py	/^        label=str("" + path.split("_")[-2])$/;"	v
+len	Cosmo_c_files/cosmo_progs.c	/^  int len;$/;"	m	struct:__anon4	file:
+lindeltodel	Cosmo_c_files/ps.c	/^double lindeltodel(float lindel, float z){$/;"	f
+lindeltodel	Programs/ps.c	/^double lindeltodel(float lindel, float z){$/;"	f
+lnGamma_values	Cosmo_c_files/recombinations.c	/^static double RR_table[RR_Z_NPTS][RR_lnGamma_NPTS], lnGamma_values[RR_lnGamma_NPTS];$/;"	v	file:
+load_binary_data	Pics/sliceplot.py	/^def load_binary_data(filename, dtype=np.float32): $/;"	f
+locate_energy_index	Programs/elec_interp.c	/^int locate_energy_index(float En) $/;"	f
+locate_xHII_index	Programs/elec_interp.c	/^int locate_xHII_index(float xHII_call) $/;"	f
+log10	Programs/extract_delTps.pl	/^sub log10 {$/;"	s
+log10_Fcoll_spline_SFR	Cosmo_c_files/ps.c	/^static double log10_overdense_spline_SFR[NSFR_low], log10_Fcoll_spline_SFR[NSFR_low];$/;"	v	file:
+log10_Fcoll_spline_SFR	Programs/ps.c	/^static double log10_overdense_spline_SFR[NSFR_low], log10_Fcoll_spline_SFR[NSFR_low];$/;"	v	file:
+log10_Fcollz_SFR_low_table	Cosmo_c_files/ps.c	/^double *log10_overdense_low_table, **log10_Fcollz_SFR_low_table;$/;"	v
+log10_overdense_low_table	Cosmo_c_files/ps.c	/^double *log10_overdense_low_table, **log10_Fcollz_SFR_low_table;$/;"	v
+log10_overdense_spline_SFR	Cosmo_c_files/ps.c	/^static double log10_overdense_spline_SFR[NSFR_low], log10_Fcoll_spline_SFR[NSFR_low];$/;"	v	file:
+log10_overdense_spline_SFR	Programs/ps.c	/^static double log10_overdense_spline_SFR[NSFR_low], log10_Fcoll_spline_SFR[NSFR_low];$/;"	v	file:
+log_Fcoll_spline_table	Programs/ps.c	/^static double Fcoll_spline_params[SPLINE_NPTS], log_Fcoll_spline_table[SPLINE_NPTS];$/;"	v	file:
+log_MFspline_table	Programs/ps.c	/^static double log_MFspline_table[SPLINE_NPTS], MFspline_params[SPLINE_NPTS];$/;"	v	file:
+log_MFspline_table_densgtr1	Programs/ps.c	/^static double log_MFspline_table_densgtr1[SPLINE_NPTS], MFspline_params_densgtr1[SPLINE_NPTS];$/;"	v	file:
+log_erfc_table	Cosmo_c_files/ps.c	/^static double log_erfc_table[ERFC_NPTS], erfc_params[ERFC_NPTS];$/;"	v	file:
+log_erfc_table	Programs/ps.c	/^static double log_erfc_table[ERFC_NPTS], erfc_params[ERFC_NPTS];$/;"	v	file:
+log_open	Cosmo_c_files/misc.c	/^FILE *log_open(const char *filename)$/;"	f
+lvector	Cosmo_c_files/ps.c	/^unsigned long *lvector(long nl, long nh)$/;"	f
+lvector	Programs/ps.c	/^unsigned long *lvector(long nl, long nh)$/;"	f
+m_e	Boxes/Ts_evolution/COSMOLOGY.H	92;"	d
+m_e	Output_files/Ts_outs/COSMOLOGY.H	92;"	d
+m_e	Parameter_files/COSMOLOGY.H	92;"	d
+m_p	Boxes/Ts_evolution/COSMOLOGY.H	91;"	d
+m_p	Output_files/Ts_outs/COSMOLOGY.H	91;"	d
+m_p	Parameter_files/COSMOLOGY.H	91;"	d
+main	Programs/Ts.c	/^int main(int argc, char ** argv){$/;"	f
+main	Programs/boxcar_smooth_field.c	/^int main(int argc, char ** argv){$/;"	f
+main	Programs/delta_T.c	/^int main(int argc, char ** argv){$/;"	f
+main	Programs/delta_T_v2.c	/^int main(int argc, char ** argv){$/;"	f
+main	Programs/delta_ps.c	/^int main(int argc, char ** argv){$/;"	f
+main	Programs/drive_logZscroll_Ts.c	/^int main(int argc, char ** argv){$/;"	f
+main	Programs/drive_xHIscroll.c	/^int main(int argc, char ** argv){$/;"	f
+main	Programs/drive_zscroll_noTs.c	/^int main(int argc, char ** argv){$/;"	f
+main	Programs/filter_den_hist.c	/^int main(int argc, char ** argv){$/;"	f
+main	Programs/find_HII_bubbles.c	/^int main(int argc, char ** argv){$/;"	f
+main	Programs/find_halos.c	/^int main(int argc, char ** argv){$/;"	f
+main	Programs/gen_size_distr.c	/^int main (int argc, char ** argv){$/;"	f
+main	Programs/init.c	/^int main(int argc, char ** argv){$/;"	f
+main	Programs/kSZ_power.c	/^int main(int argc, char *argv[])$/;"	f
+main	Programs/perturb_field.c	/^int main (int argc, char ** argv){$/;"	f
+main	Programs/print_power_spec_ICs.c	/^int main(int argc, char ** argv){$/;"	f
+main	Programs/redshift_interpolate_boxes.c	/^int main(int argc, char ** argv){$/;"	f
+main	Programs/update_halo_pos.c	/^int main(int argc, char ** argv){$/;"	f
+makePk	Programs/fftCMB.c	/^void makePk(float *K, float *Pk, int *Count, fftwf_complex *Rf)$/;"	f
+matplotlib	Pics/sliceplot.py	/^import matplotlib.pyplot as plt$/;"	i
+max	Programs/update_halo_pos.c	/^float max(float a, float b){$/;"	f
+maxrange	Pics/sliceplot.py	/^            maxrange = 0$/;"	v
+maxrange	Pics/sliceplot.py	/^            maxrange = 0.5$/;"	v
+maxrange	Pics/sliceplot.py	/^            maxrange = 1$/;"	v
+maxrange	Pics/sliceplot.py	/^            maxrange = 20$/;"	v
+maxrange	Pics/sliceplot.py	/^            maxrange = 3$/;"	v
+mean_SFRD	Cosmo_c_files/ps.c	/^float mean_SFRD(double z){$/;"	f
+mean_SFRD_dlnMhalo	Cosmo_c_files/ps.c	/^double mean_SFRD_dlnMhalo(double lnM, void *params){$/;"	f
+mean_rho	Cosmo_c_files/cosmo_progs.c	/^double mean_rho(float z){$/;"	f
+mean_taue_curr_z	Programs/kSZ_power.c	/^double mean_taue_curr_z = 0;$/;"	v
+minrange	Pics/sliceplot.py	/^            minrange = -0.5$/;"	v
+minrange	Pics/sliceplot.py	/^            minrange = -140$/;"	v
+minrange	Pics/sliceplot.py	/^            minrange = -2$/;"	v
+minrange	Pics/sliceplot.py	/^            minrange = 0$/;"	v
+minrange	Pics/sliceplot.py	/^            minrange = 0.0$/;"	v
+mnarg1	Cosmo_c_files/misc.c	/^static double mnarg1,mnarg2;$/;"	v	file:
+mnarg2	Cosmo_c_files/misc.c	/^static double mnarg1,mnarg2;$/;"	v	file:
+mod_fread	Cosmo_c_files/misc.c	/^size_t mod_fread(void * array, unsigned long long size, unsigned long long count, FILE * stream){$/;"	f
+mod_fwrite	Cosmo_c_files/misc.c	/^size_t mod_fwrite (const void *array, unsigned long long size, unsigned long long count, FILE *stream){$/;"	f
+ndimage	Pics/sliceplot.py	/^from scipy import ndimage$/;"	i
+neutral_fraction	Cosmo_c_files/cosmo_progs.c	/^double neutral_fraction(double density, double T4, double gamma, int usecaseB){$/;"	f
+nftogamma	Cosmo_c_files/cosmo_progs.c	/^double nftogamma(double nf, float z){$/;"	f
+norm	Pics/sliceplot.py	/^        norm = MidpointNormalize(midpoint=-1)$/;"	v
+norm	Pics/sliceplot.py	/^        norm = MidpointNormalize(midpoint=0)$/;"	v
+norm	Pics/sliceplot.py	/^        norm = MidpointNormalize(midpoint=0.5)$/;"	v
+norm	Pics/sliceplot.py	/^        norm = MidpointNormalize(midpoint=1.5)$/;"	v
+np	Pics/sliceplot.py	/^import numpy as np$/;"	i
+nrerror	Cosmo_c_files/ps.c	/^void nrerror(char error_text[])$/;"	f
+nrerror	Programs/ps.c	/^void nrerror(char error_text[])$/;"	f
+nu_0	Programs/heating_helper_progs.c	/^  double nu_0, x_e, ion_eff;$/;"	m	struct:__anon1	file:
+nu_n	Programs/heating_helper_progs.c	/^double nu_n(int n)$/;"	f
+nu_tau_one	Programs/heating_helper_progs.c	/^double nu_tau_one(double zp, double zpp, double x_e, double HI_filling_factor_zp){$/;"	f
+nu_tau_one_helper	Programs/heating_helper_progs.c	/^double nu_tau_one_helper(double nu, void * params){$/;"	f
+nu_tau_one_params	Programs/heating_helper_progs.c	/^} nu_tau_one_params;$/;"	t	typeref:struct:__anon2	file:
+omega_mz	Cosmo_c_files/cosmo_progs.c	/^double omega_mz(float z){$/;"	f
+omhh	Cosmo_c_files/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+omhh	Programs/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+os	Pics/sliceplot.py	/^import os$/;"	i
+other_z_index	Pics/sliceplot.py	/^            other_z_index = int(z_index+del_z_index)$/;"	v
+overlap_halo	Programs/find_halos.c	/^int overlap_halo(char * in_halo, float R, int x, int y, int z){$/;"	f
+parameters_gsl_SFR_con_int_	Cosmo_c_files/ps.c	/^struct parameters_gsl_SFR_con_int_{$/;"	s	file:
+parameters_gsl_SFR_con_int_	Programs/ps.c	/^struct parameters_gsl_SFR_con_int_{$/;"	s	file:
+parameters_gsl_SFR_int_	Cosmo_c_files/ps.c	/^struct parameters_gsl_SFR_int_{$/;"	s	file:
+parameters_gsl_SFR_int_	Programs/ps.c	/^struct parameters_gsl_SFR_int_{$/;"	s	file:
+parameters_gsl_ST_int_	Programs/ps.c	/^struct parameters_gsl_ST_int_{$/;"	s	file:
+parameters_gsl_int_	Programs/ps.c	/^struct parameters_gsl_int_{$/;"	s	file:
+parse_arguments	Programs/find_HII_bubbles.c	/^int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, float * F_STAR10, $/;"	f
+parser	Pics/sliceplot.py	/^parser = argparse.ArgumentParser()$/;"	v
+pl_esc	Cosmo_c_files/ps.c	/^    double pl_esc;$/;"	m	struct:parameters_gsl_SFR_con_int_	file:
+pl_esc	Cosmo_c_files/ps.c	/^    double pl_esc;$/;"	m	struct:parameters_gsl_SFR_int_	file:
+pl_esc	Programs/ps.c	/^    double pl_esc;$/;"	m	struct:parameters_gsl_SFR_con_int_	file:
+pl_esc	Programs/ps.c	/^    double pl_esc;$/;"	m	struct:parameters_gsl_SFR_int_	file:
+pl_star	Cosmo_c_files/ps.c	/^    double pl_star;$/;"	m	struct:parameters_gsl_SFR_con_int_	file:
+pl_star	Cosmo_c_files/ps.c	/^    double pl_star;$/;"	m	struct:parameters_gsl_SFR_int_	file:
+pl_star	Programs/ps.c	/^    double pl_star;$/;"	m	struct:parameters_gsl_SFR_con_int_	file:
+pl_star	Programs/ps.c	/^    double pl_star;$/;"	m	struct:parameters_gsl_SFR_int_	file:
+plt	Pics/sliceplot.py	/^import matplotlib.pyplot as plt$/;"	i
+position	Programs/kSZ_power.c	/^unsigned long long position(int i, int j, int ti, int tj)$/;"	f
+power_in_k	Cosmo_c_files/ps.c	/^double power_in_k(double k){$/;"	f
+power_in_k	Programs/ps.c	/^double power_in_k(double k){$/;"	f
+printStatistics	Programs/kSZ_power.c	/^void printStatistics(float *K, float *Pk, int *Count) $/;"	f
+printTField	Programs/kSZ_power.c	/^void printTField(float *Tcmb)$/;"	f
+print_box_no_padding	Programs/perturb_field.c	/^int print_box_no_padding(float *box, int d, FILE *F){$/;"	f
+process_velocity	Programs/perturb_field.c	/^int process_velocity(fftwf_complex *updated, float dDdt_over_D, float REDSHIFT, int component){$/;"	f
+projectArray	Programs/kSZ_power.c	/^void projectArray(float *Tcmb, float *Tcmb_3d, float *dtau_3d)$/;"	f
+properdistance	Cosmo_c_files/cosmo_progs.c	/^double properdistance(double z, double zsource){$/;"	f
+readInArrays	Programs/kSZ_power.c	/^int readInArrays(float *Tcmb_3d, float *dtau_3d, $/;"	f
+read_box	Programs/redshift_interpolate_boxes.c	/^int read_box(char *box_filename, fftwf_complex *box, int format, int LOS_direction){$/;"	f
+recombination_rate	Cosmo_c_files/recombinations.c	/^double recombination_rate(double z, double gamma12_bg, double T4, int usecaseB){$/;"	f
+redshift_interp_table	Programs/heating_helper_progs.c	/^float *redshift_interp_table;$/;"	v
+rho_critz	Cosmo_c_files/cosmo_progs.c	/^double rho_critz(float z){$/;"	f
+rtoz	Cosmo_c_files/cosmo_progs.c	/^double rtoz (double R, double zsource){$/;"	f
+scipy	Pics/sliceplot.py	/^import scipy$/;"	i
+second_derivs_Fcoll_zpp	Programs/heating_helper_progs.c	/^float *second_derivs_Fcoll_zpp[NUM_FILTER_STEPS_FOR_Ts]; \/\/ New$/;"	v
+second_derivs_SFR	Cosmo_c_files/ps.c	/^float *Overdense_spline_SFR,*Fcoll_spline_SFR,*second_derivs_SFR;$/;"	v
+second_derivs_SFR	Programs/ps.c	/^float *Overdense_spline_SFR,*Fcoll_spline_SFR,*second_derivs_SFR;$/;"	v
+second_derivs_dsigma	Cosmo_c_files/ps.c	/^float *Mass_Spline, *Sigma_Spline, *dSigmadm_Spline, *second_derivs_sigma, *second_derivs_dsigma;$/;"	v
+second_derivs_dsigma	Programs/ps.c	/^float *Mass_Spline, *Sigma_Spline, *dSigmadm_Spline, *second_derivs_sigma, *second_derivs_dsigma;$/;"	v
+second_derivs_high_GL	Programs/ps.c	/^float *second_derivs_low_GL,*second_derivs_high_GL,*Overdense_spline_GL_low,*Fcoll_spline_GL_low;$/;"	v
+second_derivs_low_GL	Programs/ps.c	/^float *second_derivs_low_GL,*second_derivs_high_GL,*Overdense_spline_GL_low,*Fcoll_spline_GL_low;$/;"	v
+second_derivs_sigma	Cosmo_c_files/ps.c	/^float *Mass_Spline, *Sigma_Spline, *dSigmadm_Spline, *second_derivs_sigma, *second_derivs_dsigma;$/;"	v
+second_derivs_sigma	Programs/ps.c	/^float *Mass_Spline, *Sigma_Spline, *dSigmadm_Spline, *second_derivs_sigma, *second_derivs_dsigma;$/;"	v
+sheth_delc	Cosmo_c_files/ps.c	/^double sheth_delc(double del, double sig){$/;"	f
+sheth_delc	Programs/ps.c	/^double sheth_delc(double del, double sig){$/;"	f
+sigma_Tmin	Programs/heating_helper_progs.c	/^double zpp_edge[NUM_FILTER_STEPS_FOR_Ts], sigma_atR[NUM_FILTER_STEPS_FOR_Ts], sigma_Tmin[NUM_FILTER_STEPS_FOR_Ts], ST_over_PS[NUM_FILTER_STEPS_FOR_Ts], sum_lyn[NUM_FILTER_STEPS_FOR_Ts], R_values[NUM_FILTER_STEPS_FOR_Ts];$/;"	v
+sigma_atR	Programs/heating_helper_progs.c	/^double zpp_edge[NUM_FILTER_STEPS_FOR_Ts], sigma_atR[NUM_FILTER_STEPS_FOR_Ts], sigma_Tmin[NUM_FILTER_STEPS_FOR_Ts], ST_over_PS[NUM_FILTER_STEPS_FOR_Ts], sum_lyn[NUM_FILTER_STEPS_FOR_Ts], R_values[NUM_FILTER_STEPS_FOR_Ts];$/;"	v
+sigma_norm	Cosmo_c_files/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+sigma_norm	Programs/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+sigma_z0	Cosmo_c_files/ps.c	/^double sigma_z0(double M){$/;"	f
+sigma_z0	Programs/ps.c	/^double sigma_z0(double M){$/;"	f
+sigmaparam_FgtrM_bias	Cosmo_c_files/ps.c	/^double sigmaparam_FgtrM_bias(float z, float sigsmallR, float del_bias, float sig_bias){$/;"	f
+sigmaparam_FgtrM_bias	Programs/ps.c	/^double sigmaparam_FgtrM_bias(float z, float sigsmallR, float del_bias, float sig_bias){$/;"	f
+slice	Pics/sliceplot.py	/^            slice = slice - data1[:,:,other_z_index]$/;"	v
+slice	Pics/sliceplot.py	/^        slice = data1[:,:,z_index]$/;"	v
+slice	Pics/sliceplot.py	/^        slice = data1[:,y_index,:]$/;"	v
+slice	Pics/sliceplot.py	/^        slice = np.log10(1+slice)$/;"	v
+slice	Pics/sliceplot.py	/^        slice = np.log10(slice)$/;"	v
+sound_horizon	Cosmo_c_files/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+sound_horizon	Programs/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+species_weighted_x_ray_cross_section	Programs/heating_helper_progs.c	/^double species_weighted_x_ray_cross_section(double nu, double x_e){$/;"	f
+spectral_emissivity	Programs/heating_helper_progs.c	/^double spectral_emissivity(double nu_norm, int flag)$/;"	f
+spline	Cosmo_c_files/ps.c	/^void spline(float x[], float y[], int n, float yp1, float ypn, float y2[])$/;"	f
+spline	Programs/ps.c	/^void spline(float x[], float y[], int n, float yp1, float ypn, float y2[])$/;"	f
+splined_A_MHR	Cosmo_c_files/recombinations.c	/^double splined_A_MHR(double x){$/;"	f
+splined_C_MHR	Cosmo_c_files/recombinations.c	/^double splined_C_MHR(double x){$/;"	f
+splined_beta_MHR	Cosmo_c_files/recombinations.c	/^double splined_beta_MHR(double x){$/;"	f
+splined_erfc	Cosmo_c_files/ps.c	/^double splined_erfc(double x){$/;"	f
+splined_erfc	Programs/ps.c	/^double splined_erfc(double x){$/;"	f
+splined_recombination_rate	Cosmo_c_files/recombinations.c	/^double splined_recombination_rate(double z_eff, double gamma12_bg){$/;"	f
+splint	Cosmo_c_files/ps.c	/^void splint(float xa[], float ya[], float y2a[], int n, float x, float *y)$/;"	f
+splint	Programs/ps.c	/^void splint(float xa[], float ya[], float y2a[], int n, float x, float *y)$/;"	f
+sub_fig	Pics/sliceplot.py	/^    sub_fig = fig.add_subplot(111)$/;"	v
+subtract_avg	Programs/kSZ_power.c	/^void subtract_avg(float *Tcmb)$/;"	f
+sum_lyn	Programs/heating_helper_progs.c	/^double zpp_edge[NUM_FILTER_STEPS_FOR_Ts], sigma_atR[NUM_FILTER_STEPS_FOR_Ts], sigma_Tmin[NUM_FILTER_STEPS_FOR_Ts], ST_over_PS[NUM_FILTER_STEPS_FOR_Ts], sum_lyn[NUM_FILTER_STEPS_FOR_Ts], R_values[NUM_FILTER_STEPS_FOR_Ts];$/;"	v
+sys	Pics/sliceplot.py	/^import sys, argparse$/;"	i
+t_STAR	Boxes/Ts_evolution/ANAL_PARAMS.H	49;"	d
+t_STAR	Output_files/Ts_outs/ANAL_PARAMS.H	49;"	d
+t_STAR	Parameter_files/ANAL_PARAMS.H	49;"	d
+t_dynamical	Cosmo_c_files/cosmo_progs.c	/^float t_dynamical(float z){$/;"	f
+t_hubble	Cosmo_c_files/cosmo_progs.c	/^double t_hubble(float z){$/;"	f
+tauX	Programs/heating_helper_progs.c	/^double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_factor_zp){$/;"	f
+tauX_integrand	Programs/heating_helper_progs.c	/^double tauX_integrand(double zhat, void *params){$/;"	f
+tauX_params	Programs/heating_helper_progs.c	/^} tauX_params;$/;"	t	typeref:struct:__anon1	file:
+tau_e	Cosmo_c_files/cosmo_progs.c	/^double tau_e(float zstart, float zend, float *zarry, float *xHarry, int len){$/;"	f
+tau_e_params	Cosmo_c_files/cosmo_progs.c	/^} tau_e_params;$/;"	t	typeref:struct:__anon4	file:
+taue_arry	Programs/kSZ_power.c	/^double *taue_arry;$/;"	v
+taugp	Programs/heating_helper_progs.c	/^double taugp(double z, double delta, double xe){$/;"	f
+theta_cmb	Cosmo_c_files/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+theta_cmb	Programs/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+tick_array	Pics/sliceplot.py	/^        tick_array = np.linspace(minrange, maxrange, 4)$/;"	v
+tick_array	Pics/sliceplot.py	/^        tick_array = np.linspace(minrange, maxrange, 5)$/;"	v
+tick_array	Pics/sliceplot.py	/^        tick_array = np.linspace(minrange, maxrange, 6)$/;"	v
+tick_array	Pics/sliceplot.py	/^        tick_array = np.linspace(minrange, maxrange, 9)$/;"	v
+timesince	Cosmo_c_files/cosmo_progs.c	/^double timesince(double z, double zsource){$/;"	f
+ttoz	Cosmo_c_files/cosmo_progs.c	/^double ttoz (double t, double zsource){$/;"	f
+update_in_halo	Programs/find_halos.c	/^void update_in_halo(char * in_halo, float R, int x, int y, int z){$/;"	f
+update_in_sphere	Programs/bubble_helper_progs.c	/^void update_in_sphere(float * box, int dimensions, float R, float xf, float yf, float zf){$/;"	f
+usecaseB	Cosmo_c_files/recombinations.c	/^typedef struct {double z, gamma12_bg, T4, A, C_0, beta, avenH; int usecaseB;} RR_par;$/;"	m	struct:__anon3	file:
+vector	Cosmo_c_files/ps.c	/^float *vector(long nl, long nh)$/;"	f
+vector	Programs/ps.c	/^float *vector(long nl, long nh)$/;"	f
+voigt1	Cosmo_c_files/cosmo_progs.c	/^double voigt1(double x, double a){$/;"	f
+wi_SFR	Cosmo_c_files/ps.c	/^float *xi_SFR,*wi_SFR;$/;"	v
+wi_SFR	Programs/ps.c	/^float *xi_SFR,*wi_SFR;$/;"	v
+wi_high	Programs/ps.c	/^float *Overdense_spline_gsl,*Overdense_spline_GL_high,*Fcoll_spline_gsl,*Fcoll_spline_GL_high,*xi_low,*xi_high,*wi_high,*wi_low;$/;"	v
+wi_low	Programs/ps.c	/^float *Overdense_spline_gsl,*Overdense_spline_GL_high,*Fcoll_spline_gsl,*Fcoll_spline_GL_high,*xi_low,*xi_high,*wi_high,*wi_low;$/;"	v
+wl	Boxes/Ts_evolution/COSMOLOGY.H	25;"	d
+wl	Output_files/Ts_outs/COSMOLOGY.H	25;"	d
+wl	Parameter_files/COSMOLOGY.H	25;"	d
+xH	Cosmo_c_files/cosmo_progs.c	/^  float *z, *xH;$/;"	m	struct:__anon4	file:
+xH_image_slice_withps	Pics/xH_image_slice_withps.m	/^function xH_image_slice_withps(infile, outfile, dim1, color_bar_flag, expand_factor, varargin)$/;"	f
+x_e	Programs/heating_helper_progs.c	/^  double nu_0, x_e, ion_eff;$/;"	m	struct:__anon1	file:
+x_e	Programs/heating_helper_progs.c	/^  double x_e, zp, zpp, HI_filling_factor_zp;$/;"	m	struct:__anon2	file:
+x_e_ave	Programs/heating_helper_progs.c	/^double const_zp_prefactor, dt_dzp, x_e_ave;$/;"	v
+x_int_Energy	Programs/elec_interp.c	/^float x_int_Energy[x_int_NENERGY];$/;"	v
+x_int_NENERGY	Programs/elec_interp.c	8;"	d	file:
+x_int_NXHII	Programs/elec_interp.c	7;"	d	file:
+x_int_XHII	Programs/elec_interp.c	/^float x_int_XHII[x_int_NXHII];$/;"	v
+x_int_fheat	Programs/elec_interp.c	/^float x_int_fheat[x_int_NXHII][x_int_NENERGY];$/;"	v
+x_int_n_Lya	Programs/elec_interp.c	/^float x_int_n_Lya[x_int_NXHII][x_int_NENERGY];$/;"	v
+x_int_nion_HI	Programs/elec_interp.c	/^float x_int_nion_HI[x_int_NXHII][x_int_NENERGY];$/;"	v
+x_int_nion_HeI	Programs/elec_interp.c	/^float x_int_nion_HeI[x_int_NXHII][x_int_NENERGY];$/;"	v
+x_int_nion_HeII	Programs/elec_interp.c	/^float x_int_nion_HeII[x_int_NXHII][x_int_NENERGY];$/;"	v
+x_sigma	Pics/sliceplot.py	/^            x_sigma = args.filterx$/;"	v
+xalpha_tilde	Programs/heating_helper_progs.c	/^double xalpha_tilde(double z, double Jalpha, double TK, double TS,$/;"	f
+xcoll	Programs/heating_helper_progs.c	/^double xcoll(double z, double TK, double delta, double xe){$/;"	f
+xcoll_HI	Programs/heating_helper_progs.c	/^double xcoll_HI(double z, double TK, double delta, double xe)$/;"	f
+xcoll_elec	Programs/heating_helper_progs.c	/^double xcoll_elec(double z, double TK, double delta, double xe)$/;"	f
+xcoll_prot	Programs/heating_helper_progs.c	/^double xcoll_prot(double z, double TK, double delta, double xe)$/;"	f
+xi_SFR	Cosmo_c_files/ps.c	/^float *xi_SFR,*wi_SFR;$/;"	v
+xi_SFR	Programs/ps.c	/^float *xi_SFR,*wi_SFR;$/;"	v
+xi_high	Programs/ps.c	/^float *Overdense_spline_gsl,*Overdense_spline_GL_high,*Fcoll_spline_gsl,*Fcoll_spline_GL_high,*xi_low,*xi_high,*wi_high,*wi_low;$/;"	v
+xi_low	Programs/ps.c	/^float *Overdense_spline_gsl,*Overdense_spline_GL_high,*Fcoll_spline_gsl,*Fcoll_spline_GL_high,*xi_low,*xi_high,*wi_high,*wi_low;$/;"	v
+xion_RECFAST	Programs/heating_helper_progs.c	/^double xion_RECFAST(float z, int flag)$/;"	f
+y_d	Cosmo_c_files/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+y_d	Programs/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+y_index	Pics/sliceplot.py	/^    y_index = DIM\/2$/;"	v
+y_sigma	Pics/sliceplot.py	/^            y_sigma = args.filtery$/;"	v
+z	Cosmo_c_files/cosmo_progs.c	/^  float *z, *xH;$/;"	m	struct:__anon4	file:
+z	Cosmo_c_files/recombinations.c	/^typedef struct {double z, gamma12_bg, T4, A, C_0, beta, avenH; int usecaseB;} RR_par;$/;"	m	struct:__anon3	file:
+z_X_val	Cosmo_c_files/ps.c	/^static double z_X_val[zpp_interp_points],FcollzX_val[zpp_interp_points]; $/;"	v	file:
+z_equality	Cosmo_c_files/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+z_equality	Programs/ps.c	/^double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;$/;"	v
+z_gasCMBdecoupling	Cosmo_c_files/cosmo_progs.c	/^float z_gasCMBdecoupling(){$/;"	f
+z_index	Pics/sliceplot.py	/^        z_index = args.zindex$/;"	v
+z_obs	Cosmo_c_files/ps.c	/^    double z_obs;$/;"	m	struct:parameters_gsl_SFR_con_int_	file:
+z_obs	Cosmo_c_files/ps.c	/^    double z_obs;$/;"	m	struct:parameters_gsl_SFR_int_	file:
+z_obs	Programs/ps.c	/^    double z_obs;$/;"	m	struct:parameters_gsl_SFR_con_int_	file:
+z_obs	Programs/ps.c	/^    double z_obs;$/;"	m	struct:parameters_gsl_SFR_int_	file:
+z_obs	Programs/ps.c	/^    double z_obs;$/;"	m	struct:parameters_gsl_ST_int_	file:
+z_obs	Programs/ps.c	/^    double z_obs;$/;"	m	struct:parameters_gsl_int_	file:
+z_sigma	Pics/sliceplot.py	/^            z_sigma = args.filterz$/;"	v
+z_val	Cosmo_c_files/ps.c	/^static double z_val[zpp_interp_points],Fcollz_val[zpp_interp_points]; \/\/ For Ts.c$/;"	v	file:
+zmax	Programs/heating_helper_progs.c	/^float zmax(float z, int n){$/;"	f
+zp	Programs/heating_helper_progs.c	/^  double x_e, zp, zpp, HI_filling_factor_zp;$/;"	m	struct:__anon2	file:
+zpp	Programs/heating_helper_progs.c	/^  double x_e, zp, zpp, HI_filling_factor_zp;$/;"	m	struct:__anon2	file:
+zpp_bin_width	Programs/heating_helper_progs.c	/^static float determine_zpp_max, determine_zpp_min,zpp_bin_width; \/\/ new in v1.4$/;"	v	file:
+zpp_edge	Programs/heating_helper_progs.c	/^double zpp_edge[NUM_FILTER_STEPS_FOR_Ts], sigma_atR[NUM_FILTER_STEPS_FOR_Ts], sigma_Tmin[NUM_FILTER_STEPS_FOR_Ts], ST_over_PS[NUM_FILTER_STEPS_FOR_Ts], sum_lyn[NUM_FILTER_STEPS_FOR_Ts], R_values[NUM_FILTER_STEPS_FOR_Ts];$/;"	v
+zpp_interp_points	Cosmo_c_files/ps.c	52;"	d	file:
+zpp_interp_table	Programs/heating_helper_progs.c	/^float *zpp_interp_table; \/\/New in v1.4$/;"	v
+zpp_table	Cosmo_c_files/ps.c	/^float *zpp_table;$/;"	v

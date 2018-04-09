@@ -1,6 +1,6 @@
 # C compiler and flags
-CPPFLAGS = -I/usr/local/include
-LDFLAGS = -lgsl -lgslcblas -lfftw3f_omp -lfftw3f -lm
+CPPFLAGS = -I/home/yqin/programs/fftw-3.3.7/include/
+LDFLAGS = -L/home/yqin/programs/fftw-3.3.7/lib -lgsl -lgslcblas -lfftw3f_omp -lfftw3f -lm
 #CC      = gcc-7.1.0 -fopenmp
 CC      = gcc -fopenmp -mtune=core2 -march=core2 -m64 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_THREAD_SAFE #for my mac pro 64bit
 

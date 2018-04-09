@@ -59,6 +59,7 @@ int main(int argc, char ** argv){
     free(vx); free(vy);
     return -1;
   }
+  fprintf(stderr, "Read vx velocity field\nElapsed time: %ds\n", last_time - start_time);
   sprintf(filename, "../Boxes/vxoverddot_%i_%.0fMpc", HII_DIM, BOX_LEN);
   F=fopen(filename, "rb");
   if (mod_fread(vx, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
@@ -68,7 +69,7 @@ int main(int argc, char ** argv){
   }
   fclose(F);
   last_time = time(NULL);
-  fprintf(stderr, "Read vx velocity field\nElapsed time: %ds\n", last_time - start_time);
+  fprintf(stderr, "Read vy velocity field\nElapsed time: %ds\n", last_time - start_time);
   sprintf(filename, "../Boxes/vyoverddot_%i_%.0fMpc", HII_DIM, BOX_LEN);
   F=fopen(filename, "rb");
   if (mod_fread(vy, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
@@ -77,7 +78,7 @@ int main(int argc, char ** argv){
     return -1;
   }
   fclose(F);
-  fprintf(stderr, "Read vy velocity field\nElapsed time: %ds\n", time(NULL) - last_time);
+  fprintf(stderr, "Read vz velocity field\nElapsed time: %ds\n", time(NULL) - last_time);
   last_time = time(NULL);
   sprintf(filename, "../Boxes/vzoverddot_%i_%.0fMpc", HII_DIM, BOX_LEN);
   F=fopen(filename, "rb");
