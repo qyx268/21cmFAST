@@ -29,8 +29,21 @@
 #define STELLAR_BARYON_PL (double) (0.5) //power law index w/ halo mass
 #define ESC_FRAC (double) (0.1) // ionizing escape fraction, defined for 10^10 Msun halos
 #define ESC_PL (double) (-0.5) //power law index w/ halo mass
-#define M_TURNOVER (double) (5e8) // Halo mass threshold for efficient star formation (in Msun). 
 
+
+/***************************************************************************
+ Molecularly-cooled galaxies (MCGs; ask Yuxiang for any issues)
+ Replacing  M_TURNOVER with M_TURNOVER(z), which is modulated by
+ M_FEEDBACK, M_MOL, Z_MOL, and DELTA_Z_MOL.
+
+ Log10_M_TURNOVER = (Log10_M_FEEDBACK + Log10_M_MOL * S) / (1. + S)
+ S                = exp((z - Z_MOL) / (DELTA_Z_MOL))
+***************************************************************************/
+
+#define LOG10_M_FEEDBACK (double) (8.7) // Halo mass threshold for efficient star formation (in Msun). 
+#define LOG10_M_MOL (double) (6.5) // Halo mass threshold for efficient star formation at higher redshifts due to molecular cooling (in Msun); currently it's not a free parameter. 
+#define Z_MOL (double) (12) // Redshift of the disappearance of MCGs
+#define DELTA_Z_MOL (double) (0.5) // Duration of the disappearance of MCGs
 
 /**********************************************
   RECOMBINATION PARAMETERS

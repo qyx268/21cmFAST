@@ -196,7 +196,7 @@ double get_M_min_ion(float z);
 double get_M_min_ion(float z){
   double MMIN;
 
-  MMIN = M_TURNOVER;
+  MMIN = M_TURNOVER(LOG10_M_FEEDBACK, Z_MOL, DELTA_Z_MOL, z);
 
   // check for WDM
   if (P_CUTOFF && ( MMIN < M_J_WDM()))
@@ -1615,7 +1615,7 @@ double mean_SFRD_dlnMhalo(double lnM, void *params){
   if (f_ast > 1)
     f_ast = 1;
 
-  return dndM * f_ast * exp(-M_TURNOVER/M) * M * M * OMb/OMm; //extra M for the dlnM
+  return dndM * f_ast * exp(-M_TURNOVER(LOG10_M_FEEDBACK, Z_MOL, DELTA_Z_MOL, z)/M) * M * M * OMb/OMm; //extra M for the dlnM
 }
 
 float mean_SFRD(double z){
@@ -1627,8 +1627,8 @@ float mean_SFRD(double z){
 
   F.function = &mean_SFRD_dlnMhalo;
   F.params = &z;
-  lower_limit = log(M_TURNOVER/50.0);
-  upper_limit = log(FMAX(1e16, M_TURNOVER*100));
+  lower_limit = log(M_TURNOVER(LOG10_M_FEEDBACK, Z_MOL, DELTA_Z_MOL, z)/50.0);
+  upper_limit = log(FMAX(1e16, M_TURNOVER(LOG10_M_FEEDBACK, Z_MOL, DELTA_Z_MOL, z)*100));
 
   gsl_integration_qag (&F, lower_limit, upper_limit, 0, rel_tol,
 		       1000, GSL_INTEG_GAUSS61, w, &result, &error); 

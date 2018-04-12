@@ -198,7 +198,7 @@ double get_M_min_ion(float z);
 double get_M_min_ion(float z){
   double MMIN;
 
-  MMIN = pow(10, LOG_MASS_TURNOVER);
+  MMIN = M_TURNOVER(LOG10_M_FEEDBACK, Z_MOL, DELTA_Z_MOL, z);
 
   // check for WDM
   if (P_CUTOFF && ( MMIN < M_J_WDM()))
