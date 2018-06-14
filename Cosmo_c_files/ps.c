@@ -68,7 +68,6 @@ float Mass_limit (float logM, float PL, float FRAC);
 void bisection(float *x, float xlow, float xup, int *iter);
 float Mass_limit_bisection(float Mmin, float Mmax, float PL, float FRAC);
 
-    /* For Ts.c: being under development below this line */
 static double z_val[zpp_interp_points],Fcollz_val[zpp_interp_points]; // For Ts.c
 static double z_X_val[zpp_interp_points],FcollzX_val[zpp_interp_points]; 
 static gsl_interp_accel *Fcollz_spline_acc;
@@ -85,7 +84,6 @@ float *Overdense_high_table, **Fcollz_SFR_high_table;
 void initialise_Xray_Fcollz_SFR_Conditional_table(int Nsteps_zp, int Nfilter, float z[], double R[], float MassTurnover, float Alpha_star, float Fstar10);
 void initialise_Xray_Fcollz_SFR_Conditional(int R_ct, int zp_int1, int zp_int2);
 void free_interpolation();
-    /* For Ts.c: being under development above this line */
 
 
 struct parameters_gsl_SFR_int_{
@@ -864,9 +862,10 @@ double init_ps(){
   // Set cuttoff scale for WDM (eq. 4 in Barkana et al. 2001) in comoving Mpc
   R_CUTOFF = 0.201*pow((OMm-OMb)*hlittle*hlittle/0.15, 0.15)*pow(g_x/1.5, -0.29)*pow(M_WDM, -1.15);
 
-//  fprintf(stderr, "For M_DM = %.2e keV, R_CUTOFF is: %.2e comoving Mpc\n", M_WDM, R_CUTOFF);
-  if (!P_CUTOFF)
-//    fprintf(stderr, "But you have selected CDM, so this is ignored\n");
+
+  if (P_CUTOFF){
+    fprintf(stderr, "For M_DM = %.2e keV, R_CUTOFF is: %.2e comoving Mpc\n", M_WDM, R_CUTOFF);
+  }
 
   omhh = OMm*hlittle*hlittle;
   theta_cmb = T_cmb / 2.7;
@@ -1352,7 +1351,6 @@ float GaussLegendreQuad_FcollSFR(int n, float z, float M2, float delta1, float d
     else{
         for(i=1; i<(n+1); i++){
             x = xi_SFR[i];
-            x = xi_SFR[i];
             integrand += wi_SFR[i]*FgtrConditionallnM_GL_SFR(x,parameters_gsl_SFR_con);
         }
         return integrand;
@@ -1500,7 +1498,6 @@ void FcollSpline_SFR(float Overdensity, float *splined_value){
     *splined_value = returned_value;
 }
 
-  // For Ts.c : The functions below this line are under development.
 void initialise_FgtrM_st_SFR_spline(int Nbin, float zmin, float zmax, float MassTurn, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10){
 	int i;
 	float Mmin = MassTurn/50., Mmax = 1e16;
@@ -1572,18 +1569,14 @@ void initialise_Xray_Fcollz_SFR_Conditional_table(int Nsteps_zp, int Nfilter, fl
     for (i=0; i<NSFR_high;i++) {
       Overdense_high_table[i] = overdense_large_low + (float)i/((float)NSFR_high-1.)*(overdense_large_high - overdense_large_low);
     }
-    //    printf("Nfilter = %d\n",Nfilter);
     for (k=0; k < Nsteps_zp; k++) {
 	  i_tot = Nfilter*k;
-      //printf("R filter = %d\n",k);
-      //Mmax = RtoM(R[k]);
       for (j=0; j < Nfilter; j++) {
         Mmax = RtoM(R[j]);
-        initialiseGL_FcollSFR(NGL_SFR, Mmin, Mmax);
+        initialiseGL_FcollSFR(NGL_SFR, MassTurnover, Mmax);
         for (i=0; i<NSFR_low; i++){
             log10_Fcollz_SFR_low_table[i_tot+j][i] = log10(GaussLegendreQuad_FcollSFR(NGL_SFR,z[i_tot+j],log(Mmax),Deltac,overdense_low_table[i]-1.,MassTurnover,Alpha_star,0.,Fstar10,1.,Mlim_Fstar,0.));
             if(log10_Fcollz_SFR_low_table[i_tot+j][i] < -40.) log10_Fcollz_SFR_low_table[i_tot+j][i] = -40.;
-		    //if(i==0)printf("zp_step=%d, filter_step=%d, arr=%d\n",k, j,i_tot+j); //TEST
         }
 
         for(i=0;i<NSFR_high;i++) {
@@ -1600,8 +1593,6 @@ void free_interpolation() {
     gsl_spline_free (Fcollz_spline);
     gsl_interp_accel_free (Fcollz_spline_acc);
 }
-// For Ts.c : The functions above this line are under development.
-
 /* New in v1.4: end */
 
 
