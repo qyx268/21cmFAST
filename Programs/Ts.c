@@ -120,6 +120,7 @@ double freq_int_heat[NUM_FILTER_STEPS_FOR_Ts], freq_int_ion[NUM_FILTER_STEPS_FOR
  float log10_M_feedback, z_mol, Delta_z_mol;
  int counter,arr_num; // New in v1.4
  double Luminosity_conversion_factor;
+ float prev_zp_temp, zp_temp;
  int RESTART = 0;
 
 
@@ -566,11 +567,24 @@ double freq_int_heat[NUM_FILTER_STEPS_FOR_Ts], freq_int_ion[NUM_FILTER_STEPS_FOR
     prev_zp = Z_HEAT_MAX;
   }
   else{
-    prev_zp = zp;
+    //prev_zp = zp;
+	prev_zp_temp = zp;
+	zp_temp = zp;
+	Nsteps_zp = 0;
+    zp = REDSHIFT*1.0001; //higher for rounding
+    while (zp < Z_HEAT_MAX) { 
+	  Nsteps_zp += 1;
+      zp = ((1+zp)*ZPRIME_STEP_FACTOR - 1);
+	}
+    prev_zp = Z_HEAT_MAX;
   }
   
   zp = ((1+zp)/ ZPRIME_STEP_FACTOR - 1);
   dzp = zp - prev_zp;
+  if (RESTART == 1) {
+    zp_temp = ((1+zp_temp)/ ZPRIME_STEP_FACTOR - 1);
+    dzp = zp_temp - prev_zp_temp;
+  }
   zp_ct=0;
   COMPUTE_Ts = 0;
   /* New in v1.4: set up interpolation table for computing f_coll(z,delta) */
@@ -640,6 +654,10 @@ double freq_int_heat[NUM_FILTER_STEPS_FOR_Ts], freq_int_ion[NUM_FILTER_STEPS_FOR
 	
   }
   
+  if (RESTART == 1){
+    zp = zp_temp;
+	prev_zp = prev_zp_temp;
+  }
 
   counter = 0;
   while (zp > REDSHIFT){
