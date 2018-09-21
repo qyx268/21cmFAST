@@ -39,6 +39,12 @@ NOTE:  We encourage the user to perform their own convergance tests if modifying
 
 
 /*
+  Minimum virial temperature (in K) of halos hosting X-ray sources responsible for heating the IGM
+*/
+#define X_RAY_Tvir_MIN (double) (1e4) // WILL BE REMOVED IN v1.4
+
+
+/*
 Filter choice used for smoothing the linear density field to obtain the collapsed fraction in Ts.c
 0 = use real space top hat filter
 1 = use sharp k-space filter
@@ -116,8 +122,8 @@ Filter choice used for smoothing the linear density field to obtain the collapse
 /*
   Number of ionizing photons per baryon of the two stellar species
 */
-#define Pop2_ion (float) (4361)
-#define Pop3_ion (float) (44021)
+#define Pop2_ion (float) (N_GAMMA_UV)
+#define Pop3_ion (float) (50000)
 
 /*
   Flag to turn off or on verbose status messages in Ts.  The GSL libraries are very finicky,
