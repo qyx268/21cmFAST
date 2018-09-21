@@ -123,7 +123,7 @@ Filter choice used for smoothing the linear density field to obtain the collapse
   Number of ionizing photons per baryon of the two stellar species
 */
 #define Pop2_ion (float) (N_GAMMA_UV)
-#define Pop3_ion (float) (50000)
+#define Pop3_ion (float) (N_GAMMA_UV_MINI)
 
 /*
   Flag to turn off or on verbose status messages in Ts.  The GSL libraries are very finicky,

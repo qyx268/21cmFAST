@@ -31,6 +31,49 @@
 #define ESC_PL (double) (-0.5) //power law index w/ halo mass
 #define M_TURNOVER (double) (5e8) // Halo mass threshold for efficient star formation (in Msun). 
 
+/***********************************************
+  MINI HALO PARAMETERS
+  NEW in v1.5:
+
+  The ionizing efficiency zeta is allowed to scale with the halo mass
+  in two channels -- atomic and molecular cooling halos:
+  \zeta_ato = N_{\gammaUV} x f_{esc} x f_{\ast} 
+  \zeta_mol = N_{\gammaUV,mol} x f_{esc,mol} x f_{\ast,mol}
+  \zeta     = \zeta_ato + \zeta_mol
+
+  where:
+  f_{\ast} = STELLAR_BARYON_FRAC x (M_{halo}/10^10 M_{sol})^STELLAR_BARYON_PL
+             \times 2^{-M_\mathrm{crit,ato}\left(z\right)/M_\mathrm{halo}}
+  f_{esc} = ESC_FRAC x (M_{halo}/10^10 M_{sol})^ESC_PL
+
+  f_{\ast,mol} = STELLAR_BARYON_FRAC_MINI x (M_{halo}/10^10 M_{sol})^STELLAR_BARYON_PL
+                 \times (1 - 2^{-M_\mathrm{crit,ato}\left(z\right)/M_\mathrm{halo}})
+                 \times 2^{-M_\mathrm{crit,LW}\left(z\right)/M_\mathrm{halo}}
+  f_{esc, mol} = ESC_FRAC_MINI
+
+  and 
+  M_\mathrm{crit,ato} corresponds to the atomic cooling threshold (T~1e4K), which 
+    essentially split halos into atomic and molecular cooling halos.
+  M_\mathrm{crit,LW}  corresponds to the suppression due to Lyman-Werner (LW)
+    background, which according to Visbal, Haiman & Bryan 2017, is
+  M_\mathrm{crit,LW}\left(z,r\right) = 2.5\times10^5 \mathrm{M}_\odot 
+     \left\{1+6.96\left[4\pi J_\mathrm{LW,21}\left(z,r\right)\right]^{0.47}\right\}
+      \left(\frac{1+z}{26}\right)^{-1.5}
+  with 
+  \log_{10} J_\mathrm{LW,21}(z) = -2.356 + 0.4562z -0.02680z^2 + 5.882\times10^{-4}z^3
+                                  -5.056\times10^{-6}z^4$ (Wise+12)
+  Note that in the current version
+  1. we do not consider the spatial fluactuation of J_LW,21.
+  2. the scaling of f_{\ast,mol} is the same as f_\ast
+  3. f_{esc, mol} is a constant
+  4. t_STAR is the same as the atomic cooling halo
+
+
+***********************************************/
+#define MINI_HALO (int) (1)             // operate as a flag
+#define N_GAMMA_UV_MINI (float) (50000) // number of ionizing photons per stellar baryon for mini halos
+#define STELLAR_BARYON_FRAC_MINI (double) (0.01) // defined for 10^10 Msun mini halos
+#define ESC_FRAC_MINI (double) (0.5)    // ionizing escape fraction for mini halos
 
 /**********************************************
   RECOMBINATION PARAMETERS
@@ -84,11 +127,11 @@
 /*
   EVOLVE_DENSITY_LINEARLY = 1, evolve the density field with linear theory.
                 If choosing this option, make sure that your cell size is
-		in the linear regime at the redshift of interest
+        in the linear regime at the redshift of interest
 
   EVOLVE_DENSITY_LINEARLY = 0, evolve the density field with 1st order perturbation theory.
                 If choosing this option, make sure that you resolve small 
-		enough scales, roughly we find BOX_LEN/DIM should be < 1Mpc
+        enough scales, roughly we find BOX_LEN/DIM should be < 1Mpc
  */
 #define EVOLVE_DENSITY_LINEARLY (int) (0)
 
@@ -273,6 +316,7 @@ Filter for the Halo or density field used to generate ionization field
 /************************************************************************************************/
 
 #define HII_EFF_FACTOR (float) ( N_GAMMA_UV * STELLAR_BARYON_FRAC * ESC_FRAC) 
+#define HII_EFF_FACTOR_MINI (float) ( N_GAMMA_UV_MINI * STELLAR_BARYON_FRAC_MINI * ESC_FRAC_MINI) 
 
 /*
   Component of the velocity to be used in 21-cm temperature maps
