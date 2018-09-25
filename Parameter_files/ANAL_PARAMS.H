@@ -42,38 +42,49 @@
   \zeta     = \zeta_ato + \zeta_mol
 
   where:
-  f_{\ast} = STELLAR_BARYON_FRAC x (M_{halo}/10^10 M_{sol})^STELLAR_BARYON_PL
-             \times 2^{-M_\mathrm{crit,ato}\left(z\right)/M_\mathrm{halo}}
-  f_{esc} = ESC_FRAC x (M_{halo}/10^10 M_{sol})^ESC_PL
+  f_{\ast}     = STELLAR_BARYON_FRAC x (M_{halo}/10^10 M_{sol})^STELLAR_BARYON_PL
+  f_{esc}      = ESC_FRAC x (M_{halo}/10^10 M_{sol})^ESC_PL
 
   f_{\ast,mol} = STELLAR_BARYON_FRAC_MINI x (M_{halo}/10^10 M_{sol})^STELLAR_BARYON_PL
-                 \times (1 - 2^{-M_\mathrm{crit,ato}\left(z\right)/M_\mathrm{halo}})
-                 \times 2^{-M_\mathrm{crit,LW}\left(z\right)/M_\mathrm{halo}}
   f_{esc, mol} = ESC_FRAC_MINI
 
   and 
-  M_\mathrm{crit,ato} corresponds to the atomic cooling threshold (T~1e4K), which 
-    essentially split halos into atomic and molecular cooling halos.
-  M_\mathrm{crit,LW}  corresponds to the suppression due to Lyman-Werner (LW)
-    background, which according to Visbal, Haiman & Bryan 2017, is
-  M_\mathrm{crit,LW}\left(z,r\right) = 2.5\times10^5 \mathrm{M}_\odot 
-     \left\{1+6.96\left[4\pi J_\mathrm{LW,21}\left(z,r\right)\right]^{0.47}\right\}
-      \left(\frac{1+z}{26}\right)^{-1.5}
-  with 
-  \log_{10} J_\mathrm{LW,21}(z) = -2.356 + 0.4562z -0.02680z^2 + 5.882\times10^{-4}z^3
-                                  -5.056\times10^{-6}z^4$ (Wise+12)
   Note that in the current version
-  1. we do not consider the spatial fluactuation of J_LW,21.
-  2. the scaling of f_{\ast,mol} is the same as f_\ast
-  3. f_{esc, mol} is a constant
-  4. t_STAR is the same as the atomic cooling halo
+  1. the scaling of f_{\ast,mol} is the same as f_\ast
+  2. f_{esc, mol} is a constant
+  3. t_STAR is the same as the atomic cooling halo
+  4. the duty cycle of atomic halos is:
+     f_\mathrm{duty,atom} = e^{-\max\left[M_\mathrm{turn},M_\mathrm{crit,atom}\left(z\right)\right]/M_\mathrm{h}}
+     with 
+       M_\mathrm{crit,atom} corresponds to the atomic cooling threshold (T~1e4K), which 
+       essentially split halos into atomic and molecular cooling halos.
+       M_\mathrm{crit,atom} = 1e8/h * ((1e4 / 1.98e4) / (0.59/0.6) /\
+                              ((Omega_m / Omega_m_z(z)) * (Delta_c(z)/18/pi**2))**(1./3) /\
+                              ((1.+z)/10))**(1.5)
+               Omega_m_z(z) = 1./(1.+(Omega_L/Omega_m/(1.+z)**3))
+               Delta_c(z)   = 18 * pi**2 + 82 * (Omega_m_z(z) - 1.0) -39 * (Omega_m_z(z) - 1.0) ** 2
+
+  5. the duty cycle of molecular halos is:
+     f_\mathrm{duty,mol}  = e^{-\max\left[M_\mathrm{turn},M_\mathrm{crit,LW}\left(z,r\right)\right]/M_\mathrm{h}}
+                            \times \left[1 - e^{-M_\mathrm{crit,atom}\left(z\right)/M_\mathrm{h}}\right]
+     with
+       M_\mathrm{crit,LW}  corresponds to the suppression due to Lyman-Werner (LW)
+        background, which according to Visbal, Haiman & Bryan 2017, is
+      M_\mathrm{crit,LW}\left(z,r\right) = 2.5\times10^5 \mathrm{M}_\odot 
+              \times \left\{1+6.96\left[4\pi J_\mathrm{LW,21}\left(z,r\right)\right]^{0.47}\right\}
+              \times \left(\frac{1+z}{26}\right)^{-1.5}
+      in this version, we do not consider the spatial fluactuation of J_LW,21 and take advantage of Wise+12 result
+      \log_{10} J_\mathrm{LW,21}(z) = -2.356 + 0.4562z -0.02680z^2 + 5.882\times10^{-4}z^3 -5.056\times10^{-6}z^4
+
 
 
 ***********************************************/
-#define MINI_HALO (int) (1)             // operate as a flag
+#define MINI_HALO 1             // operate as a flag, comment this line if MINI_HALO version is not required
+#ifdef MINI_HALO
 #define N_GAMMA_UV_MINI (float) (50000) // number of ionizing photons per stellar baryon for mini halos
 #define STELLAR_BARYON_FRAC_MINI (double) (0.01) // defined for 10^10 Msun mini halos
 #define ESC_FRAC_MINI (double) (0.5)    // ionizing escape fraction for mini halos
+#endif
 
 /**********************************************
   RECOMBINATION PARAMETERS
@@ -316,7 +327,9 @@ Filter for the Halo or density field used to generate ionization field
 /************************************************************************************************/
 
 #define HII_EFF_FACTOR (float) ( N_GAMMA_UV * STELLAR_BARYON_FRAC * ESC_FRAC) 
+#ifdef MINI_HALO
 #define HII_EFF_FACTOR_MINI (float) ( N_GAMMA_UV_MINI * STELLAR_BARYON_FRAC_MINI * ESC_FRAC_MINI) 
+#endif
 
 /*
   Component of the velocity to be used in 21-cm temperature maps
