@@ -59,8 +59,13 @@ static gsl_spline *Fcoll_spline;
 static double log10_overdense_spline_SFR[NSFR_low], log10_Nion_spline[NSFR_low];
 static gsl_interp_accel *NionLow_spline_acc;
 static gsl_spline *NionLow_spline;
+#ifdef MINI_HALO
+static double log10_Nion_splinem[NSFR_low];
+static gsl_interp_accel *NionLow_spline_accm;
+static gsl_spline *NionLow_splinem;
+#endif
 
-void initialiseGL_Nion(int n, float M_TURN, float M_Max);
+void initialiseGL_Nion(int n, float M_Min, float M_Max);
 void Nion_Spline_density(float Overdensity, float *splined_value);
 void initialise_Nion_spline(float z, float Mmax, float MassTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc);
 
@@ -128,17 +133,10 @@ struct parameters_gsl_SFR_con_intm_{
     double Mval;
     double delta1;
     double delta2;
-    double Mdropa;
     double pl_star;
-    double pl_esc;
-    double frac_star;
-    double frac_esc;
-    double LimitMass_Fstar;
-    double LimitMass_Fesc;
     double Mdropm1;
     double Mdropm2;
     double frac_starm;
-    double frac_escm;
     double LimitMass_Fstarm;
 };
 #endif
@@ -173,6 +171,9 @@ void initialiseSplinedSigmaM(float M_Min, float M_Max);
 /* New in v1.4 - part 3 of 4: start */
 float *Overdense_spline_SFR,*Nion_spline,*second_derivs_Nion;
 float *xi_SFR,*wi_SFR;
+#ifdef MINI_HALO
+float *Nion_splinem,*second_derivs_Nionm;
+#endif
 
 float Nion_ConditionallnM_GL(float M, struct parameters_gsl_SFR_con_int_ parameters_gsl_SFR_con);
 float GaussLegendreQuad_Nion(int n, float z, float M2, float delta1, float delta2, float MassTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc);
@@ -1314,8 +1315,7 @@ double dNion_STm(double lnM, void *params){
 #endif
 
 //double Nion_ST(double z, double MassTurnover, double Alpha_star, double Alpha_esc, double Fstar10, double Fesc10, double Mlim_Fstar, double Mlim_Fesc){
-double Nion_ST(double z, double MassTurnover, double Alpha_star, double Alpha_esc, double Fstar10, double Fesc10, double Mlim_Fstar, double Mlim_Fesc){
-    double M_Min = MassTurnover/50.;
+double Nion_ST(double z, double M_Min, double MassTurnover, double Alpha_star, double Alpha_esc, double Fstar10, double Fesc10, double Mlim_Fstar, double Mlim_Fesc){
     double result, error, lower_limit, upper_limit;
     gsl_function F;
     double rel_tol = 0.001; //<- relative tolerance
@@ -1347,8 +1347,7 @@ double Nion_ST(double z, double MassTurnover, double Alpha_star, double Alpha_es
 }
 
 #ifdef MINI_HALO
-double Nion_STm(double z, double MassTurnover, double MassTurnover_upper, double Alpha_star, double Fstar10, double Mlim_Fstar){
-    double M_Min = MassTurnover/50.;
+double Nion_STm(double z, double M_Min, double MassTurnover_lower, double MassTurnover_upper, double Alpha_star, double Fstar10, double Mlim_Fstar){
     double result, error, lower_limit, upper_limit;
     gsl_function F;
     double rel_tol = 0.001; //<- relative tolerance
@@ -1357,7 +1356,7 @@ double Nion_STm(double z, double MassTurnover, double MassTurnover_upper, double
 
     struct parameters_gsl_SFR_intm_ parameters_gsl_SFR = {
         .z_obs = z,
-        .Mdrop = MassTurnover,
+        .Mdrop = MassTurnover_lower,
         .Mdrop_2 = MassTurnover_upper,
         .pl_star = Alpha_star,
         .frac_star = Fstar10,
@@ -1367,7 +1366,7 @@ double Nion_STm(double z, double MassTurnover, double MassTurnover_upper, double
     F.function = &dNion_STm;
     F.params = &parameters_gsl_SFR;
     lower_limit = log(M_Min);
-    upper_limit = log(FMAX(1e16, M_MassTurnover_upper*100));
+    upper_limit = log(FMAX(1e16, M_Min*100));
 
     gsl_integration_qag (&F, lower_limit, upper_limit, 0, rel_tol,
                         1000, GSL_INTEG_GAUSS61, w, &result, &error);
@@ -1378,8 +1377,7 @@ double Nion_STm(double z, double MassTurnover, double MassTurnover_upper, double
 }
 #endif
 
-void initialiseGL_Nion(int n, float M_TURN, float M_Max){
-    float M_Min = M_TURN/50.;
+void initialiseGL_Nion(int n, float M_Min, float M_Max){
     //calculates the weightings and the positions for Gauss-Legendre quadrature.
     gauleg(log(M_Min),log(M_Max),xi_SFR,wi_SFR,n);
 
@@ -1425,34 +1423,13 @@ float Nion_ConditionallnM_GLm(float lnM, struct parameters_gsl_SFR_con_intm_ par
     float M2 = parameters_gsl_SFR_con.Mval;
     float del1 = parameters_gsl_SFR_con.delta1;
     float del2 = parameters_gsl_SFR_con.delta2;
-    float MassTurnovera = parameters_gsl_SFR_con.Mdropa;
     float Alpha_star = parameters_gsl_SFR_con.pl_star;
-    float Alpha_esc = parameters_gsl_SFR_con.pl_esc;
-    float Fstar10 = parameters_gsl_SFR_con.frac_star;
-    float Fesc10 = parameters_gsl_SFR_con.frac_esc;
-    float Mlim_Fstar = parameters_gsl_SFR_con.LimitMass_Fstar;
-    float Mlim_Fesc = parameters_gsl_SFR_con.LimitMass_Fesc;
     float MassTurnoverm = parameters_gsl_SFR_con.Mdropm1;
     float Mcrit_atom = parameters_gsl_SFR_con.Mdropm2;
     float Fstar10m = parameters_gsl_SFR_con.frac_starm;
-    float Fesc10m = parameters_gsl_SFR_con.frac_escm;
     float Mlim_Fstarm = parameters_gsl_SFR_con.LimitMass_Fstarm;
 
-    float Fstar,Fesc,Fstarm;
-
-    if (Alpha_star > 0. && M > Mlim_Fstar)
-        Fstar = 1./Fstar10;
-    else if (Alpha_star < 0. && M < Mlim_Fstar)
-        Fstar = 1./Fstar10;
-    else
-        Fstar = pow(M/1e10,Alpha_star);
-
-    if (Alpha_esc > 0. && M > Mlim_Fesc)
-        Fesc = 1./Fesc10;
-    else if (Alpha_esc < 0. && M < Mlim_Fesc)
-        Fesc = 1./Fesc10;
-    else
-        Fesc = pow(M/1e10,Alpha_esc);
+    float Fstarm;
 
     if (Alpha_star > 0. && M > Mlim_Fstarm)
         Fstarm = 1./Fstar10m;
@@ -1461,9 +1438,7 @@ float Nion_ConditionallnM_GLm(float lnM, struct parameters_gsl_SFR_con_intm_ par
     else
         Fstarm = pow(M/1e10,Alpha_star);
 
-    return M* (exp(-MassTurnovera / M) * Fstar * Fesc +\
-               exp(-MassTurnoverm / M) * (1 - exp(-Mcrit_atom / M)) * Fstarm) *\
-           dNdM_conditional_second(z, log(M), M2, del1, del2) / sqrt(2. * PI);
+    return M* exp(-MassTurnoverm / M) * (1 - exp(-Mcrit_atom / M)) * Fstarm)*dNdM_conditional_second(z, log(M), M2, del1, del2) / sqrt(2. * PI);
 }
 #endif
 
@@ -1502,7 +1477,7 @@ float GaussLegendreQuad_Nion(int n, float z, float M2, float delta1, float delta
 
 }
 #ifdef MINI_HALO
-float GaussLegendreQuad_Nionm(int n, float z, float M2, float delta1, float delta2, float MassTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc, float MassTurnoverm, float Mcrit_atom, float Fstar10m, float Fesc10m, float Mlim_Fstarm) {
+float GaussLegendreQuad_Nionm(int n, float z, float M2, float delta1, float delta2, float Alpha_star, float MassTurnoverm, float Mcrit_atom, float Fstar10m, float Mlim_Fstarm) {
     //Performs the Gauss-Legendre quadrature.
     int i;
 
@@ -1514,17 +1489,10 @@ float GaussLegendreQuad_Nionm(int n, float z, float M2, float delta1, float delt
         .Mval = M2,
         .delta1 = delta1,
         .delta2 = delta2,
-        .Mdropa = MassTurnover,
         .pl_star = Alpha_star,
-        .pl_esc = Alpha_esc,
-        .frac_star = Fstar10,
-        .frac_esc = Fesc10,
-        .LimitMass_Fstar = Mlim_Fstar,
-        .LimitMass_Fesc = Mlim_Fesc,
         .Mdropm1 = MassTurnoverm,
         .Mdropm2 = Mcrit_atom,
         .frac_starm = Fstar10m,
-        .frac_escm = Fesc10m,
         .LimitMass_Fstarm = Mlim_Fstarm
     };
 
@@ -1585,34 +1553,13 @@ double dNion_ConditionallnMm(double lnM, void *params) {
     double M2 = vals.Mval; // natural log scale
     double del1 = vals.delta1;
     double del2 = vals.delta2;
-    double MassTurnovera = vals.Mdropa;
     double Alpha_star = vals.pl_star;
-    double Alpha_esc = vals.pl_esc;
-    double Fstar10 = vals.frac_star;
-    double Fesc10 = vals.frac_esc;
-    double Mlim_Fstar = vals.LimitMass_Fstar;
-    double Mlim_Fesc = vals.LimitMass_Fesc;
     double MassTurnoverm = vals.Mdropm1;
     double Mcrit_atom = vals.Mdropm2;
     double Fstar10m = vals.frac_starm;
-    double Fesc10m = vals.frac_escm;
     double Mlim_Fstarm = vals.LimitMass_Fstarm;
 
-    double Fstar,Fesc,Fstarm;
-
-    if (Alpha_star > 0. && M > Mlim_Fstar)
-        Fstar = 1./Fstar10;
-    else if (Alpha_star < 0. && M < Mlim_Fstar)
-        Fstar = 1./Fstar10;
-    else
-        Fstar = pow(M/1e10,Alpha_star);
-
-    if (Alpha_esc > 0. && M > Mlim_Fesc)
-        Fesc = 1./Fesc10;
-    else if (Alpha_esc < 0. && M < Mlim_Fesc)
-        Fesc = 1./Fesc10;
-    else 
-        Fesc = pow(M/1e10,Alpha_esc);
+    double Fstarm;
 
     if (Alpha_star > 0. && M > Mlim_Fstarm)
         Fstarm = 1./Fstar10m;
@@ -1621,8 +1568,7 @@ double dNion_ConditionallnMm(double lnM, void *params) {
     else
         Fstarm = pow(M/1e10,Alpha_star);
 
-    return M* (exp(-MassTurnovera / M) * Fstar * Fesc +\
-               exp(-MassTurnoverm / M) * (1 - exp(-Mcrit_atom / M)) * Fstarm) *\
+    return M*exp(-MassTurnoverm / M) * (1 - exp(-Mcrit_atom / M)) * Fstarm *
            dNdM_conditional_second(z, log(M), M2, del1, del2) / sqrt(2. * PI);
 }
 #endif
@@ -1668,7 +1614,7 @@ double Nion_ConditionalM(double z, double M1, double M2, double delta1, double d
 }
 
 #ifdef MINI_HALO
-double Nion_ConditionalMm(double z, double M1, double M2, double delta1, double delta2, double MassTurnover, double Alpha_star, double Alpha_esc, double Fstar10, double Fesc10, double Mlim_Fstar, double Mlim_Fesc, double MassTurnoverm, double Mcrit_atom, double Fstar10m, double Fesc10m, double Mlim_Fstarm) {
+double Nion_ConditionalMm(double z, double M1, double M2, double delta1, double delta2, double Alpha_star, double MassTurnoverm, double Mcrit_atom, double Fstar10m, double Mlim_Fstarm) {
     double result, error, lower_limit, upper_limit;
     gsl_function F;
     double rel_tol = 0.005; //<- relative tolerance
@@ -1680,17 +1626,10 @@ double Nion_ConditionalMm(double z, double M1, double M2, double delta1, double 
         .Mval = M2,
         .delta1 = delta1,
         .delta2 = delta2,
-        .Mdropa = MassTurnover,
         .pl_star = Alpha_star,
-        .pl_esc = Alpha_esc,
-        .frac_star = Fstar10,
-        .frac_esc = Fesc10,
-        .LimitMass_Fstar = Mlim_Fstar,
-        .LimitMass_Fesc = Mlim_Fesc,
         .Mdropm1 = MassTurnoverm,
         .Mdropm2 = Mcrit_atom,
         .frac_starm = Fstar10m,
-        .frac_escm = Fesc10m,
         .LimitMass_Fstarm = Mlim_Fstarm
     };
 
@@ -1721,8 +1660,7 @@ double Nion_ConditionalMm(double z, double M1, double M2, double delta1, double 
 // see eq. (17) in Park et al. 2018
 // Note this function DO NOT include ION_EFF_FACTOR, defined as f_{\ast,10}*f_{esc,10}*N_{\gamma/b}. 
 // The actual Nion in eq. (17) is the value multiplied by ION_EFF_FACTOR.
-void initialise_Nion_spline(float z, float Mmax, float MassTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc){
-    float Mmin = MassTurnover/50.;
+void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc){
     double overdense_val;
     double overdense_large_high = Deltac, overdense_large_low = 1.5;
     double overdense_small_high = 1.5, overdense_small_low = -1. + 9e-8;
@@ -1755,38 +1693,32 @@ void initialise_Nion_spline(float z, float Mmax, float MassTurnover, float Alpha
 }
 
 #ifdef MINI_HALO
-void initialise_Nion_splinem(float z, float Mmax, float MassTurnovera, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc, float MassTurnoverm, float Mcrit_atom, float Fstar10m, float Fesc10m, float Mlim_Fstarm){
-    float Mmina = MassTurnovera/50.;
-    float Mminm = MassTurnoverm/50.;
+void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, float MassTurnoverm, float Mcrit_atom, float Fstar10m, float Mlim_Fstarm){
     double overdense_val;
     double overdense_large_high = Deltac, overdense_large_low = 1.5;
     double overdense_small_high = 1.5, overdense_small_low = -1. + 9e-8;
 	int i;
-    NionLow_spline_acc = gsl_interp_accel_alloc ();
-    NionLow_spline = gsl_spline_alloc (gsl_interp_cspline, NSFR_low);
+    NionLow_spline_accm = gsl_interp_accel_alloc ();
+    NionLow_splinem = gsl_spline_alloc (gsl_interp_cspline, NSFR_low);
 
     for (i=0; i<NSFR_low; i++){
-        overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low-1.)*(log10(1.+overdense_small_high)-log10(1.+overdense_small_low));
-
-        log10_overdense_spline_SFR[i] = overdense_val;
-		log10_Nion_spline[i] = log10(GaussLegendreQuad_Nionm(NGL_SFR,z,log(Mmax),Deltac,pow(10.,overdense_val)-1.,MassTurnovera,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc,MassTurnoverm,Mcrit_atom,Fstar10m,Fesc10m,Mlim_Fstarm));
+		log10_Nion_splinem[i] = log10(GaussLegendreQuad_Nionm(NGL_SFR,z,log(Mmax),Deltac,pow(10.,overdense_val)-1.,Alpha_star,MassTurnoverm,Mcrit_atom,Fstar10m,Mlim_Fstarm));
 
         if(log10_Nion_spline[i] < -40.){
             log10_Nion_spline[i] = -40.;
         }
     }
-    gsl_spline_init(NionLow_spline, log10_overdense_spline_SFR, log10_Nion_spline, NSFR_low);
+    gsl_spline_init(NionLow_splinem, log10_overdense_spline_SFR, log10_Nion_splinem, NSFR_low);
 
 
     for(i=0;i<NSFR_high;i++) {
-        Overdense_spline_SFR[i] = overdense_large_low + (float)i/((float)NSFR_high-1.)*(overdense_large_high - overdense_large_low);
-        Nion_spline[i] = Nion_ConditionalMm(z,log(Mmin),log(Mmax),Deltac,Overdense_spline_SFR[i],MassTurnover,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc,MassTurnoverm,Mcrit_atom,Fstar10m,Fesc10m,Mlim_Fstarm);
+        Nion_splinem[i] = Nion_ConditionalMm(z,log(Mmin),log(Mmax),Deltac,Overdense_spline_SFR[i],Alpha_star,MassTurnoverm,Mcrit_atom,Fstar10m,Mlim_Fstarm);
 
-        if(Nion_spline[i]<0.) {
-            Nion_spline[i]=pow(10.,-40.0);
+        if(Nion_splinem[i]<0.) {
+            Nion_splinem[i]=pow(10.,-40.0);
         }
     }
-    spline(Overdense_spline_SFR-1,Nion_spline-1,NSFR_high,0,0,second_derivs_Nion-1);
+    spline(Overdense_spline_SFR-1,Nion_splinem-1,NSFR_high,0,0,second_derivs_Nionm-1);
 }
 #endif
 
@@ -1895,7 +1827,7 @@ void initialise_SFRD_Conditional_table(int Nsteps_zp, int Nfilter, float z[], do
       i_tot = Nfilter*k;
       for (j=0; j < Nfilter; j++) {
         Mmax = RtoM(R[j]);
-        initialiseGL_Nion(NGL_SFR, MassTurnover, Mmax);
+        initialiseGL_Nion(NGL_SFR, Mmin, Mmax);
         for (i=0; i<NSFR_low; i++){
             log10_SFRD_z_low_table[i_tot+j][i] = log10(GaussLegendreQuad_Nion(NGL_SFR,z[i_tot+j],log(Mmax),Deltac,overdense_low_table[i]-1.,MassTurnover,Alpha_star,0.,Fstar10,1.,Mlim_Fstar,0.));
             if(log10_SFRD_z_low_table[i_tot+j][i] < -40.) log10_SFRD_z_low_table[i_tot+j][i] = -40.;
