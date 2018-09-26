@@ -12,6 +12,9 @@
 
 /* Define some global variables; yeah i know it isn't "good practice" but doesn't matter */
 double zpp_edge[NUM_FILTER_STEPS_FOR_Ts], sigma_atR[NUM_FILTER_STEPS_FOR_Ts], sigma_Tmin[NUM_FILTER_STEPS_FOR_Ts], ST_over_PS[NUM_FILTER_STEPS_FOR_Ts], sum_lyn[NUM_FILTER_STEPS_FOR_Ts], R_values[NUM_FILTER_STEPS_FOR_Ts];
+#ifdef MINI_HALO
+double ST_over_PSm[NUM_FILTER_STEPS_FOR_Ts];
+#endif
 unsigned long long box_ct;
 double const_zp_prefactor, dt_dzp, x_e_ave;
 double growth_factor_zp, dgrowth_factor_dzp, PS_ION_EFF;
@@ -19,6 +22,9 @@ int NO_LIGHT;
 float M_MIN_at_z, M_MIN_at_zp;
 int HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY; // New in v1.4
 float F_STAR10,F_ESC10,ALPHA_STAR,ALPHA_ESC,M_TURN,T_AST,Mlim_Fstar,Mlim_Fesc,M_MIN,Splined_Fcoll;//,Splined_Fcollz_mean; // New in v1.4
+#ifdef MINI_HALO
+float F_STAR10m,F_ESC10m,Mlim_Fstarm,Mlim_Fescm,Splined_Fcollm;//,Splined_Fcollz_mean; // New in v1.5
+#endif
 double X_LUMINOSITY;
 float growth_zpp; // New in v1.4
 static float determine_zpp_max, determine_zpp_min,zpp_bin_width; // new in v1.4
@@ -26,8 +32,15 @@ float *second_derivs_Nion_zpp[NUM_FILTER_STEPS_FOR_Ts]; // New
 float *redshift_interp_table;
 int Nsteps_zp; //New in v1.4 
 float *zpp_interp_table; //New in v1.4
+#ifdef MINI_HALO
+float *Mcrit_atom_interp_table, *Mcrit_LW_interp_table, *M_MINa_interp_table, *M_MINm_interp_table;//New in v1.5
+#endif
 gsl_interp_accel *SFRDLow_zpp_spline_acc[NUM_FILTER_STEPS_FOR_Ts];
 gsl_spline *SFRDLow_zpp_spline[NUM_FILTER_STEPS_FOR_Ts];
+#ifdef MINI_HALO
+gsl_interp_accel *SFRDLow_zpp_spline_accm[NUM_FILTER_STEPS_FOR_Ts];
+gsl_spline *SFRDLow_zpp_splinem[NUM_FILTER_STEPS_FOR_Ts];
+#endif
 
 int i; //TEST
 FILE *LOG;
