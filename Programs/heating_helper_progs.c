@@ -29,6 +29,9 @@ double X_LUMINOSITY;
 float growth_zpp; // New in v1.4
 static float determine_zpp_max, determine_zpp_min,zpp_bin_width; // new in v1.4
 float *second_derivs_Nion_zpp[NUM_FILTER_STEPS_FOR_Ts]; // New
+#ifdef MINI_HALO
+float *second_derivs_Nion_zppm[NUM_FILTER_STEPS_FOR_Ts]; // New
+#endif
 float *redshift_interp_table;
 int Nsteps_zp; //New in v1.4 
 float *zpp_interp_table; //New in v1.4

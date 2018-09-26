@@ -130,10 +130,6 @@ void destroy_21cmMC_arrays() {
       free(second_derivs_Nion_zppm[i]);
 #endif
     }
-    free(second_derivs_Nion_zpp);
-#ifdef MINI_HALO
-    free(second_derivs_Nion_zppm);
-#endif
 }
 
 /* Maximum allowed value for the kinetic temperature.
@@ -171,8 +167,8 @@ double freq_int_heat_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl
    Xion_threads[NUMCORES], lower_int_limit;
   float Splined_Nion_ST_zp, Splined_SFRD_ST_zpp,ION_EFF_FACTOR,fcoll; // New in v1.4
 #ifdef MINI_HALO
-  float Splined_Nion_ST_zpm, Splined_SFRD_ST_zppm,ION_EFF_FACTOR_MINI,fcollm; // New in v1.4
-#else
+  float Splined_Nion_ST_zpm, Splined_SFRD_ST_zppm,ION_EFF_FACTOR_MINI,fcollm; // New in v1.5
+#endif
   float zp_table; //New in v1.4
   int counter,arr_num; // New in v1.4
   double Luminosity_conversion_factor;
@@ -731,8 +727,8 @@ double freq_int_heat_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl
 #ifdef MINI_HALO
         Mcrit_atom_interp_table[i] = atomic_cooling_threshold(zpp_interp_table[i]);
         Mcrit_LW_interp_table[i]   = lyman_werner_threshold(zpp_interp_table[i]);
-        M_MINa_interp_table[i]     = M_TURN > Mcrit_atom ? M_TURN : Mcrit_atom;
-        M_MINm_interp_table[i]     = M_TURN > Mcrit_LW   ? M_TURN : Mcrit_LW;
+        M_MINa_interp_table[i]     = M_TURN > Mcrit_atom_interp_table[i] ? M_TURN : Mcrit_atom_interp_table[i];
+        M_MINm_interp_table[i]     = M_TURN > Mcrit_LW_interp_table[i]   ? M_TURN : Mcrit_LW_interp_table[i];
 #endif
     }
 #ifdef MINI_HALO
@@ -922,7 +918,9 @@ double freq_int_heat_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl
         }    
         else {
           fcoll = 1.;
+#ifdef MINI_HALO
           fcollm = 1.;
+#endif
         }    
       }    
       Splined_Fcoll = fcoll;

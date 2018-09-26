@@ -214,10 +214,10 @@ double alpha_A(double T){
   double logT, ans;
   logT = log(T/(double)1.1604505e4);
   ans = pow(E, -28.6130338 - 0.72411256*logT - 2.02604473e-2*pow(logT, 2)
-	     - 2.38086188e-3*pow(logT, 3) - 3.21260521e-4*pow(logT, 4)
-	     - 1.42150291e-5*pow(logT, 5) + 4.98910892e-6*pow(logT, 6)
-	    + 5.75561414e-7*pow(logT, 7) - 1.85676704e-8*pow(logT, 8)
-	    - 3.07113524e-9 * pow(logT, 9));
+         - 2.38086188e-3*pow(logT, 3) - 3.21260521e-4*pow(logT, 4)
+         - 1.42150291e-5*pow(logT, 5) + 4.98910892e-6*pow(logT, 6)
+        + 5.75561414e-7*pow(logT, 7) - 1.85676704e-8*pow(logT, 8)
+        - 3.07113524e-9 * pow(logT, 9));
   return ans;
 }
 
@@ -243,6 +243,18 @@ float TtoM(float z, float T, float mu){
   return 7030.97 / hlittle * sqrt( omega_mz(z) / (OMm*Deltac_nonlinear(z)) ) * 
     pow( VcirtoT(v_ss, mu) /(mu * (1+z)), 1.5 );
 */
+}
+
+double atomic_cooling_threshold(float z){
+    return 1.55e10 / hlittle * sqrt( omega_mz(z) / (OMm*Deltac_nonlinear(z)) ) * pow( 1.+z, -1.5 );
+}
+
+double J_21_LW_Wise12(float z){
+    return pow(10, -2.356 + 0.4562*z -0.02680*z*z + 5.882e-4*z*z*z -5.056e-6*z*z*z*z);
+}
+
+double lyman_werner_threshold(float z){
+    return  3.314e7 * pow( 1.+z, -1.5) * (1. + 22.8685 * pow(J_21_LW_Wise12(z), 0.47));
 }
 
 
@@ -323,7 +335,7 @@ double d_L(float z){
   F.function = &d_L_derivs;
 
   gsl_integration_qag (&F, 0, z, 0, rel_tol,
-		       1000, GSL_INTEG_GAUSS61, w, &result, &error); 
+               1000, GSL_INTEG_GAUSS61, w, &result, &error); 
   gsl_integration_workspace_free (w);
 
   return C * (1+z) * result / CMperMPC;
@@ -455,7 +467,7 @@ double comovingdistance(double z, double zsource){
   F.function = &dcom_dz;
 
   gsl_integration_qag (&F, zsource, z, 0, rel_tol,
-		       1000, GSL_INTEG_GAUSS61, w, &result, &error); 
+               1000, GSL_INTEG_GAUSS61, w, &result, &error); 
   gsl_integration_workspace_free (w);
 
   return result;
@@ -529,20 +541,20 @@ double tau_e(float zstart, float zend, float *zarry, float *xHarry, int len){
   if (zend > Zreion_HeII){// && (zstart < Zreion_HeII)){
     if (zstart < Zreion_HeII){
       gsl_integration_qag (&F, Zreion_HeII, zstart, 0, rel_tol,
-			   1000, GSL_INTEG_GAUSS61, w, &prehelium, &error); 
+               1000, GSL_INTEG_GAUSS61, w, &prehelium, &error); 
       gsl_integration_qag (&F, zend, Zreion_HeII, 0, rel_tol,
-			   1000, GSL_INTEG_GAUSS61, w, &posthelium, &error); 
+               1000, GSL_INTEG_GAUSS61, w, &posthelium, &error); 
     }
     else{
       prehelium = 0;
       gsl_integration_qag (&F, zend, zstart, 0, rel_tol,
-			   1000, GSL_INTEG_GAUSS61, w, &posthelium, &error); 
+               1000, GSL_INTEG_GAUSS61, w, &posthelium, &error); 
     }
   }
   else{
     posthelium = 0;
     gsl_integration_qag (&F, zend, zstart, 0, rel_tol,
-			 1000, GSL_INTEG_GAUSS61, w, &prehelium, &error); 
+             1000, GSL_INTEG_GAUSS61, w, &prehelium, &error); 
   }
   gsl_integration_workspace_free (w);
 
@@ -587,7 +599,7 @@ double voigt1(double x, double a){
 
   /* check if a = 0 (Doppler) */
   if ( fabs(a) < TINY ){
-	return ( q2 * exp(-x*x) );
+    return ( q2 * exp(-x*x) );
   }
 
   /* calculation for the general case */
@@ -595,14 +607,14 @@ double voigt1(double x, double a){
   a2 = a*a;
   e = exp(-q1*a);
   if (a < 0.1){
-	zr = 0.5 * (e + 1.0/e) * cos(q1*x);
-	zi = 0.5 * (e - 1.0/e) * sin(q1*x);
-	vg1 = q2 * exp(a2 - x*x) * cos(2*a*x);
+    zr = 0.5 * (e + 1.0/e) * cos(q1*x);
+    zi = 0.5 * (e - 1.0/e) * sin(q1*x);
+    vg1 = q2 * exp(a2 - x*x) * cos(2*a*x);
   }
   else{
-	zr = e * cos(q1*x);
-	zi = e * sin(q1*x);
-	vg1 = 0;
+    zr = e * cos(q1*x);
+    zi = e * sin(q1*x);
+    vg1 = 0;
   }
   
   b1 = (1 - zr) * a * 1.5;
@@ -610,7 +622,7 @@ double voigt1(double x, double a){
   s = -8 - 1.5 * x;
   t = s*s + 2.25 * a2;
   for (n=0; n<31; n++){
-	t += s + 0.25;
+    t += s + 0.25;
         s += 0.5;
         b1 = a1 - b1;
         b2 = -b2;

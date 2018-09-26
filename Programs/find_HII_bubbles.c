@@ -63,8 +63,11 @@ FILE *LOG;
 unsigned long long SAMPLING_INTERVAL = (((unsigned long long)(HII_TOT_NUM_PIXELS/1.0e6)) + 1); //used to sample density field to compute mean collapsed fraction
 
 int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, float * F_STAR10, 
-                    float * ALPHA_STAR, float * F_ESC10, float * ALPHA_ESC, float * M_TURN, float * T_AST, double * X_LUMINOSITY, float * MFP, 
-                    float * REDSHIFT, float * PREV_REDSHIFT){
+                    float * ALPHA_STAR, float * F_ESC10, float * ALPHA_ESC, float * M_TURN, float * T_AST, double * X_LUMINOSITY,
+#ifdef MINI_HALO
+					float * F_STAR10m, float * F_ESC10m,
+#endif
+                    float * MFP, float * REDSHIFT, float * PREV_REDSHIFT){
 
   int min_argc = 2;
 
@@ -239,7 +242,7 @@ int main(int argc, char ** argv){
   float nua, dnua, temparg, Gamma_R, z_eff;
   float F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, Mlim_Fstar, Mlim_Fesc; //New in v1.4
 #ifdef MINI_HALO
-  float F_STAR10m, F_ESC10m, Mlim_Fstarm, ION_EFF_FACTOR_MINI,M_MINm, M_MINa, Splined_Fcollm, dfcolldtm,Gamma_R_prefactorm,ST_over_PSm.f_collm; //New in v1.5
+  float F_STAR10m, F_ESC10m, Mlim_Fstarm, ION_EFF_FACTOR_MINI,M_MINm, M_MINa, Splined_Fcollm, dfcolldtm,Gamma_R_prefactorm,ST_over_PSm,f_collm, Mcrit_atom, Mcrit_LW, mean_f_coll_stm; //New in v1.5
 #else
   float M_MINa;
 #endif
@@ -260,8 +263,13 @@ int main(int argc, char ** argv){
 
   // PARSE COMMAND LINE ARGUMENTS
   if(SHARP_CUTOFF){
+#ifdef MINI_HALO
+    if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
+               &ALPHA_ESC, &M_TURN, &T_AST, &X_LUMINOSITY, &F_STAR10m, &F_ESC10m, &MFP, &REDSHIFT, &PREV_REDSHIFT)){
+#else
     if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
                &ALPHA_ESC, &M_TURN, &T_AST, &X_LUMINOSITY, &MFP, &REDSHIFT, &PREV_REDSHIFT)){
+#endif
         fprintf(stderr, "find_HII_bubbles <redshift> [<previous redshift>] \n \
             Aborting...\n                               \
         Check that your inclusion (or not) of [<previous redshift>] is consistent with the INHOMO_RECO flag in ../Parameter_files/ANAL_PARAMS.H\nAborting...\n");
@@ -279,8 +287,8 @@ int main(int argc, char ** argv){
      Also check that your inclusion (or not) of [<t_star>] is consistent with the USE_TS_IN_21CM flag in ../Parameter_files/HEAT_PARAMS.H\nAborting...\n");
         return -1;
     }
-    double Mcrit_atom = atomic_cooling_threshold(REDSHIFT);
-    double Mcrit_LW   = lyman_werner_threshold(REDSHIFT);
+    Mcrit_atom = atomic_cooling_threshold(REDSHIFT);
+    Mcrit_LW   = lyman_werner_threshold(REDSHIFT);
 #else
     if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
                &ALPHA_ESC, &M_TURN, &T_AST, &X_LUMINOSITY, &MFP, &REDSHIFT, &PREV_REDSHIFT)){
@@ -846,7 +854,7 @@ int main(int argc, char ** argv){
         initialiseGL_Nion(NGL_SFR, M_MIN, massofscaleR);
         initialise_Nion_spline(REDSHIFT, massofscaleR,M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
 #ifdef MINI_HALO
-        initialise_Nion_splinem(REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,M_MINm,Mcrit_atom,F_STAR10m,F_ESC10m,Mlim_Fstarm);
+        initialise_Nion_splinem(REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,M_MINm,Mcrit_atom,F_STAR10m,Mlim_Fstarm);
 #endif
       }
 
@@ -918,7 +926,9 @@ int main(int argc, char ** argv){
     ion_ct=0;
     xHI_from_xrays = 1;
     Gamma_R_prefactor  = pow(1+REDSHIFT, 2) * (R*CMperMPC) * SIGMA_HI * ALPHA_UVB / (ALPHA_UVB+2.75) * N_b0 * ION_EFF_FACTOR / 1.0e-12;
+#ifdef MINI_HALO
     Gamma_R_prefactorm = Gamma_R_prefactor / ION_EFF_FACTOR * ION_EFF_FACTOR_MINI;
+#endif
 
     for (x=0; x<HII_DIM; x++){
       for (y=0; y<HII_DIM; y++){
