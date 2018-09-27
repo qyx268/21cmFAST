@@ -79,7 +79,7 @@
 
 
 ***********************************************/
-//#define MINI_HALO 1             // operate as a flag, comment this line if MINI_HALO version is not required
+#define MINI_HALO 1             // operate as a flag, comment this line if MINI_HALO version is not required
 #ifdef MINI_HALO
 #define N_GAMMA_UV_MINI (float) (50000) // number of ionizing photons per stellar baryon for mini halos
 #define STELLAR_BARYON_FRAC_MINI (double) (0.01) // defined for 10^10 Msun mini halos

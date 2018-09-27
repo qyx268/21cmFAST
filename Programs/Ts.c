@@ -153,9 +153,15 @@ int main(int argc, char ** argv){
   double *evolve_ans, ans[2], dansdz[5], Tk_ave, J_alpha_ave, xalpha_ave, J_alpha_tot, Xheat_ave,
     Xion_ave;
 double freq_int_heat_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_lya_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts];
+#ifdef MINI_HALO
+double freq_int_heat_tblm[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tblm[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_lya_tblm[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts];
+#endif
   int goodSteps,badSteps;
   int m_xHII_low, m_xHII_high, n_ct, zp_ct;
   double freq_int_heat[NUM_FILTER_STEPS_FOR_Ts], freq_int_ion[NUM_FILTER_STEPS_FOR_Ts], freq_int_lya[NUM_FILTER_STEPS_FOR_Ts];
+#ifdef MINI_HALO
+  double freq_int_heatm[NUM_FILTER_STEPS_FOR_Ts], freq_int_ionm[NUM_FILTER_STEPS_FOR_Ts], freq_int_lyam[NUM_FILTER_STEPS_FOR_Ts];
+#endif
   double nuprime, fcoll_R, Ts_ave;
 #ifdef MINI_HALO
   double fcoll_Rm;
@@ -172,6 +178,9 @@ double freq_int_heat_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl
   float zp_table; //New in v1.4
   int counter,arr_num; // New in v1.4
   double Luminosity_conversion_factor;
+#ifdef MINI_HALO
+  double Luminosity_conversion_factorm;
+#endif
   float prev_zp_temp, zp_temp;
   int RESTART = 0;
 
@@ -193,7 +202,7 @@ double freq_int_heat_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl
   }
   else {
 #ifdef MINI_HALO
-    if (argc  == 12) {
+    if (argc  == 13) {
       RESTART = 1;
       zp = atof(argv[2]);
       F_STAR10 = atof(argv[3]);
@@ -205,8 +214,9 @@ double freq_int_heat_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl
       X_LUMINOSITY = pow(10.,atof(argv[9]));
       F_STAR10m = atof(argv[10]);
       F_ESC10m = atof(argv[11]);
+      X_LUMINOSITYm = pow(10.,atof(argv[12]));
     }
-    else if (argc == 11) {
+    else if (argc == 12) {
       F_STAR10 = atof(argv[2]);
       ALPHA_STAR = atof(argv[3]);
       F_ESC10 = atof(argv[4]);
@@ -216,6 +226,7 @@ double freq_int_heat_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl
       X_LUMINOSITY = pow(10.,atof(argv[8]));
       F_STAR10m = atof(argv[9]);
       F_ESC10m = atof(argv[10]);
+      X_LUMINOSITYm = pow(10.,atof(argv[11]));
     }
     else if (argc == 3) {
       RESTART = 1;
@@ -229,6 +240,7 @@ double freq_int_heat_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl
       X_LUMINOSITY = pow(10.,L_X);
       F_STAR10m = STELLAR_BARYON_FRAC_MINI;
       F_ESC10m = ESC_FRAC_MINI;
+      X_LUMINOSITYm = pow(10.,L_X_MINI);
     }
     else if (argc == 2) {
       F_STAR10 = STELLAR_BARYON_FRAC;
@@ -240,6 +252,7 @@ double freq_int_heat_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl
       X_LUMINOSITY = pow(10.,L_X);
       F_STAR10m = STELLAR_BARYON_FRAC_MINI;
       F_ESC10m = ESC_FRAC_MINI;
+      X_LUMINOSITYm = pow(10.,L_X_MINI);
     }
     else {
       fprintf(stderr, "Usage: Ts <REDSHIFT> [reload zp redshift] [<f_star10> <alpha_star> <f_esc10> <alpha_esc> <M_turn> <t_star> <X_luminosity>] \nAborting...\n");
@@ -343,7 +356,7 @@ double freq_int_heat_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl
     // New in v1.4
     if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {
 #ifdef MINI_HALO
-    sprintf(filename, "../Boxes/Ts_z%06.2f_L_X%.1e_alphaX%.1f_f_star%06.4f_alpha_star%06.4f_MturnX%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_Pop%i_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, M_TURN, T_AST, F_STAR10m, F_ESC10m, Pop, HII_DIM, BOX_LEN); 
+    sprintf(filename, "../Boxes/Ts_z%06.2f_L_X%.1e_alphaX%.1f_f_star%06.4f_alpha_star%06.4f_MturnX%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, M_TURN, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN); 
 #else
     sprintf(filename, "../Boxes/Ts_z%06.2f_L_X%.1e_alphaX%.1f_f_star%06.4f_alpha_star%06.4f_MturnX%.1e_t_star%06.4f_Pop%i_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, M_TURN, T_AST, Pop, HII_DIM, BOX_LEN); 
 #endif
@@ -392,7 +405,7 @@ double freq_int_heat_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl
   // New in v1.4
   if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {
 #ifdef MINI_HALO
-  sprintf(filename, "../Output_files/Ts_outs/global_evolution_Nsteps%i_zprimestepfactor%.3f_L_X%.1e_alphaX%.1f_f_star10%06.4f_alpha_star%06.4f_f_esc10%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_Pop%i_%i_%.0fMpc", NUM_FILTER_STEPS_FOR_Ts, ZPRIME_STEP_FACTOR, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, F_STAR10m, F_ESC10m, Pop, HII_DIM, BOX_LEN);
+  sprintf(filename, "../Output_files/Ts_outs/global_evolution_Nsteps%i_zprimestepfactor%.3f_L_X%.1e_alphaX%.1f_f_star10%06.4f_alpha_star%06.4f_f_esc10%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", NUM_FILTER_STEPS_FOR_Ts, ZPRIME_STEP_FACTOR, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN);
 #else
   sprintf(filename, "../Output_files/Ts_outs/global_evolution_Nsteps%i_zprimestepfactor%.3f_L_X%.1e_alphaX%.1f_f_star10%06.4f_alpha_star%06.4f_f_esc10%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_Pop%i_%i_%.0fMpc", NUM_FILTER_STEPS_FOR_Ts, ZPRIME_STEP_FACTOR, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, Pop, HII_DIM, BOX_LEN);
 #endif
@@ -589,7 +602,7 @@ double freq_int_heat_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl
     // first Tk
     if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) { // New in v1.4
 #ifdef MINI_HALO
-    sprintf(filename, "../Boxes/Ts_evolution/Tk_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, F_STAR10m, F_ESC10m, Pop, HII_DIM, BOX_LEN);
+    sprintf(filename, "../Boxes/Ts_evolution/Tk_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN);
 #else
     sprintf(filename, "../Boxes/Ts_evolution/Tk_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, Pop, HII_DIM, BOX_LEN);
 #endif
@@ -623,7 +636,7 @@ double freq_int_heat_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl
     // New in v1.4
     if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {
 #ifdef MINI_HALO
-    sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, F_STAR10m, F_ESC10m, Pop, HII_DIM, BOX_LEN); 
+    sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN); 
 #else
     sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, Pop, HII_DIM, BOX_LEN); 
 #endif
@@ -984,7 +997,11 @@ double freq_int_heat_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl
 
 /***************  PARALLELIZED LOOP ******************************************************************/
       // set up frequency integral table for later interpolation for the cell's x_e value
+#ifdef MINI_HALO
+#pragma omp parallel shared(freq_int_heat_tbl, freq_int_ion_tbl, COMPUTE_Ts, freq_int_lya_tbl, freq_int_heat_tblm, freq_int_ion_tblm, freq_int_lya_tblm, zp, R_ct, x_e_ave, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, lower_int_limit) private(x_e_ct)
+#else
 #pragma omp parallel shared(freq_int_heat_tbl, freq_int_ion_tbl, COMPUTE_Ts, freq_int_lya_tbl, zp, R_ct, x_e_ave, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, lower_int_limit) private(x_e_ct)
+#endif
 {
 #pragma omp for
   for (x_e_ct = 0; x_e_ct < x_int_NXHII; x_e_ct++){
@@ -992,18 +1009,32 @@ double freq_int_heat_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl
     freq_int_ion_tbl[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit, 1);
     if (COMPUTE_Ts)
       freq_int_lya_tbl[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit, 2);
+#ifdef MINI_HALO
+    freq_int_heat_tblm[x_e_ct][R_ct] = integrate_over_num(zp, x_int_XHII[x_e_ct], lower_int_limit, 0);
+    freq_int_ion_tblm[x_e_ct][R_ct] = integrate_over_num(zp, x_int_XHII[x_e_ct], lower_int_limit, 1);
+    if (COMPUTE_Ts)
+      freq_int_lya_tblm[x_e_ct][R_ct] = integrate_over_num(zp, x_int_XHII[x_e_ct], lower_int_limit, 2);
+#endif
   }
 } // end omp declaration
 /***************  END PARALLELIZED LOOP ******************************************************************/
 
       // and create the sum over Lya transitions from direct Lyn flux
       sum_lyn[R_ct] = 0;
+#ifdef MINI_HALO
+      sum_lynm[R_ct] = 0;
+#endif
       for (n_ct=NSPEC_MAX; n_ct>=2; n_ct--){
     if (zpp > zmax(zp, n_ct))
       continue;
 
     nuprime = nu_n(n_ct)*(1+zpp)/(1.0+zp);
+#ifdef MINI_HALO
+    sum_lyn[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0, 2);
+    sum_lynm[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0, 3);
+#else
     sum_lyn[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0);
+#endif
       }
     } // end loop over R_ct filter steps
 
@@ -1033,8 +1064,19 @@ double freq_int_heat_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl
     const_zp_prefactor = ( X_LUMINOSITY * Luminosity_conversion_factor ) / NU_X_THRESH * C 
              * F_STAR10 * OMb * RHOcrit * pow(CMperMPC, -3) * pow(1+zp, X_RAY_SPEC_INDEX+3);
 #ifdef MINI_HALO
-    const_zp_prefactorm = ( X_LUMINOSITY * Luminosity_conversion_factor ) / NU_X_THRESH * C 
-             * F_STAR10m * OMb * RHOcrit * pow(CMperMPC, -3) * pow(1+zp, X_RAY_SPEC_INDEX+3);
+    if(fabs(X_RAY_SPEC_INDEX_MINI - 1.0) < 0.000001) {
+        Luminosity_conversion_factorm = NU_X_THRESH * log( NU_X_BAND_MAX/NU_X_THRESH );
+        Luminosity_conversion_factorm = 1./Luminosity_conversion_factorm;
+    }    
+    else {
+        Luminosity_conversion_factorm = pow( NU_X_BAND_MAX , 1. - X_RAY_SPEC_INDEX_MINI ) - pow( NU_X_THRESH , 1. - X_RAY_SPEC_INDEX_MINI ) ;
+        Luminosity_conversion_factorm = 1./Luminosity_conversion_factorm;
+        Luminosity_conversion_factorm *= pow( NU_X_THRESH, - X_RAY_SPEC_INDEX_MINI )*(1 - X_RAY_SPEC_INDEX_MINI);
+    }    
+    // Finally, convert to the correct units. NU_over_EV*hplank as only want to divide by eV -> erg (owing to the definition of Luminosity)
+    Luminosity_conversion_factorm *= (3.1556226e7)/(hplank);
+    const_zp_prefactorm = ( X_LUMINOSITYm * Luminosity_conversion_factorm ) / NU_X_THRESH * C 
+             * F_STAR10m * OMb * RHOcrit * pow(CMperMPC, -3) * pow(1+zp, X_RAY_SPEC_INDEX_MINI+3);
 #endif
 
 
@@ -1049,7 +1091,7 @@ double freq_int_heat_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl
       J_alpha_threads[ct] = xalpha_threads[ct] = Xheat_threads[ct] = Xion_threads[ct] = 0;
     /***************  PARALLELIZED LOOP ******************************************************************/
 #ifdef MINI_HALO
-#pragma omp parallel shared(COMPUTE_Ts, Tk_box, x_e_box, x_e_ave, delNL0, freq_int_heat_tbl, freq_int_ion_tbl, freq_int_lya_tbl, zp, dzp, Ts, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, growth_factor_zp, dgrowth_factor_dzp, NO_LIGHT, zpp_edge, sigma_atR, sigma_Tmin, ST_over_PS, ST_over_PSm, sum_lyn, const_zp_prefactor, const_zp_prefactorm, M_MIN_at_z, M_MIN_at_zp, dt_dzp, J_alpha_threads, xalpha_threads, Xheat_threads, Xion_threads) private(box_ct, ans, xHII_call, R_ct, curr_delNL0, m_xHII_low, m_xHII_high, freq_int_heat, freq_int_ion, freq_int_lya, dansdz, J_alpha_tot, curr_xalpha)
+#pragma omp parallel shared(COMPUTE_Ts, Tk_box, x_e_box, x_e_ave, delNL0, freq_int_heat_tbl, freq_int_ion_tbl, freq_int_lya_tbl,freq_int_heat_tblm, freq_int_ion_tblm, freq_int_lya_tblm, zp, dzp, Ts, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, growth_factor_zp, dgrowth_factor_dzp, NO_LIGHT, zpp_edge, sigma_atR, sigma_Tmin, ST_over_PS, ST_over_PSm, sum_lyn,sum_lynm, const_zp_prefactor, const_zp_prefactorm, M_MIN_at_z, M_MIN_at_zp, dt_dzp, J_alpha_threads, xalpha_threads, Xheat_threads, Xion_threads) private(box_ct, ans, xHII_call, R_ct, curr_delNL0, m_xHII_low, m_xHII_high, freq_int_heat, freq_int_ion, freq_int_lya, freq_int_heatm, freq_int_ionm, freq_int_lyam, dansdz, J_alpha_tot, curr_xalpha)
 #else
 #pragma omp parallel shared(COMPUTE_Ts, Tk_box, x_e_box, x_e_ave, delNL0, freq_int_heat_tbl, freq_int_ion_tbl, freq_int_lya_tbl, zp, dzp, Ts, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, growth_factor_zp, dgrowth_factor_dzp, NO_LIGHT, zpp_edge, sigma_atR, sigma_Tmin, ST_over_PS, sum_lyn, const_zp_prefactor, M_MIN_at_z, M_MIN_at_zp, dt_dzp, J_alpha_threads, xalpha_threads, Xheat_threads, Xion_threads) private(box_ct, ans, xHII_call, R_ct, curr_delNL0, m_xHII_low, m_xHII_high, freq_int_heat, freq_int_ion, freq_int_lya, dansdz, J_alpha_tot, curr_xalpha)
 #endif
@@ -1109,11 +1151,41 @@ double freq_int_heat_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl
       freq_int_lya[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
       freq_int_lya[R_ct] += freq_int_lya_tbl[m_xHII_low][R_ct];
     }
+#ifdef MINI_HALO
+    // heat
+    freq_int_heatm[R_ct] = (freq_int_heat_tblm[m_xHII_high][R_ct] - 
+                   freq_int_heat_tblm[m_xHII_low][R_ct]) / 
+                      (x_int_XHII[m_xHII_high] - x_int_XHII[m_xHII_low]);
+    freq_int_heatm[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
+    freq_int_heatm[R_ct] += freq_int_heat_tblm[m_xHII_low][R_ct];
+
+    // ionization
+    freq_int_ionm[R_ct] = (freq_int_ion_tblm[m_xHII_high][R_ct] - 
+                   freq_int_ion_tblm[m_xHII_low][R_ct]) / 
+                      (x_int_XHII[m_xHII_high] - x_int_XHII[m_xHII_low]);
+    freq_int_ionm[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
+    freq_int_ionm[R_ct] += freq_int_ion_tblm[m_xHII_low][R_ct];
+
+    // lya
+    if (COMPUTE_Ts){
+      freq_int_lyam[R_ct] = (freq_int_lya_tblm[m_xHII_high][R_ct] - 
+                 freq_int_lya_tblm[m_xHII_low][R_ct]) / 
+        (x_int_XHII[m_xHII_high] - x_int_XHII[m_xHII_low]);
+      freq_int_lyam[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
+      freq_int_lyam[R_ct] += freq_int_lya_tblm[m_xHII_low][R_ct];
+    }
+#endif
       }
 
       /********  finally compute the redshift derivatives *************/
+#ifdef MINI_HALO
+      evolveInt(zp, curr_delNL0, freq_int_heat, freq_int_ion, freq_int_lya,
+          freq_int_heatm, freq_int_ionm, freq_int_lyam,
+          COMPUTE_Ts, ans, dansdz);//, M_TURN,ALPHA_STAR,F_STAR10,T_AST);
+#else
       evolveInt(zp, curr_delNL0, freq_int_heat, freq_int_ion, freq_int_lya,
           COMPUTE_Ts, ans, dansdz);//, M_TURN,ALPHA_STAR,F_STAR10,T_AST);
+#endif
  
       //update quantities
       x_e_box[box_ct] += dansdz[0] * dzp; // remember dzp is negative
@@ -1182,7 +1254,7 @@ double freq_int_heat_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl
         // New v1.4
       if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {
 #ifdef MINI_HALO
-      sprintf(filename, "../Boxes/Ts_evolution/Tk_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, T_AST, Pop, HII_DIM, BOX_LEN);
+      sprintf(filename, "../Boxes/Ts_evolution/Tk_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, T_AST, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN);
 #else
       sprintf(filename, "../Boxes/Ts_evolution/Tk_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, Pop, HII_DIM, BOX_LEN);
 #endif
@@ -1205,7 +1277,7 @@ double freq_int_heat_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl
         // New in v1.4
       if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {
 #ifdef MINI_HALO
-      sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, T_AST, Pop, HII_DIM, BOX_LEN);
+      sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, T_AST, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN);
 #else
       sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, Pop, HII_DIM, BOX_LEN);
 #endif
@@ -1231,7 +1303,7 @@ double freq_int_heat_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl
     // New in v1.4
     if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY != 0) {
 #ifdef MINI_HALO
-    sprintf(filename, "../Boxes/Ts_z%06.2f_L_X%.1e_alphaX%.1f_f_star%06.4f_alpha_star%06.4f_f_esc%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, T_AST, Pop, HII_DIM, BOX_LEN); 
+    sprintf(filename, "../Boxes/Ts_z%06.2f_L_X%.1e_alphaX%.1f_f_star%06.4f_alpha_star%06.4f_f_esc%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f__L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, T_AST, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN); 
 #else
     sprintf(filename, "../Boxes/Ts_z%06.2f_L_X%.1e_alphaX%.1f_f_star%06.4f_alpha_star%06.4f_f_esc%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, Pop, HII_DIM, BOX_LEN); 
 #endif
