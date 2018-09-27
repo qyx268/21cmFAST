@@ -836,7 +836,6 @@ int main(int argc, char ** argv){
         }
       }
     } //  end sanity check in box
-
     
     // normalize the analytic collapse fractions if we operating on the density field
     f_coll = 0.0;

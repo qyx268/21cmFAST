@@ -904,7 +904,6 @@ double init_ps(){
   // Set cuttoff scale for WDM (eq. 4 in Barkana et al. 2001) in comoving Mpc
   R_CUTOFF = 0.201*pow((OMm-OMb)*hlittle*hlittle/0.15, 0.15)*pow(g_x/1.5, -0.29)*pow(M_WDM, -1.15);
 
-
   if (P_CUTOFF){
     fprintf(stderr, "For M_DM = %.2e keV, R_CUTOFF is: %.2e comoving Mpc\n", M_WDM, R_CUTOFF);
   }
