@@ -19,6 +19,10 @@ NOTE:  We encourage the user to perform their own convergance tests if modifying
   Defined as log10(L_X). E.g. 40 = log10(10^40)
 */
 #define L_X (double) (40.5)
+#ifdef MINI_HALO
+//approxiamately 100 times larger than L_X (Xu+ 2014)
+#define L_X_MINI (double) (42.5)
+#endif
 #define NU_X_BAND_MAX (double) (2000*NU_over_EV)
 
 
@@ -36,6 +40,11 @@ NOTE:  We encourage the user to perform their own convergance tests if modifying
   X-Ray spectral index at frequencies higher than NU_X_THRESH
  */
 #define X_RAY_SPEC_INDEX (double) (1.0)
+#ifdef MINI_HALO
+// consider X-rays from mini halos are dominated by HMXBs
+// use a hard spectrum following Pacucci+14
+#define X_RAY_SPEC_INDEX_MINI (double) (0.8)
+#endif
 
 
 /*
