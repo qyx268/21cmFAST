@@ -1220,8 +1220,8 @@ double freq_int_heat_tblm[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tb
 
 /***************  END PARALLELIZED LOOP ******************************************************************/
     time(&curr_time);
-    fprintf(stderr, "End scrolling through the box, which took %06.2 min\n", difftime(curr_time, start_time)/60.0);
-    fprintf(LOG, "End scrolling through the box, which took %06.2 min\n", difftime(curr_time, start_time)/60.0);
+    fprintf(stderr, "End scrolling through the box, which took %06.2f min\n", difftime(curr_time, start_time)/60.0);
+    fprintf(LOG, "End scrolling through the box, which took %06.2f min\n", difftime(curr_time, start_time)/60.0);
     fflush(NULL);
 
     // compute new average values
