@@ -1228,6 +1228,7 @@ float Mass_limit_bisection(float Mmin, float Mmax, float PL, float FRAC){
   iter = 0;
   logMlow = log10(Mmin);
   logMupper = log10(Mmax);
+  printf("%f,%f,%f,%f",Mmin,Mmax,PL,FRAC);
   
   if (PL < 0.) {
     if (Mass_limit(logMlow,PL,FRAC) < 1.) {

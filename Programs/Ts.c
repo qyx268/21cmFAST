@@ -199,6 +199,7 @@ double freq_int_heat_tblm[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tb
     HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY = 0;
     X_LUMINOSITY = pow(10.,L_X);
     F_STAR10 = STELLAR_BARYON_FRAC;
+    M_MIN = M_TURNOVER;
   }
   else {
 #ifdef MINI_HALO
@@ -261,6 +262,7 @@ double freq_int_heat_tblm[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tb
     HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY = 1;
     ION_EFF_FACTOR      = N_GAMMA_UV      * F_STAR10  * F_ESC10;
     ION_EFF_FACTOR_MINI = N_GAMMA_UV_MINI * F_STAR10m * F_ESC10m;
+	M_MIN = 1e16;
 #else
     if (argc  == 10) {
       RESTART = 1;
@@ -308,9 +310,9 @@ double freq_int_heat_tblm[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tb
     }
     HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY = 1;
     ION_EFF_FACTOR = N_GAMMA_UV * F_STAR10 * F_ESC10;
+    M_MIN = M_TURNOVER;
 #endif
   }
-  M_MIN = M_TURNOVER;
   REDSHIFT = atof(argv[1]);
   system("mkdir ../Log_files");
   system("mkdir ../Output_files");
@@ -742,15 +744,19 @@ double freq_int_heat_tblm[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tb
         Mcrit_LW_interp_table[i]   = lyman_werner_threshold(zpp_interp_table[i]);
         M_MINa_interp_table[i]     = M_TURN > Mcrit_atom_interp_table[i] ? M_TURN : Mcrit_atom_interp_table[i];
         M_MINm_interp_table[i]     = M_TURN > Mcrit_LW_interp_table[i]   ? M_TURN : Mcrit_LW_interp_table[i];
+		if(M_MIN > M_MINa_interp_table[i])
+			M_MIN = M_MINa_interp_table[i];
+		if(M_MIN > M_MINm_interp_table[i])
+			M_MIN = M_MINm_interp_table[i];
+        printf("z=%f, Mcrit_atom=%g, Mcrit_LW=%g, Mmin_a=%g, Mmin_m=%g\n",zpp_interp_table[i], Mcrit_atom_interp_table[i],Mcrit_LW_interp_table[i] ,M_MINa_interp_table[i],M_MINm_interp_table[i]);
 #endif
     }
 #ifdef MINI_HALO
-    double M_MINa  = gsl_stats_min(M_MINa_interp_table, 1, zpp_interp_points);
-    double M_MINm  = gsl_stats_min(M_MINm_interp_table, 1, zpp_interp_points);
-    M_MIN          = M_MINa > M_MINm ? M_MINm : M_MINa;
+    M_MIN         /= 50;
 #else
     M_MIN  = M_TURN/50;
 #endif
+    printf("setting minimum mass for integral at %g\n",M_MIN);
 
     /* initialise interpolation of the mean number of IGM ionizing photon per baryon for global reionization.
        compute 'Nion_ST' corresponding to an array of redshift. */
