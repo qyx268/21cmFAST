@@ -60,21 +60,21 @@ int main(int argc, char ** argv){
   }
 
 
-  fprintf(stderr, "Calling init to set up the initial conditions\n");
+  /*fprintf(stderr, "Calling init to set up the initial conditions\n");
   fprintf(LOG, "Calling init to set up the initial conditions\n");
   system("./init"); // you only need this call once per realization
-
+*/
   Z = ZLOW*1.0001; // match rounding convention from Ts.c
 
    // call Ts on the lowest redshift
   if (USE_TS_IN_21CM){
-    sprintf(cmnd, "./perturb_field %.2f", Z);
+    /*sprintf(cmnd, "./perturb_field %.2f", Z);
     time(&curr_time);
     fprintf(stderr, "Now calling: %s, %g min have ellapsed\n", cmnd, -difftime(start_time, curr_time)/60.0);
     fprintf(LOG, "Now calling: %s, %g min have ellapsed\n", cmnd, -difftime(start_time, curr_time)/60.0);
     fflush(NULL);
     system(cmnd);
-    
+    */
     sprintf(cmnd, "./Ts %.2f", Z);
     time(&curr_time);
     fprintf(stderr, "Now calling: %s, %g min have ellapsed\n", cmnd, -difftime(start_time, curr_time)/60.0);
@@ -116,14 +116,14 @@ int main(int argc, char ** argv){
     }
 
     // shift density field and update velocity field
-    sprintf(cmnd, "./perturb_field %.2f", Z);
+    /*sprintf(cmnd, "./perturb_field %.2f", Z);
     time(&curr_time);
     fprintf(stderr, "Now calling: %s, %g min have ellapsed\n", cmnd, -difftime(start_time, curr_time)/60.0);
     fprintf(LOG, "Now calling: %s, %g min have ellapsed\n", cmnd, -difftime(start_time, curr_time)/60.0);
     fflush(NULL);
     system(cmnd);
     // end of solely redshift dependent things, now do ionization stuff
-
+*/
 
     // if it is the lowest redshift, let's call Ts.c
     if (USE_TS_IN_21CM && (Z > Z_HEAT_MAX) ) { // NEW CONDITIONAL

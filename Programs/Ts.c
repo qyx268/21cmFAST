@@ -262,7 +262,7 @@ int main(int argc, char ** argv){
     HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY = 1;
     ION_EFF_FACTOR      = N_GAMMA_UV      * F_STAR10  * F_ESC10;
     ION_EFF_FACTOR_MINI = N_GAMMA_UV_MINI * F_STAR10m * F_ESC10m;
-	M_MIN = 1e16;
+    M_MIN = 1e16;
 #else
     if (argc  == 10) {
       RESTART = 1;
@@ -617,20 +617,20 @@ int main(int argc, char ** argv){
       fprintf(LOG, "Ts.c: WARNING: Unable to open input file %s\nAborting\n", filename);
       fclose(LOG); fclose(GLOBAL_EVOL); free(Tk_box); free(x_e_box); free(Ts);
       for (R_ct=0; R_ct<NUM_FILTER_STEPS_FOR_Ts; R_ct++){
-    free(delNL0[R_ct]);
+        free(delNL0[R_ct]);
       }
       destruct_heat();
       return -1;
     }
     else{
       if (mod_fread(Tk_box, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
-    fprintf(stderr, "Ts.c: Write error occured while reading Tk box.\nAborting\n");
-    fprintf(LOG, "Ts.c: Write error occured while reading Tk box.\nAborting\n");
-    fclose(LOG);  free(Tk_box); free(x_e_box); free(Ts);
-    for (R_ct=0; R_ct<NUM_FILTER_STEPS_FOR_Ts; R_ct++){
-      free(delNL0[R_ct]);
-    }
-    destruct_heat();
+        fprintf(stderr, "Ts.c: Write error occured while reading Tk box.\nAborting\n");
+        fprintf(LOG, "Ts.c: Write error occured while reading Tk box.\nAborting\n");
+        fclose(LOG);  free(Tk_box); free(x_e_box); free(Ts);
+        for (R_ct=0; R_ct<NUM_FILTER_STEPS_FOR_Ts; R_ct++){
+          free(delNL0[R_ct]);
+        }
+        destruct_heat();
       }
       fclose(F);
     }
@@ -638,32 +638,32 @@ int main(int argc, char ** argv){
     // New in v1.4
     if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {
 #ifdef MINI_HALO
-    sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN); 
+      sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN); 
 #else
-    sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, Pop, HII_DIM, BOX_LEN); 
+      sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, Pop, HII_DIM, BOX_LEN); 
 #endif
     }
     else {
-    sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_Mmin%.1e_zetaIon%.2f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, M_MIN, HII_EFF_FACTOR, Pop, HII_DIM, BOX_LEN);
+      sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_Mmin%.1e_zetaIon%.2f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, M_MIN, HII_EFF_FACTOR, Pop, HII_DIM, BOX_LEN);
     }
-      if (!(F=fopen(filename, "rb"))){
+    if (!(F=fopen(filename, "rb"))){
       fprintf(stderr, "Ts.c: WARNING: Unable to open output file %s\nAborting\n", filename);
       fprintf(LOG, "Ts.c: WARNING: Unable to open output file %s\nAborting\n", filename);
       fclose(LOG);  free(Tk_box); free(x_e_box); free(Ts);
       for (R_ct=0; R_ct<NUM_FILTER_STEPS_FOR_Ts; R_ct++){
-    free(delNL0[R_ct]);
+        free(delNL0[R_ct]);
       }
       destruct_heat();
     }
     else{
       if (mod_fread(x_e_box, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
-    fprintf(stderr, "Ts.c: Write error occured while reading xe box.\n");
-    fprintf(LOG, "Ts.c: Write error occured while reading xe box.\n");
-    fclose(LOG);  free(Tk_box); free(x_e_box); free(Ts);
-    for (R_ct=0; R_ct<NUM_FILTER_STEPS_FOR_Ts; R_ct++){
-      free(delNL0[R_ct]);
-    }
-    destruct_heat();
+        fprintf(stderr, "Ts.c: Write error occured while reading xe box.\n");
+        fprintf(LOG, "Ts.c: Write error occured while reading xe box.\n");
+        fclose(LOG);  free(Tk_box); free(x_e_box); free(Ts);
+        for (R_ct=0; R_ct<NUM_FILTER_STEPS_FOR_Ts; R_ct++){
+          free(delNL0[R_ct]);
+        }
+        destruct_heat();
       }
       fclose(F);
     }
@@ -744,10 +744,10 @@ int main(int argc, char ** argv){
         Mcrit_LW_interp_table[i]   = lyman_werner_threshold(zpp_interp_table[i]);
         M_MINa_interp_table[i]     = M_TURN > Mcrit_atom_interp_table[i] ? M_TURN : Mcrit_atom_interp_table[i];
         M_MINm_interp_table[i]     = M_TURN > Mcrit_LW_interp_table[i]   ? M_TURN : Mcrit_LW_interp_table[i];
-		if(M_MIN > M_MINa_interp_table[i])
-			M_MIN = M_MINa_interp_table[i];
-		if(M_MIN > M_MINm_interp_table[i])
-			M_MIN = M_MINm_interp_table[i];
+        if(M_MIN > M_MINa_interp_table[i])
+            M_MIN = M_MINa_interp_table[i];
+        if(M_MIN > M_MINm_interp_table[i])
+            M_MIN = M_MINm_interp_table[i];
         printf("z=%f, Mcrit_atom=%g, Mcrit_LW=%g, Mmin_a=%g, Mmin_m=%g\n",zpp_interp_table[i], Mcrit_atom_interp_table[i],Mcrit_LW_interp_table[i] ,M_MINa_interp_table[i],M_MINm_interp_table[i]);
 #endif
     }
@@ -874,19 +874,19 @@ int main(int argc, char ** argv){
     // let's initialize an array of redshifts (z'') corresponding to the 
     // far edge of the dz'' filtering shells
     // and the corresponding minimum halo scale, sigma_Tmin, 
-    // as well as an array of the frequency integrals    
+    // as well as an array of the frequency integrals
     fprintf(stderr, "Initializing look-up tables. Time=%06.2f min\n", (double)clock()/CLOCKS_PER_SEC/60.0);
     fprintf(LOG, "Initializing look-up tables. Time=%06.2f min\n", (double)clock()/CLOCKS_PER_SEC/60.0);
     time(&start_time);
 
     for (R_ct=0; R_ct<NUM_FILTER_STEPS_FOR_Ts; R_ct++){
       if (R_ct==0){
-    prev_zpp = zp;
-    prev_R = 0;
+        prev_zpp = zp;
+        prev_R = 0;
       }
       else{
-    prev_zpp = zpp_edge[R_ct-1];
-    prev_R = R_values[R_ct-1];
+        prev_zpp = zpp_edge[R_ct-1];
+        prev_R = R_values[R_ct-1];
       }
     
       zpp_edge[R_ct] = prev_zpp - (R_values[R_ct] - prev_R)*CMperMPC / drdz(prev_zpp); // cell size
@@ -902,60 +902,60 @@ int main(int argc, char ** argv){
 #endif
       sample_ct=0;
       for (box_ct=0; box_ct<HII_TOT_NUM_PIXELS; box_ct+=(HII_TOT_NUM_PIXELS/1e5+1)){
-    sample_ct++;
-    // New in v1.4
-    if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {
-      growth_zpp = dicke(zpp);
-      //---------- interpolation for fcoll starts ----------
-      // Here 'fcoll' is not the collpased fraction, but leave this name as is to simplify the variable name.
-      if (delNL0[R_ct][box_ct]*growth_zpp < 1.5){
-        if (delNL0[R_ct][box_ct]*growth_zpp < -1.) {
-          fcoll = 0;
+        sample_ct++;
+        // New in v1.4
+        if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {
+          growth_zpp = dicke(zpp);
+          //---------- interpolation for fcoll starts ----------
+          // Here 'fcoll' is not the collpased fraction, but leave this name as is to simplify the variable name.
+          if (delNL0[R_ct][box_ct]*growth_zpp < 1.5){
+            if (delNL0[R_ct][box_ct]*growth_zpp < -1.) {
+              fcoll = 0;
 #ifdef MINI_HALO
-          fcollm = 0;
+              fcollm = 0;
 #endif
-        }    
+            }    
+            else {
+              fcoll = gsl_spline_eval(SFRDLow_zpp_spline[R_ct], log10(delNL0[R_ct][box_ct]*growth_zpp+1.), SFRDLow_zpp_spline_acc[R_ct]);
+              fcoll = pow(10., fcoll);
+#ifdef MINI_HALO
+              fcollm = gsl_spline_eval(SFRDLow_zpp_splinem[R_ct], log10(delNL0[R_ct][box_ct]*growth_zpp+1.), SFRDLow_zpp_spline_accm[R_ct]);
+              fcollm = pow(10., fcollm);
+#endif
+            }    
+          }    
+          else {
+            if (delNL0[R_ct][box_ct]*growth_zpp < 0.99*Deltac) {
+              // Usage of 0.99*Deltac arises due to the fact that close to the critical density, the collapsed fraction becomes a little unstable
+              // However, such densities should always be collapsed, so just set f_coll to unity. 
+              // Additionally, the fraction of points in this regime relative to the entire simulation volume is extremely small.
+              //New
+              splint(Overdense_high_table-1,SFRD_z_high_table[R_ct]-1,second_derivs_Nion_zpp[R_ct]-1,NSFR_high,delNL0[R_ct][box_ct]*growth_zpp,&(fcoll));
+#ifdef MINI_HALO
+              splint(Overdense_high_table-1,SFRD_z_high_tablem[R_ct]-1,second_derivs_Nion_zppm[R_ct]-1,NSFR_high,delNL0[R_ct][box_ct]*growth_zpp,&(fcollm));
+#endif
+            }    
+            else {
+              fcoll = 1.;
+#ifdef MINI_HALO
+              fcollm = 1.;
+#endif
+            }    
+          }    
+          Splined_Fcoll = fcoll;
+#ifdef MINI_HALO
+          Splined_Fcollm = fcollm;
+#endif
+          //---------- interpolation for fcoll is done ----------
+          fcoll_R += Splined_Fcoll;
+#ifdef MINI_HALO
+          fcoll_Rm += Splined_Fcollm;
+#endif
+        } 
         else {
-          fcoll = gsl_spline_eval(SFRDLow_zpp_spline[R_ct], log10(delNL0[R_ct][box_ct]*growth_zpp+1.), SFRDLow_zpp_spline_acc[R_ct]);
-          fcoll = pow(10., fcoll);
-#ifdef MINI_HALO
-          fcollm = gsl_spline_eval(SFRDLow_zpp_splinem[R_ct], log10(delNL0[R_ct][box_ct]*growth_zpp+1.), SFRDLow_zpp_spline_accm[R_ct]);
-          fcollm = pow(10., fcollm);
-#endif
-        }    
-      }    
-      else {
-        if (delNL0[R_ct][box_ct]*growth_zpp < 0.99*Deltac) {
-          // Usage of 0.99*Deltac arises due to the fact that close to the critical density, the collapsed fraction becomes a little unstable
-          // However, such densities should always be collapsed, so just set f_coll to unity. 
-          // Additionally, the fraction of points in this regime relative to the entire simulation volume is extremely small.
-          //New
-          splint(Overdense_high_table-1,SFRD_z_high_table[R_ct]-1,second_derivs_Nion_zpp[R_ct]-1,NSFR_high,delNL0[R_ct][box_ct]*growth_zpp,&(fcoll));
-#ifdef MINI_HALO
-          splint(Overdense_high_table-1,SFRD_z_high_tablem[R_ct]-1,second_derivs_Nion_zppm[R_ct]-1,NSFR_high,delNL0[R_ct][box_ct]*growth_zpp,&(fcollm));
-#endif
-        }    
-        else {
-          fcoll = 1.;
-#ifdef MINI_HALO
-          fcollm = 1.;
-#endif
-        }    
-      }    
-      Splined_Fcoll = fcoll;
-#ifdef MINI_HALO
-      Splined_Fcollm = fcollm;
-#endif
-      //---------- interpolation for fcoll is done ----------
-      fcoll_R += Splined_Fcoll;
-#ifdef MINI_HALO
-      fcoll_Rm += Splined_Fcollm;
-#endif
-    } 
-    else {
-      fcoll_R += sigmaparam_FgtrM_bias(zpp, sigma_Tmin[R_ct], 
-                     delNL0[R_ct][box_ct], sigma_atR[R_ct]);
-    }
+          fcoll_R += sigmaparam_FgtrM_bias(zpp, sigma_Tmin[R_ct], 
+                         delNL0[R_ct][box_ct], sigma_atR[R_ct]);
+        }
       }
 
       fcoll_R /= (double) sample_ct;
@@ -1125,9 +1125,10 @@ int main(int argc, char ** argv){
 
       // Check if ionized fraction is within boundaries; if not, adjust to be within
       if (xHII_call > x_int_XHII[x_int_NXHII-1]*0.999) {
-    xHII_call = x_int_XHII[x_int_NXHII-1]*0.999;
-      } else if (xHII_call < x_int_XHII[0]) {
-    xHII_call = 1.001*x_int_XHII[0];
+        xHII_call = x_int_XHII[x_int_NXHII-1]*0.999;
+      } 
+	  else if (xHII_call < x_int_XHII[0]) {
+        xHII_call = 1.001*x_int_XHII[0];
       }
       //interpolate to correct nu integral value based on the cell's ionization state
       for (R_ct=0; R_ct<NUM_FILTER_STEPS_FOR_Ts; R_ct++){
