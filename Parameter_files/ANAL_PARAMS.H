@@ -43,47 +43,75 @@
 
   where:
   f_{\ast}     = STELLAR_BARYON_FRAC x (M_{halo}/10^10 M_{sol})^STELLAR_BARYON_PL
+                   x 2^{-M_\mathrm{crit,atom}\left(z\right)/M_\mathrm{h}}
   f_{esc}      = ESC_FRAC x (M_{halo}/10^10 M_{sol})^ESC_PL
 
   f_{\ast,mol} = STELLAR_BARYON_FRAC_MINI x (M_{halo}/10^10 M_{sol})^STELLAR_BARYON_PL
+                   x ( 1 - 2^{-M_\mathrm{crit,atom}\left(z\right)/M_\mathrm{h}} )
+                 x 2^{-M_\mathrm{crit,mol}\left(z\right)/M_\mathrm{h}}
   f_{esc, mol} = ESC_FRAC_MINI
 
-  and 
-  Note that in the current version
+  here,
+   M_\mathrm{crit,atom} corresponds to the atomic cooling threshold (T~1e4K), which 
+       essentially split halos into atomic and molecular cooling halos.
+   M_\mathrm{crit,atom} = 1e8/h * ((1e4 / 1.98e4) / (0.59/0.6) /\
+                          ((Omega_m / Omega_m_z(z)) * (Delta_c(z)/18/pi**2))**(1./3) /\
+                          ((1.+z)/10))**(1.5)
+           Omega_m_z(z) = 1./(1.+(Omega_L/Omega_m/(1.+z)**3))
+           Delta_c(z)   = 18 * pi**2 + 82 * (Omega_m_z(z) - 1.0) -39 * (Omega_m_z(z) - 1.0) ** 2
+   M_\mathrm{crit,mol} corresponds to the molecular cooling threshold
+   M_\mathrm{crit,mol} = 2.5\times10^5 \mathrm{M}_\odot \times \left(\frac{1+z}{26}\right)^{-1.5}
+
+
+  and note that in the current version
   1. the scaling of f_{\ast,mol} is the same as f_\ast
   2. f_{esc, mol} is a constant
   3. t_STAR is the same as the atomic cooling halo
-  4. the duty cycle of atomic halos is:
-     f_\mathrm{duty,atom} = e^{-\max\left[M_\mathrm{turn},M_\mathrm{crit,atom}\left(z\right)\right]/M_\mathrm{h}}
-     with 
-       M_\mathrm{crit,atom} corresponds to the atomic cooling threshold (T~1e4K), which 
-       essentially split halos into atomic and molecular cooling halos.
-       M_\mathrm{crit,atom} = 1e8/h * ((1e4 / 1.98e4) / (0.59/0.6) /\
-                              ((Omega_m / Omega_m_z(z)) * (Delta_c(z)/18/pi**2))**(1./3) /\
-                              ((1.+z)/10))**(1.5)
-               Omega_m_z(z) = 1./(1.+(Omega_L/Omega_m/(1.+z)**3))
-               Delta_c(z)   = 18 * pi**2 + 82 * (Omega_m_z(z) - 1.0) -39 * (Omega_m_z(z) - 1.0) ** 2
 
-  5. the duty cycle of molecular halos is:
-     f_\mathrm{duty,mol}  = e^{-\max\left[M_\mathrm{turn},M_\mathrm{crit,LW}\left(z,r\right)\right]/M_\mathrm{h}}
-                            \times \left[1 - e^{-M_\mathrm{crit,atom}\left(z\right)/M_\mathrm{h}}\right]
-     with
-       M_\mathrm{crit,LW}  corresponds to the suppression due to Lyman-Werner (LW)
-        background, which according to Visbal, Haiman & Bryan 2017, is
-      M_\mathrm{crit,LW}\left(z,r\right) = 2.5\times10^5 \mathrm{M}_\odot 
-              \times \left\{1+6.96\left[4\pi J_\mathrm{LW,21}\left(z,r\right)\right]^{0.47}\right\}
-              \times \left(\frac{1+z}{26}\right)^{-1.5}
-      in this version, we do not consider the spatial fluactuation of J_LW,21 and take advantage of Wise+12 result
-      \log_{10} J_\mathrm{LW,21}(z) = -2.356 + 0.4562z -0.02680z^2 + 5.882\times10^{-4}z^3 -5.056\times10^{-6}z^4
+  ***
 
+  The duty cycle o halos is:
+  f_\mathrm{duty} = e^{-M_\mathrm{turn}/M_\mathrm{h}}
 
+  where
+  M_\mathrm{turn} is no longer a free parameter but determined by reionization feedback (and cooling efficiency)
+      
+  1. when INHOMO_FEEDBACK is on, feedback is evaluated in each cell:
+     we use Sobacchi & Mesinger 2013a for reionization critical mass:
+     M_\mathrm{crit,Re}\left(z,r\right) = REIONPARAM_M0 * J_21\left(z,r\right)**REIONPARAM_A +
+                                          ((1 + z) / 10) ** REIONPARAM_B *
+                                          (1 - ((1 + z) / (1 + z_IN\left(z,r\right))) ** REIONPARAM_C)**REIONPARAM_D
+     and we calculate the suppression due to Lyman-Werner (LW) background using Visbal, Haiman & Bryan 2017:
+     M_\mathrm{crit,LW}\left(z,r\right) = M_\mathrm{crit,mol}
+                               \times \left\{1+6.96\left[4\pi J_\mathrm{LW,21}\left(z,r\right)\right]^{0.47}\right\}
+     we define M_\mathrm{turn}\left(z,r\right) = max(M_\mathrm{crit,Re}\left(z,r\right),  
+                                                     M_\mathrm{crit,LW}\left(z,r\right))
+
+  2. when INHOMO_FEEDBACK is off, feedback is spatially independent:
+     we use Sobacchi & Mesinger 2013b and define
+     M_\mathrm{turn}\left(z\right) = Mlow * (Mhigh/Mlow) ** g
+     with Mlow  = M_\mathrm{crit,LW}\left(z\right)
+          Mhigh = M_\mathrm{crit,atom} * (Thigh / 1e4) ** 1.5
+     1) following Sobacchi & Mesinger 2013b, we set Thigh = 5e4 and calculate g based on the reionization history
+              g = (1. +  exp((z - (Z_re - Delta_Z_sc)) / Delta_Z_re))**-1
+        here 
+          Z_re and Delta_Z_re is the redshift point and width of reionization, while
+          Delta_Z_sc corresponds to the redshift interval at Z_re due to sound crossing delay,
+          the timescale of which according to Shapiro+04 is
+           t_sc = 0.2Gyr * np.cbrt(M/1e8 * 0.15 / Omega_m / hlittle**2) * (10./(1+z_re))
+     2) also when INHOMO_FEEDBACK is off, we do not consider the spatial fluactuation of J_LW,21 and 
+        caculate M_\mathrm{crit,LW}\left(z\right) using the uniform J_LW,21 background from Wise+12
+          \log_{10} J_\mathrm{LW,21}(z) = -2.356 + 0.4562z -0.02680z^2 
+                                          + 5.882\times10^{-4}z^3 -5.056\times10^{-6}z^4
 
 ***********************************************/
+
 #define MINI_HALO 1             // operate as a flag, comment this line if MINI_HALO version is not required
 #ifdef MINI_HALO
-#define N_GAMMA_UV_MINI (float) (50000) // number of ionizing photons per stellar baryon for mini halos
+#define N_GAMMA_UV_MINI (float) (50000)          // number of ionizing photons per stellar baryon for mini halos
 #define STELLAR_BARYON_FRAC_MINI (double) (0.01) // defined for 10^10 Msun mini halos
-#define ESC_FRAC_MINI (double) (0.5)    // ionizing escape fraction for mini halos
+#define ESC_FRAC_MINI (double) (0.5)             // ionizing escape fraction for mini halos
+#define INHOMO_FEEDBACK 1      // operate as a flag, comment this line if choose homogeneous feedback
 #endif
 
 /**********************************************
