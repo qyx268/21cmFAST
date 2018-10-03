@@ -53,30 +53,43 @@
   1. the scaling of f_{\ast,mol} is the same as f_\ast
   2. f_{esc, mol} is a constant
   3. t_STAR is the same as the atomic cooling halo
-  4. the duty cycle of atomic halos is:
-     f_\mathrm{duty,atom} = e^{-\max\left[M_\mathrm{turn},M_\mathrm{crit,atom}\left(z\right)\right]/M_\mathrm{h}}
-     with 
-       M_\mathrm{crit,atom} corresponds to the atomic cooling threshold (T~1e4K), which 
-       essentially split halos into atomic and molecular cooling halos.
-       M_\mathrm{crit,atom} = 1e8/h * ((1e4 / 1.98e4) / (0.59/0.6) /\
-                              ((Omega_m / Omega_m_z(z)) * (Delta_c(z)/18/pi**2))**(1./3) /\
-                              ((1.+z)/10))**(1.5)
-               Omega_m_z(z) = 1./(1.+(Omega_L/Omega_m/(1.+z)**3))
-               Delta_c(z)   = 18 * pi**2 + 82 * (Omega_m_z(z) - 1.0) -39 * (Omega_m_z(z) - 1.0) ** 2
+  4. f_{\ast}, f_{esc}, f_{\ast,mol}, f_{esc, mol} need to be smaller than 1
 
-  5. the duty cycle of molecular halos is:
-     f_\mathrm{duty,mol}  = e^{-\max\left[M_\mathrm{turn},M_\mathrm{crit,LW}\left(z,r\right)\right]/M_\mathrm{h}}
-                            \times \left[1 - e^{-M_\mathrm{crit,atom}\left(z\right)/M_\mathrm{h}}\right]
-     with
-       M_\mathrm{crit,LW}  corresponds to the suppression due to Lyman-Werner (LW)
-        background, which according to Visbal, Haiman & Bryan 2017, is
-      M_\mathrm{crit,LW}\left(z,r\right) = 2.5\times10^5 \mathrm{M}_\odot 
-              \times \left\{1+6.96\left[4\pi J_\mathrm{LW,21}\left(z,r\right)\right]^{0.47}\right\}
-              \times \left(\frac{1+z}{26}\right)^{-1.5}
-      in this version, we do not consider the spatial fluactuation of J_LW,21 and take advantage of Wise+12 result
-      \log_{10} J_\mathrm{LW,21}(z) = -2.356 + 0.4562z -0.02680z^2 + 5.882\times10^{-4}z^3 -5.056\times10^{-6}z^4
+  -----------
+  DUTY CYCLES
+  -----------
+  1. atomic cooling halos:
+  f_\mathrm{duty,atom} = \exp[-M_\mathrm{turn,atom}(z,\mathbf{r})/M_\mathrm{h}]
+  with 
+  M_\mathrm{turn,atom}(z,\mathbf{r}) = \max[M_\mathrm{crit,RE}(z,\mathbf{r}),M_\mathrm{crit,atom}(z)]
+  
+  2. molecular cooling halos:
+  f_\mathrm{duty,mol}  = \exp[-M_\mathrm{turn,mol,low}(z,\mathbf{r})/M_\mathrm{h}] \times 
+                         \exp[-M_\mathrm{h}/M_\mathrm{turn,mol,high}(z)]
+  with
+  M_\mathrm{turn,mol,high}(z) = M_\mathrm{crit,atom}(z)
+  M_\mathrm{turn,mol,low}(z,\mathbf{r}) = \max[M_\mathrm{crit,RE}(z,\mathbf{r}),M_\mathrm{crit,LW}(z,\mathbf{r})]
 
 
+  ------------------------
+  FEEDBACK AND SUPPRESSION
+  ------------------------
+  1. atomic cooling threshold:
+  M_\mathrm{crit,atom} corresponds to the atomic cooling threshold (T~1e4K), which essentially split halos
+                       into atomic and molecular cooling halos.
+  M_\mathrm{crit,atom} = 1e8/h * ((1e4 / 1.98e4) / (0.59/0.6) / ((1.+z)/10))**(1.5)
+                          ((Omega_m / Omega_m_z(z)) * (Delta_c(z)/18/pi**2))**(1./3)
+  with 
+  Omega_m_z(z) = 1./(1.+(Omega_L/Omega_m/(1.+z)**3))
+  Delta_c(z)   = 18 * pi**2 + 82 * (Omega_m_z(z) - 1.0) -39 * (Omega_m_z(z) - 1.0) ** 2
+
+  2. Reionization feedback (following Sobacchi & Mesinger 2013a,b; 2014)
+  M_\mathrm{crit,RE}(z,\mathbf{r}) = 3e9 \mathrm{M}_\odot [\Gamma_{\mathrm{halo, HII}}(z,\mathbf{r})/1e-12 s^{-1}]^0.17
+                                     \times ((1+z)/10)^-2.1 \times {1-[(1+z)/1+z_\mathrm{IN}(z,\mathbf{r})]^2.0}^2.5
+
+  3. Lyman-Werner (LW) suppression (following Visbal, Haiman & Bryan 2017)
+  M_\mathrm{crit,LW}(z,\mathbf{r}) = 2.5e5 \mathrm{M}_\odot \times {1+6.96[4PI J_\mathrm{LW,21}(z,\mathbf{r})]^0.47}
+                                     \times ((1+z)/26)^-1.5
 
 ***********************************************/
 #define MINI_HALO 1             // operate as a flag, comment this line if MINI_HALO version is not required
