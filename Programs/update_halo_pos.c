@@ -110,78 +110,78 @@ int main(int argc, char ** argv){
  *                           BEGIN 2LPT PART                                 *
  * ************************************************************************* */
 // reference: reference: Scoccimarro R., 1998, MNRAS, 299, 1097-1118 Appendix D
-  if(SECOND_ORDER_LPT_CORRECTIONS){
+#ifdef SECOND_ORDER_LPT_CORRECTIONS
       
-    fprintf(stderr, "Begin initialization 2LPT velocity field\nTotal elapsed time: %ds\n", time(NULL) - start_time);
-    last_time = time(NULL);
-    // allocate memory for the velocity boxes and read them in
-    vx_2LPT = (float *) malloc(sizeof(float)*HII_TOT_NUM_PIXELS);
-    if (!vx_2LPT){
-      fprintf(stderr, "update_halo_pos: Error allocating memory for 2LPT velocity box\nAborting...\n");
-      free(vx);  free(vy); free(vz);
-      return -1;
-     }
-    vy_2LPT = (float *) malloc(sizeof(float)*HII_TOT_NUM_PIXELS);
-    if (!vy_2LPT){
-      fprintf(stderr, "update_halo_pos: Error allocating memory for 2LPT velocity box\nAborting...\n");
-      free(vx_2LPT);
-      free(vx);  free(vy); free(vz);
-      return -1;
-    }
-    vz_2LPT = (float *) malloc(sizeof(float)*HII_TOT_NUM_PIXELS);
-    if (!vz_2LPT){
-      fprintf(stderr, "update_halo_pos: Error allocating memory for 2LPT velocity box\nAborting...\n");
-      free(vx_2LPT); free(vy_2LPT);
-      free(vx);  free(vy); free(vz);
-      return -1;
-    }
-
-    // read again velocities
-
-    sprintf(filename, "../Boxes/vxoverddot_2LPT_%i_%.0fMpc", HII_DIM, BOX_LEN);
-    F=fopen(filename, "rb");
-    if (mod_fread(vx_2LPT, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
-      fprintf(stderr, "update_halo_pos: Read error occured while reading velocity 2LPT box.\n");
-      free(vx);  free(vy); free(vz);
-      free(vx_2LPT);  free(vy_2LPT); free(vz_2LPT);
-      return -1;
-    }
-    fclose(F);
-    fprintf(stderr, "Read 2LPT vx velocity field\nElapsed time: %ds\n", time(NULL) - last_time);
-    last_time = time(NULL);
-
-    sprintf(filename, "../Boxes/vyoverddot_2LPT_%i_%.0fMpc", HII_DIM, BOX_LEN);
-    F=fopen(filename, "rb");
-    if (mod_fread(vy_2LPT, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
-      fprintf(stderr, "update_halo_pos: Read error occured while reading velocity 2LPT box.\n");
-      free(vx);  free(vy); free(vz);
-      free(vx_2LPT);  free(vy_2LPT); free(vz_2LPT);
-      return -1;
-    }
-    fclose(F);
-    fprintf(stderr, "Read 2LPT vy velocity field\nElapsed time: %ds\n", time(NULL) - last_time);
-    last_time = time(NULL);
-
-    sprintf(filename, "../Boxes/vzoverddot_2LPT_%i_%.0fMpc", HII_DIM, BOX_LEN);
-    F=fopen(filename, "rb");
-   if (mod_fread(vz_2LPT, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
-      fprintf(stderr, "update_halo_pos: Read error occured while reading velocity box.\n");
-      free(vx);  free(vy); free(vz);
-      free(vx_2LPT);  free(vy_2LPT); free(vz_2LPT);
-      return -1;
-    }
-    fclose(F);
-    fprintf(stderr, "Read 2LPT vz velocity field\nElapsed time: %ds\n", time(NULL) - last_time);
-    last_time = time(NULL);
-
-    // now add the missing factor in eq. D9
-    for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++){
-      vx_2LPT[ct] *= displacement_factor_2LPT / BOX_LEN; // this is now comoving displacement in units of box size
-      vy_2LPT[ct] *= displacement_factor_2LPT / BOX_LEN; // this is now comoving displacement in units of box size
-      vz_2LPT[ct] *= displacement_factor_2LPT / BOX_LEN; // this is now comoving displacement in units of box size
-    }
-    fprintf(stderr, "Read 2LPT velocity field\nTotal time: %ds\n", time(NULL) - start_time);
+  fprintf(stderr, "Begin initialization 2LPT velocity field\nTotal elapsed time: %ds\n", time(NULL) - start_time);
+  last_time = time(NULL);
+  // allocate memory for the velocity boxes and read them in
+  vx_2LPT = (float *) malloc(sizeof(float)*HII_TOT_NUM_PIXELS);
+  if (!vx_2LPT){
+    fprintf(stderr, "update_halo_pos: Error allocating memory for 2LPT velocity box\nAborting...\n");
+    free(vx);  free(vy); free(vz);
+    return -1;
+   }
+  vy_2LPT = (float *) malloc(sizeof(float)*HII_TOT_NUM_PIXELS);
+  if (!vy_2LPT){
+    fprintf(stderr, "update_halo_pos: Error allocating memory for 2LPT velocity box\nAborting...\n");
+    free(vx_2LPT);
+    free(vx);  free(vy); free(vz);
+    return -1;
   }
+  vz_2LPT = (float *) malloc(sizeof(float)*HII_TOT_NUM_PIXELS);
+  if (!vz_2LPT){
+    fprintf(stderr, "update_halo_pos: Error allocating memory for 2LPT velocity box\nAborting...\n");
+    free(vx_2LPT); free(vy_2LPT);
+    free(vx);  free(vy); free(vz);
+    return -1;
+  }
+
+  // read again velocities
+
+  sprintf(filename, "../Boxes/vxoverddot_2LPT_%i_%.0fMpc", HII_DIM, BOX_LEN);
+  F=fopen(filename, "rb");
+  if (mod_fread(vx_2LPT, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
+    fprintf(stderr, "update_halo_pos: Read error occured while reading velocity 2LPT box.\n");
+    free(vx);  free(vy); free(vz);
+    free(vx_2LPT);  free(vy_2LPT); free(vz_2LPT);
+    return -1;
+  }
+  fclose(F);
+  fprintf(stderr, "Read 2LPT vx velocity field\nElapsed time: %ds\n", time(NULL) - last_time);
+  last_time = time(NULL);
+
+  sprintf(filename, "../Boxes/vyoverddot_2LPT_%i_%.0fMpc", HII_DIM, BOX_LEN);
+  F=fopen(filename, "rb");
+  if (mod_fread(vy_2LPT, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
+    fprintf(stderr, "update_halo_pos: Read error occured while reading velocity 2LPT box.\n");
+    free(vx);  free(vy); free(vz);
+    free(vx_2LPT);  free(vy_2LPT); free(vz_2LPT);
+    return -1;
+  }
+  fclose(F);
+  fprintf(stderr, "Read 2LPT vy velocity field\nElapsed time: %ds\n", time(NULL) - last_time);
+  last_time = time(NULL);
+
+  sprintf(filename, "../Boxes/vzoverddot_2LPT_%i_%.0fMpc", HII_DIM, BOX_LEN);
+  F=fopen(filename, "rb");
+ if (mod_fread(vz_2LPT, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
+    fprintf(stderr, "update_halo_pos: Read error occured while reading velocity box.\n");
+    free(vx);  free(vy); free(vz);
+    free(vx_2LPT);  free(vy_2LPT); free(vz_2LPT);
+    return -1;
+  }
+  fclose(F);
+  fprintf(stderr, "Read 2LPT vz velocity field\nElapsed time: %ds\n", time(NULL) - last_time);
+  last_time = time(NULL);
+
+  // now add the missing factor in eq. D9
+  for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++){
+    vx_2LPT[ct] *= displacement_factor_2LPT / BOX_LEN; // this is now comoving displacement in units of box size
+    vy_2LPT[ct] *= displacement_factor_2LPT / BOX_LEN; // this is now comoving displacement in units of box size
+    vz_2LPT[ct] *= displacement_factor_2LPT / BOX_LEN; // this is now comoving displacement in units of box size
+  }
+  fprintf(stderr, "Read 2LPT velocity field\nTotal time: %ds\n", time(NULL) - start_time);
+#endif //SECOND_ORDER_LPT_CORRECTIONS
 
 /* ************************************************************************* *
  *                            END 2LPT PART                                  *
@@ -219,36 +219,34 @@ int main(int argc, char ** argv){
 
     // 2LPT PART
     // add second order corrections
-    if(SECOND_ORDER_LPT_CORRECTIONS){
-      xf -= vx_2LPT[HII_R_INDEX(i,j,k)];
-      yf -= vy_2LPT[HII_R_INDEX(i,j,k)];
-      zf -= vz_2LPT[HII_R_INDEX(i,j,k)];
+#ifdef SECOND_ORDER_LPT_CORRECTIONS
+    xf -= vx_2LPT[HII_R_INDEX(i,j,k)];
+    yf -= vy_2LPT[HII_R_INDEX(i,j,k)];
+    zf -= vz_2LPT[HII_R_INDEX(i,j,k)];
 
 // DEBUG
       //fprintf(stderr, "Displacements ratio: %.2e\t%.2e\n%.2e\t%.2e\n%.2e\t%.2e\n",  vx[HII_R_INDEX(i,j,k)], vx_2LPT[HII_R_INDEX(i,j,k)], vy[HII_R_INDEX(i,j,k)], vy_2LPT[HII_R_INDEX(i,j,k)], vz[HII_R_INDEX(i,j,k)], vz_2LPT[HII_R_INDEX(i,j,k)]);
-      if(fabs(mass - 1.72e10) < 0.1e10){
-        den += 3;
-        mean_correction += fabs(vx[HII_R_INDEX(i, j, k)]) + fabs(vy[HII_R_INDEX(i, j, k)]) + fabs(vz[HII_R_INDEX(i, j, k)]);
-        mean_correction_2LPT += fabs(vx_2LPT[HII_R_INDEX(i, j, k)]) + fabs(vy_2LPT[HII_R_INDEX(i, j, k)]) + fabs(vz_2LPT[HII_R_INDEX(i, j, k)]);
-        mean_ratio +=  fabs(vx_2LPT[HII_R_INDEX(i, j, k)]/vx[HII_R_INDEX(i, j, k)]) + fabs(vy_2LPT[HII_R_INDEX(i, j, k)]/vy[HII_R_INDEX(i, j, k)]) + fabs(vz_2LPT[HII_R_INDEX(i, j, k)]/vz[HII_R_INDEX(i, j, k)]); 
+    if(fabs(mass - 1.72e10) < 0.1e10){
+      den += 3;
+      mean_correction += fabs(vx[HII_R_INDEX(i, j, k)]) + fabs(vy[HII_R_INDEX(i, j, k)]) + fabs(vz[HII_R_INDEX(i, j, k)]);
+      mean_correction_2LPT += fabs(vx_2LPT[HII_R_INDEX(i, j, k)]) + fabs(vy_2LPT[HII_R_INDEX(i, j, k)]) + fabs(vz_2LPT[HII_R_INDEX(i, j, k)]);
+      mean_ratio +=  fabs(vx_2LPT[HII_R_INDEX(i, j, k)]/vx[HII_R_INDEX(i, j, k)]) + fabs(vy_2LPT[HII_R_INDEX(i, j, k)]/vy[HII_R_INDEX(i, j, k)]) + fabs(vz_2LPT[HII_R_INDEX(i, j, k)]/vz[HII_R_INDEX(i, j, k)]); 
 
-        max_correction = max(max_correction,  fabs(vx[HII_R_INDEX(i, j, k)]));
-        max_correction = max(max_correction,  fabs(vy[HII_R_INDEX(i, j, k)]));
-        max_correction = max(max_correction,  fabs(vz[HII_R_INDEX(i, j, k)]));
+      max_correction = max(max_correction,  fabs(vx[HII_R_INDEX(i, j, k)]));
+      max_correction = max(max_correction,  fabs(vy[HII_R_INDEX(i, j, k)]));
+      max_correction = max(max_correction,  fabs(vz[HII_R_INDEX(i, j, k)]));
 
-        max_correction_2LPT = max(max_correction_2LPT,  fabs(vx_2LPT[HII_R_INDEX(i, j, k)]));
-        max_correction_2LPT = max(max_correction_2LPT,  fabs(vy_2LPT[HII_R_INDEX(i, j, k)]));
-        max_correction_2LPT = max(max_correction_2LPT,  fabs(vz_2LPT[HII_R_INDEX(i, j, k)]));
-
-
-        max_ratio =  max(max_ratio, fabs(vx_2LPT[HII_R_INDEX(i, j, k)]/vx[HII_R_INDEX(i, j, k)])); 
-        max_ratio =  max(max_ratio, fabs(vy_2LPT[HII_R_INDEX(i, j, k)]/vy[HII_R_INDEX(i, j, k)])); 
-        max_ratio =  max(max_ratio, fabs(vz_2LPT[HII_R_INDEX(i, j, k)]/vz[HII_R_INDEX(i, j, k)])); 
-      }
-// END
+      max_correction_2LPT = max(max_correction_2LPT,  fabs(vx_2LPT[HII_R_INDEX(i, j, k)]));
+      max_correction_2LPT = max(max_correction_2LPT,  fabs(vy_2LPT[HII_R_INDEX(i, j, k)]));
+      max_correction_2LPT = max(max_correction_2LPT,  fabs(vz_2LPT[HII_R_INDEX(i, j, k)]));
 
 
+      max_ratio =  max(max_ratio, fabs(vx_2LPT[HII_R_INDEX(i, j, k)]/vx[HII_R_INDEX(i, j, k)])); 
+      max_ratio =  max(max_ratio, fabs(vy_2LPT[HII_R_INDEX(i, j, k)]/vy[HII_R_INDEX(i, j, k)])); 
+      max_ratio =  max(max_ratio, fabs(vz_2LPT[HII_R_INDEX(i, j, k)]/vz[HII_R_INDEX(i, j, k)])); 
     }
+#endif //SECOND_ORDER_LPT_CORRECTIONS
+
     // check if we wrapped around, not the casting to ensure < 1.00000
     DI = 10000;
     xf = roundf(xf*DI);

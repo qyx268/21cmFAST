@@ -233,8 +233,10 @@ double get_M_min_ion(float z){
   MMIN = M_TURNOVER;
 
   // check for WDM
-  if (P_CUTOFF && ( MMIN < M_J_WDM()))
+#ifdef P_CUTOFF
+  if ( MMIN < M_J_WDM())
     MMIN = M_J_WDM();
+#endif //P_CUTOFF
   return MMIN;
 }
 
@@ -248,10 +250,12 @@ double get_M_min_xray(float z){
    corresponding to the gas analog of WDM ; eq. 10 in Barkana+ 2001 */
 double M_J_WDM(){
   double z_eq, fudge=60;
-  if (!P_CUTOFF) 
+#ifndef P_CUTOFF 
     return 0;
+#else //P_CUTOFF
   z_eq = 3600*(OMm-OMb)*hlittle*hlittle/0.15;
   return fudge*3.06e8 * (1.5/g_x) * sqrt((OMm-OMb)*hlittle*hlittle/0.15) * pow(M_WDM, -4) * pow(z_eq/3000.0, 1.5);
+#endif //P_CUTOFF
 }
 
 
@@ -595,7 +599,9 @@ double dsigma_dk(double k, void *params){
   if (POWER_SPECTRUM == 0){ // Eisenstein & Hu
     T = TFmdm(k);
     // check if we should cuttoff power spectrum according to Bode et al. 2000 transfer function
-    if (P_CUTOFF) T *= pow(1 + pow(BODE_e*k*R_CUTOFF, 2*BODE_v), -BODE_n/BODE_v);
+#ifdef P_CUTOFF 
+    T *= pow(1 + pow(BODE_e*k*R_CUTOFF, 2*BODE_v), -BODE_n/BODE_v);
+#endif //P_CUTOFF
     p = pow(k, POWER_INDEX) * T * T;
   }
   else if (POWER_SPECTRUM == 1){ // BBKS
@@ -684,7 +690,9 @@ double power_in_k(double k){
   if (POWER_SPECTRUM == 0){ // Eisenstein & Hu
     T = TFmdm(k);
     // check if we should cuttoff power spectrum according to Bode et al. 2000 transfer function
-    if (P_CUTOFF) T *= pow(1 + pow(BODE_e*k*R_CUTOFF, 2*BODE_v), -BODE_n/BODE_v);
+#ifdef P_CUTOFF 
+    T *= pow(1 + pow(BODE_e*k*R_CUTOFF, 2*BODE_v), -BODE_n/BODE_v);
+#endif //P_CUTOFF
     p = pow(k, POWER_INDEX) * T * T;
     //p = pow(k, POWER_INDEX - 0.05*log(k/0.05)) * T * T; //running, alpha=0.05
   }
@@ -736,7 +744,9 @@ double dsigmasq_dm(double k, void *params){
   if (POWER_SPECTRUM == 0){ // Eisenstein & Hu ApJ, 1999, 511, 5
     T = TFmdm(k);
     // check if we should cuttoff power spectrum according to Bode et al. 2000 transfer function
-    if (P_CUTOFF) T *= pow(1 + pow(BODE_e*k*R_CUTOFF, 2*BODE_v), -BODE_n/BODE_v);
+#ifdef P_CUTOFF
+    T *= pow(1 + pow(BODE_e*k*R_CUTOFF, 2*BODE_v), -BODE_n/BODE_v);
+#endif //P_CUTOFF
     p = pow(k, POWER_INDEX) * T * T;
     //p = pow(k, POWER_INDEX - 0.05*log(k/0.05)) * T * T; //running, alpha=0.05
   }
@@ -898,9 +908,9 @@ double init_ps(){
   // Set cuttoff scale for WDM (eq. 4 in Barkana et al. 2001) in comoving Mpc
   R_CUTOFF = 0.201*pow((OMm-OMb)*hlittle*hlittle/0.15, 0.15)*pow(g_x/1.5, -0.29)*pow(M_WDM, -1.15);
 
-  if (P_CUTOFF){
-    fprintf(stderr, "For M_DM = %.2e keV, R_CUTOFF is: %.2e comoving Mpc\n", M_WDM, R_CUTOFF);
-  }
+#ifdef P_CUTOFF
+  fprintf(stderr, "For M_DM = %.2e keV, R_CUTOFF is: %.2e comoving Mpc\n", M_WDM, R_CUTOFF);
+#endif //P_CUTOFF
 
   omhh = OMm*hlittle*hlittle;
   theta_cmb = T_cmb / 2.7;

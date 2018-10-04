@@ -640,9 +640,9 @@ double integrate_over_nu(double zp, double local_x_e, double lower_int_limit, in
        gsl_integration_workspace * w 
      = gsl_integration_workspace_alloc (1000);
 
-       if (DEBUG_ON){
+#ifdef DEBUG_ON
      printf("integrate over nu, parameters: %f, %f, %e, %i, thread# %i\n", zp, local_x_e, lower_int_limit, FLAG, omp_get_thread_num());
-       }
+#endif //DEBUG_ON
        /*
        if (DO_NOT_COMPARE_NUS)
      lower_int_limit = NU_X_THRESH;
@@ -744,9 +744,9 @@ double integrate_over_num(double zp, double local_x_e, double lower_int_limit, i
        gsl_integration_workspace * w 
      = gsl_integration_workspace_alloc (1000);
 
-       if (DEBUG_ON){
+#ifdef DEBUG_ON
      printf("integrate over nu, parameters: %f, %f, %e, %i, thread# %i\n", zp, local_x_e, lower_int_limit, FLAG, omp_get_thread_num());
-       }
+#endif //DEBUG_ON
        /*
        if (DO_NOT_COMPARE_NUS)
      lower_int_limit = NU_X_THRESH;
@@ -869,8 +869,9 @@ double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_fact
 #endif
 
        /*
-       if (DEBUG_ON)
+#ifdef DEBUG_ON
      printf("in taux, parameters are: %e, %e, %f, %f, %e\n", nu, x_e, zp, zpp, HI_filling_factor_zp);
+#endif //DEBUG_ON
        */
        F.function = &tauX_integrand;
        p.nu_0 = nu/(1+zp);
@@ -908,8 +909,9 @@ double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_fact
        gsl_integration_workspace_free (w);
 
        /*
-       if (DEBUG_ON)
+#ifdef DEBUG_ON
        printf("returning from tauX, return value=%e\n", result);
+#endif //DEBUG_ON
        */
        return result;
 }
@@ -937,10 +939,10 @@ double nu_tau_one(double zp, double zpp, double x_e, double HI_filling_factor_zp
   double relative_error = 0.02;
   nu_tau_one_params p;
 
-  if (DEBUG_ON){
+#ifdef DEBUG_ON
     printf("in nu tau one, called with parameters: zp=%f, zpp=%f, x_e=%e, HI_filling_at_zp=%e\n",
        zp, zpp, x_e, HI_filling_factor_zp);
-  }
+#endif //DEBUG_ON
 
   // check if too ionized 
   if (x_e > 0.9999){
@@ -975,7 +977,9 @@ double nu_tau_one(double zp, double zpp, double x_e, double HI_filling_factor_zp
   gsl_root_fsolver_set (s, &F, x_lo, x_hi);
 
   // iterate until we guess close enough
-  if (DEBUG_ON) printf ("%5s [%9s, %9s] %9s %9s\n", "iter", "lower", "upper", "root", "err(est)");
+#ifdef DEBUG_ON
+  printf ("%5s [%9s, %9s] %9s %9s\n", "iter", "lower", "upper", "root", "err(est)");
+#endif //DEBUG_ON
   iter = 0;
   max_iter = 100;
   do{
@@ -986,16 +990,18 @@ double nu_tau_one(double zp, double zpp, double x_e, double HI_filling_factor_zp
       x_lo = gsl_root_fsolver_x_lower (s);
       x_hi = gsl_root_fsolver_x_upper (s);
       status = gsl_root_test_interval (x_lo, x_hi, 0, relative_error);
-      if (DEBUG_ON){
-    printf ("%5d [%.7e, %.7e] %.7e %.7e\n", iter, x_lo, x_hi, r, (x_hi - x_lo)/r);  
-    fflush(NULL);
-      }
-}
+#ifdef DEBUG_ON
+  printf ("%5d [%.7e, %.7e] %.7e %.7e\n", iter, x_lo, x_hi, r, (x_hi - x_lo)/r);  
+  fflush(NULL);
+#endif //DEBUG_ON
+  }
   while (status == GSL_CONTINUE && iter < max_iter);
 
   // deallocate and return
   gsl_root_fsolver_free (s);
-  if (DEBUG_ON) printf("Root found at %e eV", r/NU_over_EV);
+#ifdef DEBUG_ON
+  printf("Root found at %e eV", r/NU_over_EV);
+#endif //DEBUG_ON
 
   return r;
 }
@@ -1168,11 +1174,12 @@ float get_Ts(float z, float delta, float TK, float xe, float Jalpha, float * cur
     *curr_xalpha = 0;
   }
 
-  if((TS < 0.)&&(SUBCELL_RSD==1)) {
-        // Found that in extreme cases it could produce a negative spin temperature
-        // If negative, it is a very small number. Take the absolute value, the optical depth can deal with very large numbers, so ok to be small
-        TS = fabs(TS);
-    }
+#ifdef SUBCELL_RSD
+  // Found that in extreme cases it could produce a negative spin temperature
+  // If negative, it is a very small number. Take the absolute value, the optical depth can deal with very large numbers, so ok to be small
+  if(TS < 0.)
+    TS = fabs(TS);
+#endif //SUBCELL_RSD
     
 
   return TS;

@@ -141,8 +141,9 @@
 /*
   INHOMO_RECO = 1 compute inhomogeneous recombinations, ala Sobacchi & Mesinger (2014).
   This *requires* stepping down in redshift, e.g. using drive_logZscroll_Ts.c or  drive_zscroll_noTs.c
+  use as a flag. comment it if dont want
 */
-#define INHOMO_RECO (int) (1)
+#define INHOMO_RECO 1
 
 /*
   Typical star-formation timescale, in units of the Hubble time.  This is used to compute the UVB if inhomo_reco is on.
@@ -178,19 +179,19 @@
 
 
 /*
-  EVOLVE_DENSITY_LINEARLY = 1, evolve the density field with linear theory.
+  ifdef EVOLVE_DENSITY_LINEARLY, evolve the density field with linear theory.
                 If choosing this option, make sure that your cell size is
         in the linear regime at the redshift of interest
 
-  EVOLVE_DENSITY_LINEARLY = 0, evolve the density field with 1st order perturbation theory.
+  ifndef EVOLVE_DENSITY_LINEARLY, evolve the density field with 1st order perturbation theory.
                 If choosing this option, make sure that you resolve small 
         enough scales, roughly we find BOX_LEN/DIM should be < 1Mpc
  */
-#define EVOLVE_DENSITY_LINEARLY (int) (0)
+//#define EVOLVE_DENSITY_LINEARLY 0
 
 
 /*
-  If set to 1, the ZA density field is additionally smoothed (asside from the implicit
+  If defined, the ZA density field is additionally smoothed (asside from the implicit
   boxcar smoothing performed when re-binning the ICs from DIM to HII_DIM) with a Gaussian
   filter of width R_smooth_density*BOX_LEN/HII_DIM.  The implicit boxcar smoothing in perturb_field.c
   bins the density field on scale DIM/HII_DIM, similar to what Lagrangian codes do 
@@ -200,16 +201,16 @@
   present in all grid based codes, though it overcompensates by an effective loss in resolution.
   New in v1.1
  */
-#define SMOOTH_EVOLVED_DENSITY_FIELD (int) (1)
+#define SMOOTH_EVOLVED_DENSITY_FIELD 1
 #define R_smooth_density (float) (0.2)
 
 /*
   Use second-order Lagrangian perturbation theory (2LPT).
-  Set this to 1 if the density field or the halo positions are extrapolated to low redshifts.
+  Define this if the density field or the halo positions are extrapolated to low redshifts.
   The current implementation is very naive and add a factor ~6 to the memory requirements.
   Reference: Scoccimarro R., 1998, MNRAS, 299, 1097-1118 Appendix D  
 */
-#define SECOND_ORDER_LPT_CORRECTIONS (int) (1)
+#define SECOND_ORDER_LPT_CORRECTIONS 1
 
 /*
   Allows one to set a flag allowing find_HII_bubbles to skip constructing the 
@@ -242,15 +243,15 @@
 
 
 /*
-  1 = Use the filtered and adjusted halo field to construct the ionization and 21-cm fields
-  0 = Use the mean collapse fraction (eq. 2 in Barkana & Loeb 2008) to construct ...
+  ifdef:  Use the filtered and adjusted halo field to construct the ionization and 21-cm fields
+  ifndef: Use the mean collapse fraction (eq. 2 in Barkana & Loeb 2008) to construct ...
 
   Note: option (1) is more accurate as the halo field captures the Poisson and clustering signature
   which dominates the collapse fraction field on small scales (i.e. where the mean halo number 
   is small).  However, option (0) is faster as it bypasses the halo finder, and it becomes
   increasingly accurate as the typical bubble size increases.
 */
-#define USE_HALO_FIELD (int) (0)
+//#define USE_HALO_FIELD 0
 
 
 /*
@@ -270,7 +271,7 @@
 
 /*                                                                                                    
   Parameter choice of whether to use velocity corrections in 21-cm fields
-  1=use velocities in delta_T; 0=do not use velocities
+  ifdef use velocities in delta_T; ifndef do not use velocities
 
 and 
 
@@ -282,7 +283,7 @@ and
   redshift space distortions.
   NOTE: since v1.4, the default is to ignore this approximation, using SUBCELL_RSD below
 */
-#define T_USE_VELOCITIES (int) (1)
+#define T_USE_VELOCITIES 1
 #define MAX_DVDR (float) (0.2)
 
 
@@ -295,7 +296,7 @@ and
  
  Uses the approach outlined in Jensen et al. (2013).
 */
-#define SUBCELL_RSD (int) (1)
+#define SUBCELL_RSD 1
 
 /*
  Defines the number of subcells to be used for calculating the redshift space distortions.
@@ -306,10 +307,10 @@ and
 
 
 /*
-  0 = plot 21cm temperature power spectrum in non-dimensional units
-  1 = plot 21cm...  in mK^2
+  ifndef = plot 21cm temperature power spectrum in non-dimensional units
+  ifdef  = plot 21cm...  in mK^2
 */
-#define DIMENSIONAL_T_POWER_SPEC (int) (1)
+#define DIMENSIONAL_T_POWER_SPEC 1
 
 #define DELTA_R_FACTOR (float) (1.1) // factor by which to scroll through filter radius for halos
 
@@ -350,14 +351,16 @@ Filter for the Halo or density field used to generate ionization field
 #define HII_FILTER (int) (1)
 
 /*
-  0 = don't run the optimization code for zscroll (only useful at low-z)
-  1 = do run ...
+  ifndef = don't run the optimization code for zscroll (only useful at low-z)
+  ifdef  = do run ...
 */
-#define OPTIMIZE (int) (0)
+//#define OPTIMIZE 0
 /*
   Minimum mass for which the optimization algorithm will be used
 */
+#ifdef OPTIMIZE
 #define OPTIMIZE_MIN_MASS (float) (1e11)
+#endif 
 
 #define SIZE_RANDOM_SEED (-23456789) // seed for the size dist random number generator
 #define LOS_RANDOM_SEED (-123456789) // seed for the extract LOS random number generator

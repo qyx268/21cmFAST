@@ -85,8 +85,9 @@ int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, floa
 
   int min_argc = 2;
 
-  if (INHOMO_RECO)
-    min_argc++;
+#ifdef INHOMO_RECO
+  min_argc++;
+#endif //INHOMO_RECO
   
   // check if user wants to specify the multi threading
   if ((argc > min_argc) && (argv[1][0]=='-') && ((argv[1][1]=='p') || (argv[1][1]=='P'))){
@@ -319,15 +320,15 @@ int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, floa
 #endif // SHARP_CUTOFF 
 
   *REDSHIFT = atof(argv[*arg_offset+1]);
-  if (INHOMO_RECO){
-    *PREV_REDSHIFT = atof(argv[*arg_offset+2]);
-    if (*PREV_REDSHIFT <= *REDSHIFT ){
-      fprintf(stderr, "find_HII_bubbles: previous redshift must be larger than current redshift!!!\nAborting...\n");
-      return -1;
-    }
+#ifdef INHOMO_RECO
+  *PREV_REDSHIFT = atof(argv[*arg_offset+2]);
+  if (*PREV_REDSHIFT <= *REDSHIFT ){
+    fprintf(stderr, "find_HII_bubbles: previous redshift must be larger than current redshift!!!\nAborting...\n");
+    return -1;
   }
-  else
-    *PREV_REDSHIFT = *REDSHIFT+0.2; // dummy variable which is not used
+#else //INHOMO_RECO
+  *PREV_REDSHIFT = *REDSHIFT+0.2; // dummy variable which is not used
+#endif //INHOMO_RECO
 
 #ifdef SHARP_CUTOFF
    fprintf(stderr, "SHARP_CUTOFF (ON)");
@@ -468,16 +469,19 @@ int main(int argc, char ** argv){
   // this parameter choice is sensitive to noise on the cell size, at least for the typical
   // cell sizes in RT simulations.  it probably doesn't matter for larger cell sizes.
   cell_length_factor = L_FACTOR;
-  if (USE_HALO_FIELD && (FIND_BUBBLE_ALGORITHM==2)
-      && ((BOX_LEN/(float)HII_DIM) < 1)){ // fairly arbitrary length based on 2 runs i did
+
+#ifdef USE_HALO_FIELD
+  if ((FIND_BUBBLE_ALGORITHM==2)&& ((BOX_LEN/(float)HII_DIM) < 1)) // fairly arbitrary length based on 2 runs i did
     cell_length_factor = 1;
-  }
+#endif //USE_HALO_FIELD
   init_ps();
   Fcoll = (float *) malloc(sizeof(float)*HII_TOT_FFT_NUM_PIXELS);
 #ifdef MINI_HALO
   Fcollm = (float *) malloc(sizeof(float)*HII_TOT_FFT_NUM_PIXELS);
 #endif //MINI_HALO
-  if (INHOMO_RECO) {  init_MHR();}
+#ifdef INHOMO_RECO 
+  init_MHR();
+#endif //INHOMO_RECO 
 #ifndef SHARP_CUTOFF
     // Set the minimum halo mass hosting ionizing source mass.
     // For constant ionizing efficiency parameter M_MIN is set to be M_TURN which is a sharp cut-off.
@@ -510,11 +514,13 @@ int main(int argc, char ** argv){
 #endif //SHARP_CUTOFF
 
   // check for WDM
-  if (P_CUTOFF && ( M_MIN < M_J_WDM())){
+#ifdef P_CUTOFF 
+  if ( M_MIN < M_J_WDM()){
     fprintf(stderr, "The default Jeans mass of %e Msun is smaller than the scale supressed by the effective pressure of WDM.\n", M_MIN);
     M_MIN = M_J_WDM();
     fprintf(stderr, "Setting a new effective Jeans mass from WDM pressure supression of %e Msun\n", M_MIN);
   }
+#endif //P_CUTOFF
   initialiseSplinedSigmaM(M_MIN,5e16); // set up interpolation table for computing sigma_M
   
   // INITIALIZE THREADS
@@ -609,9 +615,9 @@ int main(int argc, char ** argv){
 #endif
         free_ps();  
 #ifndef SHARP_CUTOFF
-		destroy_21cmMC_arrays();
+        destroy_21cmMC_arrays();
 #endif
-		return -1;
+        return -1;
       }
       for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++){
         if (fread(&xH[ct], sizeof(float), 1, F)!=1){
@@ -643,55 +649,63 @@ int main(int argc, char ** argv){
 #ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
 #ifdef REION_SM
-        if (USE_HALO_FIELD)
-          sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Msm_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-        else
-          sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Msm_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-#else
-        if (USE_HALO_FIELD)
-          sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-        else
-          sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#ifdef USE_HALO_FIELD
+        sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Msm_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#else //USE_HALO_FIELD
+        sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Msm_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#endif //USE_HALO_FIELD
+#else //REION_SM
+#ifdef USE_HALO_FIELD
+        sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#else //USE_HALO_FIELD
+        sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#endif //USE_HALO_FIELD
 #endif //REION_SM
-#else
-        if (USE_HALO_FIELD)
-          sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-        else
-          sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-#endif
-#else
-        if (USE_HALO_FIELD)
-          sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
-        else
-          sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
-#endif
+#else //MINI_HALO
+#ifdef USE_HALO_FIELD
+        sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#else //USE_HALO_FIELD
+        sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#endif //USE_HALO_FIELD
+#endif //MINI_HALO
+#else //SHARP_CUTOFF
+#ifdef USE_HALO_FIELD
+        sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
+#else //USE_HALO_FIELD
+        sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
+#endif //USE_HALO_FIELD
+#endif //SHARP_CUTOFF
         break;
       default:
 #ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
 #ifdef REION_SM
-        if (USE_HALO_FIELD)
-          sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Msm_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-        else
-          sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Msm_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-#else
-        if (USE_HALO_FIELD)
-          sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-        else
-          sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#ifdef USE_HALO_FIELD
+        sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Msm_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#else //USE_HALO_FIELD
+        sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Msm_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#endif //USE_HALO_FIELD
+#else //REION_SM
+#ifdef USE_HALO_FIELD
+        sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#else //USE_HALO_FIELD
+        sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#endif //USE_HALO_FIELD
 #endif //REION_SM
-#else
-        if (USE_HALO_FIELD)
-          sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-        else
-          sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-#endif
-#else
-        if (USE_HALO_FIELD)
-          sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
-        else
-          sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
-#endif
+#else //MINI_HALO
+#ifdef USE_HALO_FIELD
+        sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#else //USE_HALO_FIELD
+        sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#endif //USE_HALO_FIELD
+#endif //MINI_HALO
+#else //SHARP_CUTOFF
+#ifdef USE_HALO_FIELD
+        sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
+#else //USE_HALO_FIELD
+        sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
+#endif //USE_HALO_FIELD
+#endif //SHARP_CUTOFF
     }
     F = fopen(filename, "wb");
     fprintf(LOG, "Neutral fraction is %f\nNow writting xH box at %s\n", global_xH, filename);
@@ -708,7 +722,7 @@ int main(int argc, char ** argv){
 #ifndef SHARP_CUTOFF
      destroy_21cmMC_arrays();
 #endif
-	 return (int) (global_xH * 100);
+     return (int) (global_xH * 100);
   }
   /*************   END CHECK TO SEE IF WE ARE STILL IN THE DARK AGES *************/
 
@@ -757,37 +771,37 @@ int main(int argc, char ** argv){
 
 
   // ARE WE USING A DISCRETE HALO FIELD (identified in the ICs with find_halos.c and evolved  with update_halos.c)
-  if (USE_HALO_FIELD){
-    // allocate memory for the smoothed halo field
-    M_coll_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
-    M_coll_filtered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
-    if (!M_coll_unfiltered || !M_coll_filtered){
-      strcpy(error_message, "find_HII_bubbles.c: Error allocating memory for M_coll boxes\nAborting...\n");
-      goto CLEANUP;
-    }
-    for (ct=0; ct<HII_TOT_FFT_NUM_PIXELS; ct++){    *((float *)M_coll_unfiltered + ct) = 0;  }
-      
-    // read in the halo list
-    sprintf(filename, "../Output_files/Halo_lists/updated_halos_z%06.2f_%i_%.0fMpc", REDSHIFT, DIM, BOX_LEN);
-    F = fopen(filename, "r");
-    if (!F){
-      strcpy(error_message, "find_HII_bubbles.c: Unable to open halo list file: ");
-      strcat(error_message, filename);
-      strcat(error_message, "\nAborting...\n");
-      goto CLEANUP;
-    }
-    // now read in all halos above our threshold into the smoothed halo field
+#ifdef USE_HALO_FIELD
+  // allocate memory for the smoothed halo field
+  M_coll_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  M_coll_filtered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  if (!M_coll_unfiltered || !M_coll_filtered){
+    strcpy(error_message, "find_HII_bubbles.c: Error allocating memory for M_coll boxes\nAborting...\n");
+    goto CLEANUP;
+  }
+  for (ct=0; ct<HII_TOT_FFT_NUM_PIXELS; ct++){    *((float *)M_coll_unfiltered + ct) = 0;  }
+    
+  // read in the halo list
+  sprintf(filename, "../Output_files/Halo_lists/updated_halos_z%06.2f_%i_%.0fMpc", REDSHIFT, DIM, BOX_LEN);
+  F = fopen(filename, "r");
+  if (!F){
+    strcpy(error_message, "find_HII_bubbles.c: Unable to open halo list file: ");
+    strcat(error_message, filename);
+    strcat(error_message, "\nAborting...\n");
+    goto CLEANUP;
+  }
+  // now read in all halos above our threshold into the smoothed halo field
+  fscanf(F, "%e %f %f %f", &mass, &xf, &yf, &zf);
+  while (!feof(F) && (mass>=M_MIN)){
+    x = xf*HII_DIM;
+    y = yf*HII_DIM;
+    z = zf*HII_DIM;
+    *((float *)M_coll_unfiltered + HII_R_FFT_INDEX(x, y, z)) += mass;
     fscanf(F, "%e %f %f %f", &mass, &xf, &yf, &zf);
-    while (!feof(F) && (mass>=M_MIN)){
-      x = xf*HII_DIM;
-      y = yf*HII_DIM;
-      z = zf*HII_DIM;
-      *((float *)M_coll_unfiltered + HII_R_FFT_INDEX(x, y, z)) += mass;
-      fscanf(F, "%e %f %f %f", &mass, &xf, &yf, &zf);
-    }
-    fclose(F);
-    F = NULL;
-  } // end of the USE_HALO_FIELD option
+  }
+  fclose(F);
+  F = NULL;
+#endif //USE_HALO_FIELD
 
     
   // ALLOCATE AND READ-IN THE EVOLVED DENSITY FIELD
@@ -822,69 +836,69 @@ int main(int argc, char ** argv){
   F = NULL;
 
   // ALLOCATE AND INITIALIZE ADDITIONAL BOXES NEEDED TO KEEP TRACK OF RECOMBINATIONS (Sobacchi & Mesinger 2014; NEW IN v1.3)
-  if (INHOMO_RECO){ //  flag in ANAL_PARAMS.H to determine whether to compute recombinations or not
-    z_re = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS); // the redshift at which the cell is ionized
-    Gamma12 = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);  // stores the ionizing backgroud
-    N_rec_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS); // cumulative number of recombinations
-    N_rec_filtered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
-    if (!z_re || !N_rec_filtered || !N_rec_unfiltered || !Gamma12){
-      strcpy(error_message, "find_HII_bubbles.c: Error allocating memory for recombination boxes boxes\nAborting...\n");
-      goto CLEANUP;
+#ifdef INHOMO_RECO //  flag in ANAL_PARAMS.H to determine whether to compute recombinations or not
+  z_re = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS); // the redshift at which the cell is ionized
+  Gamma12 = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);  // stores the ionizing backgroud
+  N_rec_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS); // cumulative number of recombinations
+  N_rec_filtered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  if (!z_re || !N_rec_filtered || !N_rec_unfiltered || !Gamma12){
+    strcpy(error_message, "find_HII_bubbles.c: Error allocating memory for recombination boxes boxes\nAborting...\n");
+    goto CLEANUP;
+  }
+  sprintf(filename, "../Boxes/z_first_ionization_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc",  PREV_REDSHIFT, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+  if (F=fopen(filename, "rb")){  // this is the first call for this run, i.e. at the highest redshift
+    //check if some read error occurs
+    if (mod_fread(z_re, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
+    strcpy(error_message, "find_HII_bubbles.c: Read error occured while reading z_re box!\n");
+    goto CLEANUP;
     }
-    sprintf(filename, "../Boxes/z_first_ionization_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc",  PREV_REDSHIFT, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-    if (F=fopen(filename, "rb")){  // this is the first call for this run, i.e. at the highest redshift
-      //check if some read error occurs
-      if (mod_fread(z_re, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
-      strcpy(error_message, "find_HII_bubbles.c: Read error occured while reading z_re box!\n");
-      goto CLEANUP;
-      }
-    }
-    else{ // this is the first call (highest redshift)
-      for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
-        z_re[ct] = -1.0;
-    }
-    sprintf(filename, "../Boxes/Nrec_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", PREV_REDSHIFT, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-    if (F=fopen(filename, "rb")){ // we had prvious boxes
-      //check if some read error occurs
-      for (i=0; i<HII_DIM; i++){
-        for (j=0; j<HII_DIM; j++){
-          for (k=0; k<HII_DIM; k++){
-            if (fread((float *)N_rec_unfiltered + HII_R_FFT_INDEX(i,j,k), sizeof(float), 1, F)!=1){
-              strcpy(error_message, "find_HII_bubbles.c: Read error occured while reading N_rec box!\n");
-              goto CLEANUP;
-            }
+  }
+  else{ // this is the first call (highest redshift)
+    for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
+      z_re[ct] = -1.0;
+  }
+  sprintf(filename, "../Boxes/Nrec_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", PREV_REDSHIFT, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+  if (F=fopen(filename, "rb")){ // we had prvious boxes
+    //check if some read error occurs
+    for (i=0; i<HII_DIM; i++){
+      for (j=0; j<HII_DIM; j++){
+        for (k=0; k<HII_DIM; k++){
+          if (fread((float *)N_rec_unfiltered + HII_R_FFT_INDEX(i,j,k), sizeof(float), 1, F)!=1){
+            strcpy(error_message, "find_HII_bubbles.c: Read error occured while reading N_rec box!\n");
+            goto CLEANUP;
           }
         }
       }
     }
-    else{
-      fprintf(stderr, "Earliest redshift call, initializing Nrec to zeros\n");
-      // initialize N_rec
-      for (i=0; i<HII_DIM; i++){
-        for (j=0; j<HII_DIM; j++){
-          for (k=0; k<HII_DIM; k++){
-            *((float *)N_rec_unfiltered + HII_R_FFT_INDEX(i,j,k)) = 0.0;
-          }
+  }
+  else{
+    fprintf(stderr, "Earliest redshift call, initializing Nrec to zeros\n");
+    // initialize N_rec
+    for (i=0; i<HII_DIM; i++){
+      for (j=0; j<HII_DIM; j++){
+        for (k=0; k<HII_DIM; k++){
+          *((float *)N_rec_unfiltered + HII_R_FFT_INDEX(i,j,k)) = 0.0;
         }
       }
     }
-  } //  end if INHOMO_RECO
+  }
+#endif //INHOMO_RECO
 
   // do the fft to get the k-space M_coll field and deltax field
   fprintf(LOG, "begin initial ffts, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
   fflush(LOG);
-  if (USE_HALO_FIELD){
-    plan = fftwf_plan_dft_r2c_3d(HII_DIM, HII_DIM, HII_DIM, (float *)M_coll_unfiltered, (fftwf_complex *)M_coll_unfiltered, FFTW_ESTIMATE);
-    fftwf_execute(plan);
-  }
-  if (USE_TS_IN_21CM){
-    plan = fftwf_plan_dft_r2c_3d(HII_DIM, HII_DIM, HII_DIM, (float *)xe_unfiltered, (fftwf_complex *)xe_unfiltered, FFTW_ESTIMATE);
-    fftwf_execute(plan);
-  }
-  if (INHOMO_RECO){
-    plan = fftwf_plan_dft_r2c_3d(HII_DIM, HII_DIM, HII_DIM, (float *)N_rec_unfiltered, (fftwf_complex *)N_rec_unfiltered, FFTW_ESTIMATE);
-    fftwf_execute(plan);
-  }
+#ifdef USE_HALO_FIELD
+  plan = fftwf_plan_dft_r2c_3d(HII_DIM, HII_DIM, HII_DIM, (float *)M_coll_unfiltered, (fftwf_complex *)M_coll_unfiltered, FFTW_ESTIMATE);
+  fftwf_execute(plan);
+#endif //USE_HALO_FIELD
+#ifdef USE_TS_IN_21CM
+  plan = fftwf_plan_dft_r2c_3d(HII_DIM, HII_DIM, HII_DIM, (float *)xe_unfiltered, (fftwf_complex *)xe_unfiltered, FFTW_ESTIMATE);
+  fftwf_execute(plan);
+#endif //USE_TS_IN_21CM 
+#ifdef INHOMO_RECO
+  plan = fftwf_plan_dft_r2c_3d(HII_DIM, HII_DIM, HII_DIM, (float *)N_rec_unfiltered, (fftwf_complex *)N_rec_unfiltered, FFTW_ESTIMATE);
+  fftwf_execute(plan);
+#endif //INHOMO_RECO
   plan = fftwf_plan_dft_r2c_3d(HII_DIM, HII_DIM, HII_DIM, (float *)deltax_unfiltered, (fftwf_complex *)deltax_unfiltered, FFTW_ESTIMATE);
   fftwf_execute(plan);
   fftwf_destroy_plan(plan);
@@ -893,9 +907,15 @@ int main(int argc, char ** argv){
   //  real space to k-space
   // Note: we will leave off factor of VOLUME, in anticipation of the inverse FFT below
   for (ct=0; ct<HII_KSPACE_NUM_PIXELS; ct++){
-    if (USE_HALO_FIELD){  M_coll_unfiltered[ct] /= (double)HII_TOT_NUM_PIXELS;}
-    if (USE_TS_IN_21CM){ xe_unfiltered[ct] /= (double)HII_TOT_NUM_PIXELS;}
-    if (INHOMO_RECO){ N_rec_unfiltered[ct] /= (double)HII_TOT_NUM_PIXELS; }
+#ifdef USE_HALO_FIELD
+    M_coll_unfiltered[ct] /= (double)HII_TOT_NUM_PIXELS;
+#endif //USE_HALO_FIELD
+#ifdef USE_TS_IN_21CM
+    xe_unfiltered[ct] /= (double)HII_TOT_NUM_PIXELS;
+#endif //USE_TS_IN_21CM
+#ifdef INHOMO_RECO
+    N_rec_unfiltered[ct] /= (double)HII_TOT_NUM_PIXELS;
+#endif //INHOMO_RECO
     deltax_unfiltered[ct] /= (HII_TOT_NUM_PIXELS+0.0);
   }
   fprintf(LOG, "end initial ffts, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
@@ -916,7 +936,9 @@ int main(int argc, char ** argv){
       fftwf_free(M_coll_filtered);
       fftwf_cleanup_threads();
       free_ps();
-      if (INHOMO_RECO) { free_MHR();}
+#ifdef INHOMO_RECO
+      free_MHR();
+#endif //INHOMO_RECO
       fftwf_free(xe_filtered);
       fftwf_free(xe_unfiltered);
       fftwf_free(N_rec_unfiltered);
@@ -956,9 +978,15 @@ int main(int argc, char ** argv){
 
     fprintf(LOG, "before memcpy, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
-    if (USE_HALO_FIELD){    memcpy(M_coll_filtered, M_coll_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);}
-    if (USE_TS_IN_21CM){    memcpy(xe_filtered, xe_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);}
-    if (INHOMO_RECO){  memcpy(N_rec_filtered, N_rec_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);}
+#ifdef USE_HALO_FIELD
+    memcpy(M_coll_filtered, M_coll_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+#endif //USE_HALO_FIELD
+#ifdef USE_TS_IN_21CM
+    memcpy(xe_filtered, xe_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+#endif //USE_TS_IN_21CM
+#ifdef INHOMO_RECO
+    memcpy(N_rec_filtered, N_rec_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+#endif //INHOMO_RECO
     memcpy(deltax_filtered, deltax_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
 
 
@@ -966,9 +994,15 @@ int main(int argc, char ** argv){
     if (!LAST_FILTER_STEP || (R > cell_length_factor*BOX_LEN/(double)HII_DIM) ){
       fprintf(LOG, "begin filter, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
       fflush(LOG);
-      if (USE_HALO_FIELD) { HII_filter(M_coll_filtered, HII_FILTER, R);}
-      if (USE_TS_IN_21CM) { HII_filter(xe_filtered, HII_FILTER, R);}
-      if (INHOMO_RECO) {  HII_filter(N_rec_filtered, HII_FILTER, R);}
+#ifdef USE_HALO_FIELD
+      HII_filter(M_coll_filtered, HII_FILTER, R);
+#endif //USE_HALO_FIELD
+#ifdef USE_TS_IN_21CM
+      HII_filter(xe_filtered, HII_FILTER, R);
+#endif //USE_TS_IN_21CM
+#ifdef INHOMO_RECO
+      HII_filter(N_rec_filtered, HII_FILTER, R);
+#endif //INHOMO_RECO
       HII_filter(deltax_filtered, HII_FILTER, R);
       fprintf(LOG, "end filter, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
       fflush(LOG);
@@ -977,18 +1011,18 @@ int main(int argc, char ** argv){
     // do the FFT to get back to real space
     fprintf(LOG, "begin fft with R=%f, clock=%06.2f\n", R, (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
-    if (USE_HALO_FIELD) {
-      plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)M_coll_filtered, (float *)M_coll_filtered, FFTW_ESTIMATE);
-      fftwf_execute(plan);
-    }
-    if (USE_TS_IN_21CM) {
-      plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)xe_filtered, (float *)xe_filtered, FFTW_ESTIMATE);
-      fftwf_execute(plan);
-    }
-    if (INHOMO_RECO){
-      plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)N_rec_filtered, (float *)N_rec_filtered, FFTW_ESTIMATE);
-      fftwf_execute(plan);
-    }
+#ifdef USE_HALO_FIELD
+    plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)M_coll_filtered, (float *)M_coll_filtered, FFTW_ESTIMATE);
+    fftwf_execute(plan);
+#endif //USE_HALO_FIELD
+#ifdef USE_TS_IN_21CM
+    plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)xe_filtered, (float *)xe_filtered, FFTW_ESTIMATE);
+    fftwf_execute(plan);
+#endif //USE_TS_IN_21CM
+#ifdef INHOMO_RECO
+    plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)N_rec_filtered, (float *)N_rec_filtered, FFTW_ESTIMATE);
+    fftwf_execute(plan);
+#endif //INHOMO_RECO
     plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)deltax_filtered, (float *)deltax_filtered, FFTW_ESTIMATE);
     fftwf_execute(plan);
     fftwf_destroy_plan(plan);
@@ -1007,23 +1041,22 @@ int main(int argc, char ** argv){
             FMAX(*((float *)deltax_filtered + HII_R_FFT_INDEX(x,y,z)) , -1+FRACT_FLOAT_ERR);
 
           // <N_rec> cannot be less than zero
-          if (INHOMO_RECO){
-            *((float *)N_rec_filtered + HII_R_FFT_INDEX(x,y,z)) = 
-            FMAX(*((float *)N_rec_filtered + HII_R_FFT_INDEX(x,y,z)) , 0.0);
-          }
+#ifdef INHOMO_RECO
+          *((float *)N_rec_filtered + HII_R_FFT_INDEX(x,y,z)) = 
+          FMAX(*((float *)N_rec_filtered + HII_R_FFT_INDEX(x,y,z)) , 0.0);
+#endif //INHOMO_RECO
         
           // collapsed mass cannot be less than zero
-          if (USE_HALO_FIELD){
-            *((float *)M_coll_filtered + HII_R_FFT_INDEX(x,y,z)) = 
-              FMAX(*((float *)M_coll_filtered + HII_R_FFT_INDEX(x,y,z)) , 0.0);
-          }
+#ifdef USE_HALO_FIELD
+          *((float *)M_coll_filtered + HII_R_FFT_INDEX(x,y,z)) = 
+            FMAX(*((float *)M_coll_filtered + HII_R_FFT_INDEX(x,y,z)) , 0.0);
+#endif //USE_HALO_FIELD
 
           // x_e has to be between zero and unity
-          if (USE_TS_IN_21CM){
-            *((float *)xe_filtered + HII_R_FFT_INDEX(x,y,z)) = FMAX(*((float *)xe_filtered + HII_R_FFT_INDEX(x,y,z)) , 0);
-            *((float *)xe_filtered + HII_R_FFT_INDEX(x,y,z)) = FMIN(*((float *)xe_filtered + HII_R_FFT_INDEX(x,y,z)) , 0.999);
-          }
-
+#ifdef USE_TS_IN_21CM
+          *((float *)xe_filtered + HII_R_FFT_INDEX(x,y,z)) = FMAX(*((float *)xe_filtered + HII_R_FFT_INDEX(x,y,z)) , 0);
+          *((float *)xe_filtered + HII_R_FFT_INDEX(x,y,z)) = FMIN(*((float *)xe_filtered + HII_R_FFT_INDEX(x,y,z)) , 0.999);
+#endif //USE_TS_IN_21CM
         }
       }
     } //  end sanity check in box
@@ -1116,7 +1149,7 @@ int main(int argc, char ** argv){
     Gamma_R_prefactor  = pow(1+REDSHIFT, 2) * (R*CMperMPC) * SIGMA_HI * ALPHA_UVB / (ALPHA_UVB+2.75) * N_b0 * ION_EFF_FACTOR / 1.0e-12;
 #ifdef MINI_HALO
     Gamma_R_prefactorm = Gamma_R_prefactor / ION_EFF_FACTOR * ION_EFF_FACTOR_MINI;
-#endif
+#endif //MINI_HALO
 
     for (x=0; x<HII_DIM; x++){
       for (y=0; y<HII_DIM; y++){
@@ -1135,18 +1168,18 @@ int main(int argc, char ** argv){
           f_coll  = ST_over_PS * Fcoll[HII_R_FFT_INDEX(x,y,z)];
 #ifdef MINI_HALO
           f_collm = ST_over_PSm * Fcollm[HII_R_FFT_INDEX(x,y,z)];
-#endif
+#endif //MINI_HALO
       
-          if (INHOMO_RECO){
-            dfcolldt  = f_coll  / t_ast;
-            Gamma_R = Gamma_R_prefactor * dfcolldt;
+#ifdef INHOMO_RECO
+          dfcolldt  = f_coll  / t_ast;
+          Gamma_R = Gamma_R_prefactor * dfcolldt;
 #ifdef MINI_HALO
-            dfcolldtm = f_collm / t_ast;
-            Gamma_R  += Gamma_R_prefactorm * dfcolldtm;
-#endif
-            rec = (*((float *)N_rec_filtered + HII_R_FFT_INDEX(x,y,z))); // number of recombinations per mean baryon
-            rec /= density_over_mean; // number of recombinations per baryon inside <R>
-          }
+          dfcolldtm = f_collm / t_ast;
+          Gamma_R  += Gamma_R_prefactorm * dfcolldtm;
+#endif //MINI_HALO
+          rec = (*((float *)N_rec_filtered + HII_R_FFT_INDEX(x,y,z))); // number of recombinations per mean baryon
+          rec /= density_over_mean; // number of recombinations per baryon inside <R>
+#endif //INHOMO_RECO
       
           // adjust the denominator of the collapse fraction for the residual electron fraction in the neutral medium
           if (USE_TS_IN_21CM){
@@ -1156,23 +1189,24 @@ int main(int argc, char ** argv){
           // check if fully ionized!
 #ifdef MINI_HALO
           if ( (f_coll*ION_EFF_FACTOR + f_collm*ION_EFF_FACTOR_MINI > xHI_from_xrays*(1.0+rec)) )
-#else
+#else //MINI_HALO
           if ( (f_coll*ION_EFF_FACTOR > xHI_from_xrays*(1.0+rec)) )
-#endif
+#endif //MINI_HALO
           {
         
             // if this is the first crossing of the ionization barrier for this cell (largest R), record the gamma
             // this assumes photon-starved growth of HII regions...  breaks down post EoR
-            if (INHOMO_RECO && (xH[HII_R_INDEX(x, y, z)] > FRACT_FLOAT_ERR) ){
+#ifdef INHOMO_RECO
+            if (xH[HII_R_INDEX(x, y, z)] > FRACT_FLOAT_ERR){
               Gamma12[HII_R_INDEX(x, y, z)] = Gamma_R;
               aveR += R;
               Rct++;
             }
 
             // keep track of the first time this cell is ionized (earliest time)
-            if (INHOMO_RECO && (z_re[HII_R_INDEX(x, y, z)] < 0)){
+            if (z_re[HII_R_INDEX(x, y, z)] < 0)
               z_re[HII_R_INDEX(x, y, z)] = REDSHIFT;          
-            }
+#endif //INHOMO_RECO
 
         
             // FLAG CELL(S) AS IONIZED
@@ -1191,28 +1225,28 @@ int main(int argc, char ** argv){
           // If not fully ionized, then assign partial ionizations 
           else if (LAST_FILTER_STEP && (xH[HII_R_INDEX(x, y, z)] > TINY)){
 
-            if (!USE_HALO_FIELD){
+#ifndef USE_HALO_FIELD
 #ifdef MINI_HALO
               ave_N_min_cell = (f_coll+f_collm) * pixel_mass * density_over_mean / M_MIN; // ave # of M_MIN halos in cell          
-#else
+#else //MINI_HALO
               ave_N_min_cell = f_coll * pixel_mass * density_over_mean / M_MIN; // ave # of M_MIN halos in cell          
-#endif
+#endif //MINI_HALO
               if (ave_N_min_cell < N_POISSON){ // add poissonian fluctuations to the nalo number
                 N_min_cell = (int) gsl_ran_poisson(r, ave_N_min_cell);
 #ifdef MINI_HALO
                 f_coll  = N_min_cell * M_MIN / (pixel_mass*density_over_mean) * (f_coll / (f_coll + f_collm));
                 f_collm = N_min_cell * M_MIN / (pixel_mass*density_over_mean) - f_coll;
-#else
+#else //MINI_HALO
                 f_coll = N_min_cell * M_MIN / (pixel_mass*density_over_mean);
-#endif
+#endif //MINI_HALO
               }
-            }
+#endif //USE_HALO_FIELD
           
 #ifdef MINI_HALO
             res_xH = xHI_from_xrays - f_coll * ION_EFF_FACTOR + f_collm * ION_EFF_FACTOR_MINI;
-#else
+#else //MINI_HALO
             res_xH = xHI_from_xrays - f_coll * ION_EFF_FACTOR;
-#endif
+#endif //MINI_HALO
             // and make sure fraction doesn't blow up for underdense pixels
             if (res_xH < 0)
               res_xH = 0;
@@ -1240,42 +1274,41 @@ int main(int argc, char ** argv){
 
   // find the neutral fraction
   global_xH = 0;
-  for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++){
+  for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
     global_xH += xH[ct];
-  }
   global_xH /= (float)HII_TOT_NUM_PIXELS;
 
 
   // update the N_rec field
-  if (INHOMO_RECO){
-    //fft to get the real N_rec  and delta fields
-    plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)N_rec_unfiltered, (float *)N_rec_unfiltered, FFTW_ESTIMATE);
-    fftwf_execute(plan);
-    plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)deltax_unfiltered, (float *)deltax_unfiltered, FFTW_ESTIMATE);
-    fftwf_execute(plan);
-    fftwf_destroy_plan(plan);
-    fftwf_cleanup();
-    for (x=0; x<HII_DIM; x++){
-      for (y=0; y<HII_DIM; y++){
-        for (z=0; z<HII_DIM; z++){
+#ifdef INHOMO_RECO
+  //fft to get the real N_rec  and delta fields
+  plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)N_rec_unfiltered, (float *)N_rec_unfiltered, FFTW_ESTIMATE);
+  fftwf_execute(plan);
+  plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)deltax_unfiltered, (float *)deltax_unfiltered, FFTW_ESTIMATE);
+  fftwf_execute(plan);
+  fftwf_destroy_plan(plan);
+  fftwf_cleanup();
+  for (x=0; x<HII_DIM; x++){
+    for (y=0; y<HII_DIM; y++){
+      for (z=0; z<HII_DIM; z++){
 
-          density_over_mean = 1.0 + (*((float *)deltax_unfiltered + HII_R_FFT_INDEX(x,y,z)));
-          z_eff = (1+REDSHIFT) * pow(density_over_mean, 1.0/3.0) - 1;
-          dNrec = splined_recombination_rate(z_eff, Gamma12[HII_R_INDEX(x,y,z)]) * fabs_dtdz * ZSTEP * (1 - xH[HII_R_INDEX(x,y,z)]);
-            *((float *)N_rec_unfiltered + HII_R_FFT_INDEX(x,y,z)) += dNrec; 
+        density_over_mean = 1.0 + (*((float *)deltax_unfiltered + HII_R_FFT_INDEX(x,y,z)));
+        z_eff = (1+REDSHIFT) * pow(density_over_mean, 1.0/3.0) - 1;
+        dNrec = splined_recombination_rate(z_eff, Gamma12[HII_R_INDEX(x,y,z)]) * fabs_dtdz * ZSTEP * (1 - xH[HII_R_INDEX(x,y,z)]);
+          *((float *)N_rec_unfiltered + HII_R_FFT_INDEX(x,y,z)) += dNrec; 
 
-          /*
-          if ((x==0) && (y==19) && (z==107)){ //DEBUGGING
-            fprintf(stderr, "Delta=%g, z_eff=%g, dNrec=%g, Nrec=%g\n\n", density_over_mean, z_eff, dNrec, *((float *)N_rec_unfiltered + HII_R_FFT_INDEX(x,y,z)));
-            fprintf(LOG, "Delta=%g, z_eff=%g, dNrec=%g, Nrec=%g\n\n", density_over_mean, z_eff, dNrec, *((float *)N_rec_unfiltered + HII_R_FFT_INDEX(x,y,z)));
-            fflush(NULL);
-          }
-          */
-      
+        /*
+        if ((x==0) && (y==19) && (z==107)){ //DEBUGGING
+          fprintf(stderr, "Delta=%g, z_eff=%g, dNrec=%g, Nrec=%g\n\n", density_over_mean, z_eff, dNrec, *((float *)N_rec_unfiltered + HII_R_FFT_INDEX(x,y,z)));
+          fprintf(LOG, "Delta=%g, z_eff=%g, dNrec=%g, Nrec=%g\n\n", density_over_mean, z_eff, dNrec, *((float *)N_rec_unfiltered + HII_R_FFT_INDEX(x,y,z)));
+          fflush(NULL);
         }
+        */
+    
       }
     }
   }
+#endif  //INHOMO_RECO
 
   /*********************************************************************************************/
   /************  END OF CALCULATION FOR THIS REDSHIFT.  NOW WE WILL PRINT OUT THE BOXES ********/
@@ -1286,59 +1319,58 @@ int main(int argc, char ** argv){
   fprintf(LOG, "ave R used to compute Gamma in ionized regions = %g Mpc\n", aveR / (double)Rct);
 
   
-  if (INHOMO_RECO){
-    // N_rec box
-    sprintf(filename, "../Boxes/Nrec_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT,HII_FILTER, MFP, HII_DIM, BOX_LEN);
-    if (!(F = fopen(filename, "wb"))){
-      sprintf(error_message, "find_HII_bubbles: ERROR: unable to open file for writting Nrec box!\n");
-      goto CLEANUP;
-    }
-    else{
-      for (i=0; i<HII_DIM; i++){
-        for (j=0; j<HII_DIM; j++){
-          for (k=0; k<HII_DIM; k++){
-            if(fwrite((float *)N_rec_unfiltered + HII_R_FFT_INDEX(i,j,k), sizeof(float), 1, F)!=1){
-              sprintf(error_message, "find_HII_bubbles.c: Write error occured while writting N_rec box.\n");
-              goto CLEANUP;
-            }
+#ifdef INHOMO_RECO
+  // N_rec box
+  sprintf(filename, "../Boxes/Nrec_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT,HII_FILTER, MFP, HII_DIM, BOX_LEN);
+  if (!(F = fopen(filename, "wb"))){
+    sprintf(error_message, "find_HII_bubbles: ERROR: unable to open file for writting Nrec box!\n");
+    goto CLEANUP;
+  }
+  else{
+    for (i=0; i<HII_DIM; i++){
+      for (j=0; j<HII_DIM; j++){
+        for (k=0; k<HII_DIM; k++){
+          if(fwrite((float *)N_rec_unfiltered + HII_R_FFT_INDEX(i,j,k), sizeof(float), 1, F)!=1){
+            sprintf(error_message, "find_HII_bubbles.c: Write error occured while writting N_rec box.\n");
+            goto CLEANUP;
           }
         }
       }
-      fclose(F);
-      F = NULL;
     }
-  
-    // Write z_re in the box
-    sprintf(filename, "../Boxes/z_first_ionization_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-    if (!(F = fopen(filename, "wb"))){
+    fclose(F);
+    F = NULL;
+  }
+
+  // Write z_re in the box
+  sprintf(filename, "../Boxes/z_first_ionization_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+  if (!(F = fopen(filename, "wb"))){
+    sprintf(error_message, "find_HII_bubbles: ERROR: unable to open file for writting z_re box!\n");
+    goto CLEANUP;
+  }
+  else{
+    if (mod_fwrite(z_re, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
       sprintf(error_message, "find_HII_bubbles: ERROR: unable to open file for writting z_re box!\n");
       goto CLEANUP;
     }
-    else{
-      if (mod_fwrite(z_re, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
-        sprintf(error_message, "find_HII_bubbles: ERROR: unable to open file for writting z_re box!\n");
-        goto CLEANUP;
-      }
-    fclose(F);
-    F = NULL;
-    }
-
-    // Gamma12 box
-    sprintf(filename, "../Boxes/Gamma12aveHII_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-    if (!(F = fopen(filename, "wb"))){
-      sprintf(error_message, "find_HII_bubbles: ERROR: unable to open file for writting gamma box!\n");
-      goto CLEANUP;
-    }
-    else{
-      if (mod_fwrite(Gamma12, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
-        sprintf(error_message, "find_HII_bubbles.c: Write error occured while writting gamma box.\n");
-        goto CLEANUP;
-      }
-      fclose(F);
-      F = NULL;
-    }
+  fclose(F);
+  F = NULL;
   }
 
+  // Gamma12 box
+  sprintf(filename, "../Boxes/Gamma12aveHII_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+  if (!(F = fopen(filename, "wb"))){
+    sprintf(error_message, "find_HII_bubbles: ERROR: unable to open file for writting gamma box!\n");
+    goto CLEANUP;
+  }
+  else{
+    if (mod_fwrite(Gamma12, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
+      sprintf(error_message, "find_HII_bubbles.c: Write error occured while writting gamma box.\n");
+      goto CLEANUP;
+    }
+    fclose(F);
+    F = NULL;
+  }
+#endif //INHOMO_RECO
     
   // print out the xH box
   switch(FIND_BUBBLE_ALGORITHM){
@@ -1346,55 +1378,63 @@ int main(int argc, char ** argv){
 #ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
 #ifdef REION_SM
-      if (USE_HALO_FIELD)
-        sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Msm_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-      else
-        sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Msm_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-#else
-      if (USE_HALO_FIELD)
-        sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-      else
-        sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-#endif
-#else
-      if (USE_HALO_FIELD)
-        sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-      else
-        sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-#endif
-#else
-      if (USE_HALO_FIELD)
-        sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
-      else
-        sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
-#endif
+#ifdef USE_HALO_FIELD
+      sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Msm_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#else //USE_HALO_FIELD
+      sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Msm_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#endif //USE_HALO_FIELD
+#else //REION_SM
+#ifdef USE_HALO_FIELD
+      sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#else //USE_HALO_FIELD
+      sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#endif //USE_HALO_FIELD
+#endif //REION_SM
+#else  //MINI_HALO
+#ifdef USE_HALO_FIELD
+      sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#else //USE_HALO_FIELD
+      sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#endif //USE_HALO_FIELD
+#endif //MINI_HALO
+#else //SHARP_CUTOFF
+#ifdef USE_HALO_FIELD
+      sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
+#else //USE_HALO_FIELD
+      sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
+#endif //USE_HALO_FIELD
+#endif //SHARP_CUTOFF
       break;
     default:
 #ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
 #ifdef REION_SM
-      if (USE_HALO_FIELD)
-        sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Msm_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-      else
-        sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Msm_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-#else
-      if (USE_HALO_FIELD)
-        sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-      else
-        sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-#endif
-#else
-      if (USE_HALO_FIELD)
-        sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-      else
-        sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-#endif
-#else
-      if (USE_HALO_FIELD)
-        sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
-      else
-        sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
-#endif
+#ifdef USE_HALO_FIELD
+      sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Msm_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#else //USE_HALO_FIELD
+      sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Msm_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#endif //USE_HALO_FIELD
+#else //REION_SM
+#ifdef USE_HALO_FIELD
+      sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#else //USE_HALO_FIELD
+      sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#endif //USE_HALO_FIELD
+#endif //REION_SM
+#else //MINI_HALO
+#ifdef USE_HALO_FIELD
+      sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#else //USE_HALO_FIELD
+      sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#endif //USE_HALO_FIELD
+#endif //MINI_HALO
+#else //SHARP_CUTOFF
+#ifdef USE_HALO_FIELD
+      sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
+#else //USE_HALO_FIELD
+      sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
+#endif //USE_HALO_FIELD
+#endif //SHARP_CUTOFF
   }
   if (!(F = fopen(filename, "wb"))){
     fprintf(stderr, "find_HII_bubbles: ERROR: unable to open file %s for writting!\n", filename);

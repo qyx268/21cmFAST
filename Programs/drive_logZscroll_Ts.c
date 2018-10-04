@@ -95,25 +95,25 @@ int main(int argc, char ** argv){
     //M_MIN = get_M_min_ion(Z);
 
     // if USE_HALO_FIELD is turned on in ANAL_PARAMS.H, run the halo finder
-    if (USE_HALO_FIELD){
-      //  the following only depend on redshift, not ionization field
-      // find halos
-      sprintf(cmnd, "./find_halos %.2f", Z);
-      time(&curr_time);
-      fprintf(stderr, "Now calling: %s, %g min have ellapsed\n", cmnd, difftime(curr_time, start_time)/60.0);
-      fprintf(LOG, "Now calling: %s, %g min have ellapsed\n", cmnd, difftime(curr_time, start_time)/60.0);
-      fflush(NULL);
-      system(cmnd);
+#ifdef USE_HALO_FIELD
+    //  the following only depend on redshift, not ionization field
+    // find halos
+    sprintf(cmnd, "./find_halos %.2f", Z);
+    time(&curr_time);
+    fprintf(stderr, "Now calling: %s, %g min have ellapsed\n", cmnd, difftime(curr_time, start_time)/60.0);
+    fprintf(LOG, "Now calling: %s, %g min have ellapsed\n", cmnd, difftime(curr_time, start_time)/60.0);
+    fflush(NULL);
+    system(cmnd);
 
 
-      // shift halos accordig to their linear velocities
-      sprintf(cmnd, "./update_halo_pos %.2f", Z);
-      time(&curr_time);
-      fprintf(stderr, "Now calling: %s, %g min have ellapsed\n", cmnd, -difftime(start_time, curr_time)/60.0);
-      fprintf(LOG, "Now calling: %s, %g min have ellapsed\n", cmnd, -difftime(start_time, curr_time)/60.0);
-      fflush(NULL);
-      system(cmnd);
-    }
+    // shift halos accordig to their linear velocities
+    sprintf(cmnd, "./update_halo_pos %.2f", Z);
+    time(&curr_time);
+    fprintf(stderr, "Now calling: %s, %g min have ellapsed\n", cmnd, -difftime(start_time, curr_time)/60.0);
+    fprintf(LOG, "Now calling: %s, %g min have ellapsed\n", cmnd, -difftime(start_time, curr_time)/60.0);
+    fflush(NULL);
+    system(cmnd);
+#endif //USE_HALO_FIELD
 
     // shift density field and update velocity field
     sprintf(cmnd, "./perturb_field %.2f", Z);
@@ -139,10 +139,11 @@ int main(int argc, char ** argv){
 
 
     // find bubbles
-    if (INHOMO_RECO)
-      sprintf(cmnd, "./find_HII_bubbles %f %f", Z, (1+Z)*ZPRIME_STEP_FACTOR - 1 );
-    else
-      sprintf(cmnd, "./find_HII_bubbles %f", Z );
+#ifdef INHOMO_RECO
+    sprintf(cmnd, "./find_HII_bubbles %f %f", Z, (1+Z)*ZPRIME_STEP_FACTOR - 1 );
+#else //INHOMO_RECO
+    sprintf(cmnd, "./find_HII_bubbles %f", Z );
+#endif //INHOMO_RECO
     time(&curr_time);
     fprintf(stderr, "Now calling: %s, %g min have ellapsed\n", cmnd, -difftime(start_time, curr_time)/60.0);
     fprintf(LOG, "Now calling: %s, %g min have ellapsed\n", cmnd, -difftime(start_time, curr_time)/60.0);
@@ -159,16 +160,18 @@ int main(int argc, char ** argv){
     // do temperature map
     switch(FIND_BUBBLE_ALGORITHM){
     case 2:
-      if (USE_HALO_FIELD)
-	sprintf(cmnd, "./delta_T %06.2f ../Boxes/xH_z%06.2f_nf*_%i_%.0fMpc ../Boxes/Ts_z%06.2f_*_%.0fMpc", Z, Z, HII_DIM, BOX_LEN, Z, BOX_LEN);
-      else
-	sprintf(cmnd, "./delta_T %06.2f ../Boxes/xH_nohalos_z%06.2f_nf*_%i_%.0fMpc ../Boxes/Ts_z%06.2f_*_%.0fMpc", Z, Z, HII_DIM, BOX_LEN, Z, BOX_LEN);
+#ifdef USE_HALO_FIELD
+      sprintf(cmnd, "./delta_T %06.2f ../Boxes/xH_z%06.2f_nf*_%i_%.0fMpc ../Boxes/Ts_z%06.2f_*_%.0fMpc", Z, Z, HII_DIM, BOX_LEN, Z, BOX_LEN);
+#else //USE_HALO_FIELD
+      sprintf(cmnd, "./delta_T %06.2f ../Boxes/xH_nohalos_z%06.2f_nf*_%i_%.0fMpc ../Boxes/Ts_z%06.2f_*_%.0fMpc", Z, Z, HII_DIM, BOX_LEN, Z, BOX_LEN);
+#endif //USE_HALO_FIELD
       break;
     default:
-      if (USE_HALO_FIELD)
-	sprintf(cmnd, "./delta_T %06.2f ../Boxes/sphere_xH_z%06.2f_nf*_%i_%.0fMpc ../Boxes/Ts_z%06.2f_*_%.0fMpc", Z, Z, HII_DIM, BOX_LEN, Z, BOX_LEN);
-      else
-	sprintf(cmnd, "./delta_T %06.2f ../Boxes/sphere_xH_nohalos_z%06.2f_nf*_%i_%.0fMpc ../Boxes/Ts_z%06.2f_*_%.0fMpc", Z, Z, HII_DIM, BOX_LEN, Z, BOX_LEN);
+#ifdef USE_HALO_FIELD
+      sprintf(cmnd, "./delta_T %06.2f ../Boxes/sphere_xH_z%06.2f_nf*_%i_%.0fMpc ../Boxes/Ts_z%06.2f_*_%.0fMpc", Z, Z, HII_DIM, BOX_LEN, Z, BOX_LEN);
+#else //USE_HALO_FIELD
+      sprintf(cmnd, "./delta_T %06.2f ../Boxes/sphere_xH_nohalos_z%06.2f_nf*_%i_%.0fMpc ../Boxes/Ts_z%06.2f_*_%.0fMpc", Z, Z, HII_DIM, BOX_LEN, Z, BOX_LEN);
+#endif //USE_HALO_FIELD
       break;
     }
     time(&curr_time);
@@ -187,7 +190,7 @@ int main(int argc, char ** argv){
   
   // Create lightcone boxes from the coeval cubes
   sprintf(cmnd, "ls ../Boxes/xH_*%i_%.0fMpc > ../Redshift_interpolate_filelists/xH_%i_%.0fMpc", 
-	  HII_DIM, BOX_LEN, HII_DIM, BOX_LEN);
+      HII_DIM, BOX_LEN, HII_DIM, BOX_LEN);
   system(cmnd);
   sprintf(cmnd, "./redshift_interpolate_boxes 0 ../Redshift_interpolate_filelists/xH_%i_%.0fMpc", HII_DIM, BOX_LEN);
   system(cmnd);
@@ -196,7 +199,7 @@ int main(int argc, char ** argv){
   fflush(NULL);
 
   sprintf(cmnd, "ls ../Boxes/delta_T_*%i_%.0fMpc > ../Redshift_interpolate_filelists/delta_T_%i_%.0fMpc", 
-	  HII_DIM, BOX_LEN, HII_DIM, BOX_LEN);
+      HII_DIM, BOX_LEN, HII_DIM, BOX_LEN);
   system(cmnd);
   sprintf(cmnd, "./redshift_interpolate_boxes 0 ../Redshift_interpolate_filelists/delta_T_%i_%.0fMpc", HII_DIM, BOX_LEN);
   system(cmnd);
@@ -204,16 +207,16 @@ int main(int argc, char ** argv){
   fprintf(LOG, "Now calling: %s, %g min have ellapsed\n", cmnd, difftime(curr_time, start_time)/60.0);
   fflush(NULL);
 
-  if (INHOMO_RECO){
-    sprintf(cmnd, "ls ../Boxes/Nrec_*%i_%.0fMpc > ../Redshift_interpolate_filelists/Nrec_%i_%.0fMpc", 
-	    HII_DIM, BOX_LEN, HII_DIM, BOX_LEN);
-    system(cmnd);
-    sprintf(cmnd, "./redshift_interpolate_boxes 0 ../Redshift_interpolate_filelists/Nrec_%i_%.0fMpc", HII_DIM, BOX_LEN);
-    system(cmnd);
-    fprintf(stderr, "Now calling: %s, %g min have ellapsed\n", cmnd, difftime(curr_time, start_time)/60.0);
-    fprintf(LOG, "Now calling: %s, %g min have ellapsed\n", cmnd, difftime(curr_time, start_time)/60.0);
-    fflush(NULL);
-  }
+#ifdef INHOMO_RECO
+  sprintf(cmnd, "ls ../Boxes/Nrec_*%i_%.0fMpc > ../Redshift_interpolate_filelists/Nrec_%i_%.0fMpc", 
+      HII_DIM, BOX_LEN, HII_DIM, BOX_LEN);
+  system(cmnd);
+  sprintf(cmnd, "./redshift_interpolate_boxes 0 ../Redshift_interpolate_filelists/Nrec_%i_%.0fMpc", HII_DIM, BOX_LEN);
+  system(cmnd);
+  fprintf(stderr, "Now calling: %s, %g min have ellapsed\n", cmnd, difftime(curr_time, start_time)/60.0);
+  fprintf(LOG, "Now calling: %s, %g min have ellapsed\n", cmnd, difftime(curr_time, start_time)/60.0);
+  fflush(NULL);
+#endif 
 
   sprintf(cmnd, "./extract_delTps.pl 0.1 ../Output_files/Deldel_T_power_spec/ps_z0* > ../Output_files/Deldel_T_power_spec/Power_k0.1vsRedshift.txt");
   system(cmnd);

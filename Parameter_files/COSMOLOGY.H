@@ -5,7 +5,7 @@
 
 /****** New in v1.1. ******/
 /*** WDM parameters ***/
-#define P_CUTOFF (int) (0) // supress the power spectrum? 0= CDM; 1=WDM
+//#define P_CUTOFF 0 // supress the power spectrum? ifndef= CDM; ifdef=WDM
 #define M_WDM (float) (2) // mass of WDM particle in keV.  this is ignored if P_CUTOFF is set to zero
 #define g_x (float) (1.5) /* degrees of freedom of WDM particles; 1.5 for fermions */
 

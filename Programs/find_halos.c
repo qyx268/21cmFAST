@@ -289,15 +289,15 @@ int main(int argc, char ** argv){
   // initialize
   memset(in_halo, 0, sizeof(char)*TOT_NUM_PIXELS);
 
-  if (OPTIMIZE){
-    forbidden = (char *) malloc(sizeof(char)*TOT_NUM_PIXELS);
-    if (!forbidden){
-      fprintf(stderr, "find_halos.c: Error allocating memory for forbidden box\nAborting...\n");
-      fftwf_free(box);
-      free(in_halo);
-      return -1;
-    }
+#ifdef OPTIMIZE
+  forbidden = (char *) malloc(sizeof(char)*TOT_NUM_PIXELS);
+  if (!forbidden){
+    fprintf(stderr, "find_halos.c: Error allocating memory for forbidden box\nAborting...\n");
+    fftwf_free(box);
+    free(in_halo);
+    return -1;
   }
+#endif //OPTIMIZE
 
   // open k-space box to read in
   sprintf(filename, "../Boxes/deltak_z0.00_%i_%.0fMpc", DIM, BOX_LEN);
@@ -387,8 +387,8 @@ int main(int argc, char ** argv){
 
     /*****************  BEGIN OPTIMIZATION *****************************/
     // to optimize speed, if the filter size is large (switch to collapse fraction criteria later)
-    // 
-    if (OPTIMIZE && (M > OPTIMIZE_MIN_MASS)){
+#ifdef OPTIMIZE
+    if (M > OPTIMIZE_MIN_MASS){
       fprintf(LOG, "begin initialization of forbidden, clock=%.2f\n", (double)clock()/CLOCKS_PER_SEC);
       fflush(LOG);
       memset(forbidden, 0, sizeof(char)*TOT_NUM_PIXELS);
@@ -405,6 +405,7 @@ int main(int argc, char ** argv){
       fprintf(LOG, "end initialization of forbidden, clock=%.2f\n", (double)clock()/CLOCKS_PER_SEC);
       fflush(LOG);
     }
+#endif //OPTIMIZE
     /****************  END OPTIMIZATION  *******************************/
 
     // now lets scroll through the box, flagging all pixels with delta_m > delta_crit
@@ -415,7 +416,8 @@ int main(int argc, char ** argv){
 	  delta_m = *((float *)box + R_FFT_INDEX(x,y,z)) * growth_factor / VOLUME;       // don't forget the factor of 1/VOLUME!
 	  // if not within a larger halo, and radii don't overlap print out stats, and update in_halo box
 	  /*********  BEGIN OPTIMIZATION **********/
-	  if (OPTIMIZE && (M > OPTIMIZE_MIN_MASS)){
+#ifdef OPTIMIZE
+	  if (M > OPTIMIZE_MIN_MASS){
 	    if ( (delta_m > delta_crit) && !forbidden[R_INDEX(x,y,z)]){
 	    fprintf(stderr, "Found halo #%i, delta_m = %.3f at (x,y,z) = (%i,%i,%i)\n", n+1, delta_m, x,y,z);
 	    fprintf(OUT, "%e\t%f\t%f\t%f\n", M, x/(DIM+0.0), y/(DIM+0.0), z/(DIM+0.0));
@@ -427,8 +429,9 @@ int main(int argc, char ** argv){
 	    }
 	  }
 	  /*********  END OPTIMIZATION **********/
+#else //OPTIMIZE
 
-	  else if ((delta_m > delta_crit) && !in_halo[R_INDEX(x,y,z)] && !overlap_halo(in_halo, R, x,y,z)){ // we found us a "new" halo!
+	  if ((delta_m > delta_crit) && !in_halo[R_INDEX(x,y,z)] && !overlap_halo(in_halo, R, x,y,z)){ // we found us a "new" halo!
 	    fprintf(stderr, "Found halo #%i, delta_m = %.3f at (x,y,z) = (%i,%i,%i)\n", n+1, delta_m, x,y,z);
 	    fprintf(OUT, "%e\t%f\t%f\t%f\n", M, x/(DIM+0.0), y/(DIM+0.0), z/(DIM+0.0));
 	    fflush(NULL);
@@ -436,6 +439,7 @@ int main(int argc, char ** argv){
 	    dn++; // keep track of the number of halos
 	    n++;
 	  }
+#endif //OPTIMIZE 
 	}
       }
     }
@@ -482,8 +486,9 @@ int main(int argc, char ** argv){
 
   free(in_halo);
 
-  if (OPTIMIZE)
-    free(forbidden);
+#ifdef OPTIMIZE
+  free(forbidden);
+#endif //OPTIMIZE
 
   return 0;
 }
