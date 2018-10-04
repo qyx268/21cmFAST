@@ -1314,7 +1314,7 @@ double dNion_STm(double lnM, void *params){
     else
         Fstar = pow(M/1e10,Alpha_star);
 
-    return dNdM_st(z,M) * M * M * exp(-MassTurnover/M) * (1. - exp(-MassTurnover2/M)) * Fstar;
+    return dNdM_st(z,M) * M * M * exp(-MassTurnover/M) * exp(-M/MassTurnover2) * Fstar;
 }
 #endif
 
@@ -1441,7 +1441,7 @@ float Nion_ConditionallnM_GLm(float lnM, struct parameters_gsl_SFR_con_intm_ par
     else
         Fstarm = pow(M/1e10,Alpha_star);
 
-    return M* exp(-MassTurnoverm / M) * (1 - exp(-Mcrit_atom / M)) * Fstarm*dNdM_conditional_second(z, log(M), M2, del1, del2) / sqrt(2. * PI);
+    return M* exp(-MassTurnoverm / M) * exp(-M / Mcrit_atom) * Fstarm*dNdM_conditional_second(z, log(M), M2, del1, del2) / sqrt(2. * PI);
 }
 #endif
 
@@ -1570,7 +1570,7 @@ double dNion_ConditionallnMm(double lnM, void *params) {
     else
         Fstarm = pow(M/1e10,Alpha_star);
 
-    return M*exp(-MassTurnoverm / M) * (1 - exp(-Mcrit_atom / M)) * Fstarm *
+    return M*exp(-MassTurnoverm / M) * exp(-M / Mcrit_atom) * Fstarm *
            dNdM_conditional_second(z, log(M), M2, del1, del2) / sqrt(2. * PI);
 }
 #endif

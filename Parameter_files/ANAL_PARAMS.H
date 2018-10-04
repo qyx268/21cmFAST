@@ -101,7 +101,7 @@
   with sharp cut-off at M_TURNOVER.
   New in v2.1: Now SHARP_CUTOFF works as a flag, commit it if do not want it
 */
-//#define SHARP_CUTOFF (int) (0)
+//#define SHARP_CUTOFF 1
 #ifndef SHARP_CUTOFF
   #define MINI_HALO 1             // operate as a flag, comment this line if MINI_HALO version is not required
   #ifdef MINI_HALO

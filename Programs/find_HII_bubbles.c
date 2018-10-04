@@ -32,7 +32,7 @@
 float *Fcoll;
 #ifdef MINI_HALO
 float *Fcollm;
-#endif
+#endif //MINI_HALO
 
 void init_21cmMC_arrays() { // defined in Cosmo_c_files/ps.c
     
@@ -65,19 +65,19 @@ unsigned long long SAMPLING_INTERVAL = (((unsigned long long)(HII_TOT_NUM_PIXELS
 int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, float * F_STAR10, 
 #ifdef SHARP_CUTOFF
                     float * ALPHA_STAR, float * F_ESC10, float * ALPHA_ESC, float * M_TURN, float * T_AST, double * X_LUMINOSITY,
-#else
+#else //SHARP_CUTOFF
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
                     float * ALPHA_STAR, float * F_ESC10, float * ALPHA_ESC, float * T_AST, double * X_LUMINOSITY,
-#else
+#else  //INHOMO_FEEDBACK
 #ifdef REION_SM
                     float * ALPHA_STAR, float * F_ESC10, float * ALPHA_ESC, float * T_AST, double * X_LUMINOSITY,
-#else
+#else //REION_SM
                     float * ALPHA_STAR, float * F_ESC10, float * ALPHA_ESC, float * M_TURN, float * T_AST, double * X_LUMINOSITY,
 #endif //REION_SM
 #endif //INHOMO_FEEDBACK
                     float * F_STAR10m, float * F_ESC10m, double * X_LUMINOSITYm,
-#else
+#else ////INHOMO_FEEDBACK
                     float * ALPHA_STAR, float * F_ESC10, float * ALPHA_ESC, float * M_TURN, float * T_AST, double * X_LUMINOSITY,
 #endif //MINI_HALO
 #endif //SHARP_CUTOFF
@@ -112,7 +112,7 @@ int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, floa
       *X_LUMINOSITY = 0;
     }
     else{ return 0;} // format is not allowed
-#else
+#else //SHARP_CUTOFF
     if (USE_TS_IN_21CM) {
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
@@ -139,7 +139,7 @@ int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, floa
         *X_LUMINOSITYm = pow(10.,L_X_MINI);
       }
       else{ return 0;} // format is not allowed
-#else
+#else //INHOMO_FEEDBACK
 #ifdef REION_SM
       if (argc == (*arg_offset + min_argc+9)){
         *F_STAR10 = atof(argv[*arg_offset + min_argc]);
@@ -164,7 +164,7 @@ int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, floa
         *X_LUMINOSITYm = pow(10.,L_X_MINI);
       }
       else{ return 0;} // format is not allowed
-#else
+#else //REION_SM
       if (argc == (*arg_offset + min_argc+10)){
         *F_STAR10 = atof(argv[*arg_offset + min_argc]);
         *ALPHA_STAR = atof(argv[*arg_offset + min_argc+1]);
@@ -192,7 +192,7 @@ int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, floa
       else{ return 0;} // format is not allowed
 #endif //REION_SM
 #endif //INHOMO_FEEDBACK
-#else
+#else // MINI_HALO
       if (argc == (*arg_offset + min_argc+7)){
         *F_STAR10 = atof(argv[*arg_offset + min_argc]);
         *ALPHA_STAR = atof(argv[*arg_offset + min_argc+1]);
@@ -240,7 +240,7 @@ int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, floa
         *X_LUMINOSITYm = 0;
       }
       else{ return 0;} // format is not allowed
-#else
+#else //INHOMO_FEEDBACK
 #ifdef REION_SM
       if (argc == (*arg_offset + min_argc+6)){
         *F_STAR10 = atof(argv[*arg_offset + min_argc]);
@@ -265,7 +265,7 @@ int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, floa
         *X_LUMINOSITYm = 0;
       }
       else{ return 0;} // format is not allowed
-#else
+#else //REION_SM
       if (argc == (*arg_offset + min_argc+7)){
         *F_STAR10 = atof(argv[*arg_offset + min_argc]);
         *ALPHA_STAR = atof(argv[*arg_offset + min_argc+1]);
@@ -293,7 +293,7 @@ int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, floa
       else{ return 0;} // format is not allowed
 #endif //REION_SM
 #endif //INHOMO_FEEDBACK
-#else
+#else //MINI_HALO
       if (argc == (*arg_offset + min_argc+5)){
         *F_STAR10 = atof(argv[*arg_offset + min_argc]);
         *ALPHA_STAR = atof(argv[*arg_offset + min_argc+1]);
@@ -333,24 +333,24 @@ int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, floa
    fprintf(stderr, "SHARP_CUTOFF (ON)");
    fprintf(stderr, "find_HII_bubbles: command line parameters are as follows\nnum threads=%i, f_star10=%g, alpha_star=%g, f_esc10=%g, alpha_esc=%g, Mturn=%g, t_star=%g, L_X=%g, z=%g, prev z=%g\n",
       *num_th, *F_STAR10, *ALPHA_STAR, *F_ESC10, *ALPHA_ESC, *M_TURN, *T_AST, *X_LUMINOSITY, *REDSHIFT, *PREV_REDSHIFT);
-#else
+#else //SHARP_CUTOFF
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
    fprintf(stderr, "SHARP_CUTOFF (OFF) MINI_HALO (ON) INHOMO_FEEDBACK (ON)");
    fprintf(stderr, "find_HII_bubbles: command line parameters are as follows\nnum threads=%i, f_star10=%g, alpha_star=%g, f_esc10=%g, alpha_esc=%g, t_star=%g, L_X=%g, f_star10m=%g, f_esc10m=%g, L_Xm=%g, z=%g, prev z=%g\n",
       *num_th, *F_STAR10, *ALPHA_STAR, *F_ESC10, *ALPHA_ESC, *T_AST, *X_LUMINOSITY, *F_STAR10m, *F_ESC10m, *X_LUMINOSITYm, *REDSHIFT, *PREV_REDSHIFT);
-#else
+#else //INHOMO_FEEDBACK
 #ifdef REION_SM
    fprintf(stderr, "SHARP_CUTOFF (OFF) MINI_HALO (ON) INHOMO_FEEDBACK (OFF) REION_SM (ON)");
    fprintf(stderr, "find_HII_bubbles: command line parameters are as follows\nnum threads=%i, f_star10=%g, alpha_star=%g, f_esc10=%g, alpha_esc=%g, t_star=%g, L_X=%g, f_star10m=%g, f_esc10m=%g, L_Xm=%g, z=%g, prev z=%g\n",
       *num_th, *F_STAR10, *ALPHA_STAR, *F_ESC10, *ALPHA_ESC, *T_AST, *X_LUMINOSITY, *F_STAR10m, *F_ESC10m, *X_LUMINOSITYm, *REDSHIFT, *PREV_REDSHIFT);
-#else
+#else //REION_SM
    fprintf(stderr, "SHARP_CUTOFF (OFF) MINI_HALO (ON) INHOMO_FEEDBACK (off) REION_SM (OFF)");
    fprintf(stderr, "find_HII_bubbles: command line parameters are as follows\nnum threads=%i, f_star10=%g, alpha_star=%g, f_esc10=%g, alpha_esc=%g, Mturn=%g, t_star=%g, L_X=%g, f_star10m=%g, f_esc10m=%g, L_Xm=%g, z=%g, prev z=%g\n",
       *num_th, *F_STAR10, *ALPHA_STAR, *F_ESC10, *ALPHA_ESC, *M_TURN, *T_AST, *X_LUMINOSITY, *F_STAR10m, *F_ESC10m, *X_LUMINOSITYm, *REDSHIFT, *PREV_REDSHIFT);
 #endif //REION_SM
 #endif //INHOMO_FEEDBACK
-#else
+#else //MINI_HALO
    fprintf(stderr, "SHARP_CUTOFF (OFF) MINI_HALO (OFF)");
    fprintf(stderr, "find_HII_bubbles: command line parameters are as follows\nnum threads=%i, f_star10=%g, alpha_star=%g, f_esc10=%g, alpha_esc=%g, Mturn=%g, t_star=%g, L_X=%g, z=%g, prev z=%g\n",
       *num_th, *F_STAR10, *ALPHA_STAR, *F_ESC10, *ALPHA_ESC, *M_TURN, *T_AST, *X_LUMINOSITY, *REDSHIFT, *PREV_REDSHIFT);
@@ -385,9 +385,9 @@ int main(int argc, char ** argv){
 #ifdef MINI_HALO
   float F_STAR10m, F_ESC10m, Mlim_Fstarm, ION_EFF_FACTOR_MINI,M_MINm, M_MINa, Splined_Fcollm, dfcolldtm,Gamma_R_prefactorm,ST_over_PSm,f_collm, Mcrit_atom, Mcrit_LW, Mcrit_RE, mean_f_coll_stm; //New in v2.1
   double X_LUMINOSITYm;
-#else
+#else //MINI_HALO
   float M_MINa;
-#endif
+#endif //MINI_HALO
   double X_LUMINOSITY;
   float global_xH_m, fabs_dtdz, ZSTEP;
   const float dz = 0.01;
@@ -411,7 +411,7 @@ int main(int argc, char ** argv){
         Check that your inclusion (or not) of [<previous redshift>] is consistent with the INHOMO_RECO flag in ../Parameter_files/ANAL_PARAMS.H\nAborting...\n");
         return -1;
     }
-#else
+#else //SHARP_CUTOFF
 #ifdef MINI_HALO
     Mcrit_atom = atomic_cooling_threshold(REDSHIFT);
 #ifdef INHOMO_FEEDBACK
@@ -423,7 +423,7 @@ int main(int argc, char ** argv){
      Also check that your inclusion (or not) of [<t_star>] is consistent with the USE_TS_IN_21CM flag in ../Parameter_files/HEAT_PARAMS.H\nAborting...\n");
         return -1;
     }
-#else
+#else //INHOMO_FEEDBACK
     Mcrit_LW   = lyman_werner_threshold(REDSHIFT);
 #ifdef REION_SM
     if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
@@ -435,7 +435,7 @@ int main(int argc, char ** argv){
         return -1;
     }
     Mcrit_RE   = reionization_feedback_SM(REDSHIFT);
-#else
+#else //REION_SM
     if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
                &ALPHA_ESC, &M_TURN, &T_AST, &X_LUMINOSITY, &F_STAR10m, &F_ESC10m, &X_LUMINOSITYm, &MFP, &REDSHIFT, &PREV_REDSHIFT)){
         fprintf(stderr, "find_HII_bubbles <redshift> [<previous redshift>] \n \
@@ -447,7 +447,7 @@ int main(int argc, char ** argv){
     Mcrit_RE   = M_TURN;
 #endif //REION_SM
 #endif //INHOMO_FEEDBACK
-#else
+#else //MINI_HALO
     if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
                &ALPHA_ESC, &M_TURN, &T_AST, &X_LUMINOSITY, &MFP, &REDSHIFT, &PREV_REDSHIFT)){
         fprintf(stderr, "find_HII_bubbles <redshift> [<previous redshift>] \n \
@@ -476,7 +476,7 @@ int main(int argc, char ** argv){
   Fcoll = (float *) malloc(sizeof(float)*HII_TOT_FFT_NUM_PIXELS);
 #ifdef MINI_HALO
   Fcollm = (float *) malloc(sizeof(float)*HII_TOT_FFT_NUM_PIXELS);
-#endif
+#endif //MINI_HALO
   if (INHOMO_RECO) {  init_MHR();}
 #ifndef SHARP_CUTOFF
     // Set the minimum halo mass hosting ionizing source mass.
@@ -485,28 +485,28 @@ int main(int argc, char ** argv){
     // exponentially decrease below M_TURNOVER Msun, : fduty \propto e^(- M_TURNOVER / M)
     // In this case, we define M_MIN = M_TURN/50.
     // v2.1 split halos in to atomic and molecular populations, with different fduty see ANAL_PARAMS.H
-    init_21cmMC_arrays();
+  init_21cmMC_arrays();
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-	M_MIN  = 1e5;
-#else
-    M_MINa = Mcrit_RE > Mcrit_atom ? Mcrit_RE : Mcrit_atom;
-    M_MINm = Mcrit_RE > Mcrit_LW   ? Mcrit_RE : Mcrit_LW;
-    M_MIN  = M_MINa > M_MINm       ? M_MINm : M_MINa;
-    M_MIN /= 50;
+  M_MIN  = 1e5;
+#else //INHOMO_FEEDBACK
+  M_MINa = Mcrit_RE > Mcrit_atom ? Mcrit_RE : Mcrit_atom;
+  M_MINm = Mcrit_RE > Mcrit_LW   ? Mcrit_RE : Mcrit_LW;
+  M_MIN  = M_MINa > M_MINm       ? M_MINm : M_MINa;
+  M_MIN /= 50;
 #endif //INHOMO_FEEDBACK
-    Mlim_Fstarm         = Mass_limit_bisection(M_MIN, 1e16, ALPHA_STAR, F_STAR10m);
-    ION_EFF_FACTOR_MINI = N_GAMMA_UV_MINI * F_STAR10m * F_ESC10m;
+  Mlim_Fstarm         = Mass_limit_bisection(M_MIN, 1e16, ALPHA_STAR, F_STAR10m);
+  ION_EFF_FACTOR_MINI = N_GAMMA_UV_MINI * F_STAR10m * F_ESC10m;
 #else
-    M_MINa = M_TURN;
-    M_MIN  = M_TURN/50;
+  M_MINa = M_TURN;
+  M_MIN  = M_TURN/50;
 #endif //MINI_HALO
-    Mlim_Fstar     = Mass_limit_bisection(M_MIN, 1e16, ALPHA_STAR, F_STAR10);
-    Mlim_Fesc      = Mass_limit_bisection(M_MIN, 1e16, ALPHA_ESC, F_ESC10);
-    ION_EFF_FACTOR = N_GAMMA_UV      * F_STAR10  * F_ESC10;
-#else
-    M_MIN          = M_TURNOVER;
-    ION_EFF_FACTOR = N_GAMMA_UV * STELLAR_BARYON_FRAC * ESC_FRAC; // Constant ionizing efficiency parameter.
+  Mlim_Fstar     = Mass_limit_bisection(M_MIN, 1e16, ALPHA_STAR, F_STAR10);
+  Mlim_Fesc      = Mass_limit_bisection(M_MIN, 1e16, ALPHA_ESC, F_ESC10);
+  ION_EFF_FACTOR = N_GAMMA_UV      * F_STAR10  * F_ESC10;
+#else //SHARP_CUTOFF
+  M_MIN          = M_TURNOVER;
+  ION_EFF_FACTOR = N_GAMMA_UV * STELLAR_BARYON_FRAC * ESC_FRAC; // Constant ionizing efficiency parameter.
 #endif //SHARP_CUTOFF
 
   // check for WDM
@@ -528,7 +528,6 @@ int main(int argc, char ** argv){
   T = gsl_rng_default;
   r = gsl_rng_alloc(T);
   
-
   // OPEN LOG FILE
   system("mkdir ../Log_files");
   sprintf(filename, "../Log_files/HII_bubble_log_file_%d", getpid());
@@ -545,27 +544,29 @@ int main(int argc, char ** argv){
   }
   for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++){    xH[ct] = 1;  }
 
-
+  // If inhomogeneous feedback is OFF
+#ifndef INHOMO_FEEDBACK
   // compute the mean collpased fraction at this redshift
 #ifndef SHARP_CUTOFF
-    // Here 'mean_f_coll_st' is not the mean collpased fraction, but leave this name as is to simplify the variable name.
-    // Nion_ST * ION_EFF_FACTOR = the mean number of IGM ionizing photon per baryon
-    // see eq. (17) in Park et al. 2018
-    mean_f_coll_st = Nion_ST(REDSHIFT, M_MIN, M_MINa, ALPHA_STAR, ALPHA_ESC, F_STAR10, F_ESC10, Mlim_Fstar, Mlim_Fesc);
+  // Here 'mean_f_coll_st' is not the mean collpased fraction, but leave this name as is to simplify the variable name.
+  // Nion_ST * ION_EFF_FACTOR = the mean number of IGM ionizing photon per baryon
+  // see eq. (17) in Park et al. 2018
+  mean_f_coll_st = Nion_ST(REDSHIFT, M_MIN, M_MINa, ALPHA_STAR, ALPHA_ESC, F_STAR10, F_ESC10, Mlim_Fstar, Mlim_Fesc);
 #ifdef MINI_HALO
-    // Nion_ST * ION_EFF_FACTOR + Nion_STm * ION_EFF_FACTOR_MINI = the mean number of IGM ionizing photon per baryon
-    mean_f_coll_stm = Nion_STm(REDSHIFT, M_MIN, M_MINm, Mcrit_atom, ALPHA_STAR, F_STAR10m, Mlim_Fstarm);
-#endif
-#else
-    mean_f_coll_st = FgtrM_st(REDSHIFT, M_MIN);
-#endif
-    /**********  CHECK IF WE ARE IN THE DARK AGES ******************************/
-    // lets check if we are going to bother with computing the inhmogeneous field at all...
+  // Nion_ST * ION_EFF_FACTOR + Nion_STm * ION_EFF_FACTOR_MINI = the mean number of IGM ionizing photon per baryon
+  mean_f_coll_stm = Nion_STm(REDSHIFT, M_MIN, M_MINm, Mcrit_atom, ALPHA_STAR, F_STAR10m, Mlim_Fstarm);
+#endif //MINI_HALO
+#else //SHARP_CUTOFF
+  mean_f_coll_st = FgtrM_st(REDSHIFT, M_MIN);
+#endif //SHARP_CUTOFF
+
+  /**********  CHECK IF WE ARE IN THE DARK AGES ******************************/
+  // lets check if we are going to bother with computing the inhmogeneous field at all...
 #ifdef MINI_HALO
   if ((mean_f_coll_st*ION_EFF_FACTOR + mean_f_coll_stm*ION_EFF_FACTOR_MINI < HII_ROUND_ERR)) // way too small to ionize anything...//New in v2.1
-#else
+#else //MINI_HALO
   if ((mean_f_coll_st*ION_EFF_FACTOR < HII_ROUND_ERR)) // way too small to ionize anything...//New in v2
-#endif
+#endif //MINI_HALO
   {
 #ifdef MINI_HALO
     fprintf(stderr, "The ST mean collapse fraction is %e (atomic) and %e (molecular),\
@@ -574,18 +575,23 @@ int main(int argc, char ** argv){
     fprintf(LOG, "The ST mean collapse fraction is %e (atomic) and %e (molecular),\
                   which is much smaller than the effective critical collapse fraction of %e (atomic) and %e (molecular)\n \
                   I will just declare everything to be neutral\n", mean_f_coll_st, mean_f_coll_stm, 1./ION_EFF_FACTOR, 1./ION_EFF_FACTOR_MINI);
-#else
+#else //MINI_HALO
     fprintf(stderr, "The ST mean collapse fraction is %e, which is much smaller than the effective critical collapse fraction of %e\n \
                      I will just declare everything to be neutral\n", mean_f_coll_st, 1./ION_EFF_FACTOR);
     fprintf(LOG, "The ST mean collapse fraction is %e, which is much smaller than the effective critical collapse fraction of %e\n \
                   I will just declare everything to be neutral\n", mean_f_coll_st, 1./ION_EFF_FACTOR);
-#endif
+#endif //MINI_HALO
 
     if (USE_TS_IN_21CM){ // use the x_e box to set residuals
 #ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
+#ifdef REION_SM
+        sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Msm_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN); 
+        printf("filename: %s\n",filename);
+#else
         sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN); 
         printf("filename: %s\n",filename);
+#endif //REION_SM
 #else
         sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_Pop%i_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, Pop, HII_DIM, BOX_LEN); 
         printf("filename: %s\n",filename);
@@ -636,41 +642,55 @@ int main(int argc, char ** argv){
       case 2:
 #ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
-          if (USE_HALO_FIELD)
-            sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-          else
-            sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#ifdef REION_SM
+        if (USE_HALO_FIELD)
+          sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Msm_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+        else
+          sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Msm_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
 #else
-          if (USE_HALO_FIELD)
-            sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-          else
-            sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+        if (USE_HALO_FIELD)
+          sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+        else
+          sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#endif //REION_SM
+#else
+        if (USE_HALO_FIELD)
+          sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+        else
+          sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
 #endif
 #else
-          if (USE_HALO_FIELD)
-            sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
-          else
-            sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
+        if (USE_HALO_FIELD)
+          sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
+        else
+          sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
 #endif
-          break;
+        break;
       default:
 #ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
-          if (USE_HALO_FIELD)
-            sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-          else
-            sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#ifdef REION_SM
+        if (USE_HALO_FIELD)
+          sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Msm_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+        else
+          sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Msm_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
 #else
-          if (USE_HALO_FIELD)
-            sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-          else
-            sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+        if (USE_HALO_FIELD)
+          sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+        else
+          sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#endif //REION_SM
+#else
+        if (USE_HALO_FIELD)
+          sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+        else
+          sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
 #endif
 #else
-          if (USE_HALO_FIELD)
-            sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
-          else
-            sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
+        if (USE_HALO_FIELD)
+          sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
+        else
+          sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
 #endif
     }
     F = fopen(filename, "wb");
@@ -687,6 +707,7 @@ int main(int argc, char ** argv){
 #endif
 #ifndef SHARP_CUTOFF
      destroy_21cmMC_arrays();
+#endif
 	 return (int) (global_xH * 100);
   }
   /*************   END CHECK TO SEE IF WE ARE STILL IN THE DARK AGES *************/
@@ -703,12 +724,16 @@ int main(int argc, char ** argv){
     // and read-in
 #ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
-      sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%.4f_f_esc10m%.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN);
+#ifdef REION_SM
+    sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Msm_t_star%06.4f_f_star10m%.4f_f_esc10m%.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN);
 #else
-      sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_Pop%i_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, Pop, HII_DIM, BOX_LEN);
+    sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%.4f_f_esc10m%.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN);
 #endif
 #else
-      sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_Mmin%.1e_zetaIon%.2f_Pop%i_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, M_MIN, HII_EFF_FACTOR, Pop, HII_DIM, BOX_LEN); 
+    sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_Pop%i_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, Pop, HII_DIM, BOX_LEN);
+#endif
+#else
+    sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_Mmin%.1e_zetaIon%.2f_Pop%i_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, M_MIN, HII_EFF_FACTOR, Pop, HII_DIM, BOX_LEN); 
 #endif
     if (!(F = fopen(filename, "rb"))){
       strcpy(error_message, "find_HII_bubbles.c: Unable to open x_e file at ");
@@ -906,7 +931,6 @@ int main(int argc, char ** argv){
       
       return -1;
   }
-
     
 
   /*************************************************************************************/
@@ -1017,10 +1041,10 @@ int main(int argc, char ** argv){
       erfc_denom = sqrt(temparg);
         
 #ifndef SHARP_CUTOFF
-        initialiseGL_Nion(NGL_SFR, M_MIN, massofscaleR);
-        initialise_Nion_spline(REDSHIFT, massofscaleR,M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
+      initialiseGL_Nion(NGL_SFR, M_MIN, massofscaleR);
+      initialise_Nion_spline(REDSHIFT, massofscaleR,M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
 #ifdef MINI_HALO
-        initialise_Nion_splinem(REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,M_MINm,Mcrit_atom,F_STAR10m,Mlim_Fstarm);
+      initialise_Nion_splinem(REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,M_MINm,Mcrit_atom,F_STAR10m,Mlim_Fstarm);
 #endif
 #endif
 
@@ -1036,16 +1060,16 @@ int main(int argc, char ** argv){
               density_over_mean = 1.0 + *((float *)deltax_filtered + HII_R_FFT_INDEX(x,y,z));
               if ( (density_over_mean - 1) < Deltac){ // we are not resolving collapsed structures
 #ifndef SHARP_CUTOFF
-                  // Here again, 'Splined_Fcoll' and 'f_coll' are not the collpased fraction, but leave this name as is to simplify the variable name.
-                  // f_coll * ION_EFF_FACTOR = the number of IGM ionizing photon per baryon at a given overdensity.
-                  // see eq. (17) in Park et al. 2018
-                  Nion_Spline_density(density_over_mean - 1,&(Splined_Fcoll));
+                // Here again, 'Splined_Fcoll' and 'f_coll' are not the collpased fraction, but leave this name as is to simplify the variable name.
+                // f_coll * ION_EFF_FACTOR = the number of IGM ionizing photon per baryon at a given overdensity.
+                // see eq. (17) in Park et al. 2018
+                Nion_Spline_density(density_over_mean - 1,&(Splined_Fcoll));
 #ifdef MINI_HALO
-                  Nion_Spline_densitym(density_over_mean - 1,&(Splined_Fcollm));
+                Nion_Spline_densitym(density_over_mean - 1,&(Splined_Fcollm));
 #endif
 #else
-                  erfc_num = (Deltac - (density_over_mean-1)) /  growth_factor;
-                  Splined_Fcoll = splined_erfc(erfc_num/erfc_denom);
+                erfc_num = (Deltac - (density_over_mean-1)) /  growth_factor;
+                Splined_Fcoll = splined_erfc(erfc_num/erfc_denom);
               }
               else { // the entrire cell belongs to a collpased halo...  this is rare...
                 Splined_Fcoll =  1.0;
@@ -1321,40 +1345,54 @@ int main(int argc, char ** argv){
     case 2:
 #ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
-        if (USE_HALO_FIELD)
-          sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-        else
-          sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#ifdef REION_SM
+      if (USE_HALO_FIELD)
+        sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Msm_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+      else
+        sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Msm_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
 #else
-        if (USE_HALO_FIELD)
-          sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-        else
-          sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+      if (USE_HALO_FIELD)
+        sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+      else
+        sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
 #endif
 #else
-        if (USE_HALO_FIELD)
+      if (USE_HALO_FIELD)
+        sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+      else
+        sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#endif
+#else
+      if (USE_HALO_FIELD)
         sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
-        else
+      else
         sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
 #endif
       break;
     default:
 #ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
-        if (USE_HALO_FIELD)
-          sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-        else
-          sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#ifdef REION_SM
+      if (USE_HALO_FIELD)
+        sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Msm_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+      else
+        sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Msm_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
 #else
-        if (USE_HALO_FIELD)
-          sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-        else
-          sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+      if (USE_HALO_FIELD)
+        sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+      else
+        sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
 #endif
 #else
-        if (USE_HALO_FIELD)
+      if (USE_HALO_FIELD)
+        sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+      else
+        sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+#endif
+#else
+      if (USE_HALO_FIELD)
         sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
-        else
+      else
         sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
 #endif
   }
@@ -1375,30 +1413,28 @@ int main(int argc, char ** argv){
     fclose(F);
     F = NULL;
   }
-  
 
-
-      fprintf(stderr, error_message);
-      fprintf(LOG, error_message);
-      fftwf_free(xH);
-      fftwf_free(z_re);
-      fftwf_free(Gamma12);
-      fclose(LOG);
-      fftwf_free(deltax_unfiltered);
-      fftwf_free(deltax_filtered);
-      fftwf_free(M_coll_unfiltered);
-      fftwf_free(M_coll_filtered);
-      fftwf_cleanup_threads();
-      if (F){ fclose(F);}
-      free_ps();
-      free_MHR();
-      fftwf_free(xe_filtered);
-      fftwf_free(xe_unfiltered);
-      fftwf_free(N_rec_unfiltered);
-      fftwf_free(N_rec_filtered);
+  fprintf(stderr, error_message);
+  fprintf(LOG, error_message);
+  fftwf_free(xH);
+  fftwf_free(z_re);
+  fftwf_free(Gamma12);
+  fclose(LOG);
+  fftwf_free(deltax_unfiltered);
+  fftwf_free(deltax_filtered);
+  fftwf_free(M_coll_unfiltered);
+  fftwf_free(M_coll_filtered);
+  fftwf_cleanup_threads();
+  if (F){ fclose(F);}
+  free_ps();
+  free_MHR();
+  fftwf_free(xe_filtered);
+  fftwf_free(xe_unfiltered);
+  fftwf_free(N_rec_unfiltered);
+  fftwf_free(N_rec_filtered);
 #ifndef SHARP_CUTOFF
-      destroy_21cmMC_arrays();
+  destroy_21cmMC_arrays();
 #endif
       
-      return 0;
+  return 0;
 }
