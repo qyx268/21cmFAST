@@ -7,7 +7,7 @@
    <escape fraction for 10^10 Msun halos> <power law index for escape fraction halo mass scaling>
    <turn-over scale for the duty cycle of galaxies, in units of halo mass>] [<Soft band X-ray luminosity>]
 
-   final optional parameter is MFP (depricated in v1.4)
+   final optional parameter is MFP (depricated in v2)
 
   Program FIND_HII_BUBBLES generates the ionization field in Boxes/
 
@@ -36,7 +36,7 @@ float *Fcollm;
 
 void init_21cmMC_arrays() { // defined in Cosmo_c_files/ps.c
     
-    Overdense_spline_SFR = calloc(NSFR_high,sizeof(float)); // New in v1.4
+    Overdense_spline_SFR = calloc(NSFR_high,sizeof(float)); // New in v2
     Nion_spline = calloc(NSFR_high,sizeof(float));
     second_derivs_Nion = calloc(NSFR_high,sizeof(float));
     xi_SFR = calloc((NGL_SFR+1),sizeof(float));
@@ -51,7 +51,7 @@ void destroy_21cmMC_arrays() {
     free(second_derivs_sigma);
     free(second_derivs_dsigma);
 
-    free(Overdense_spline_SFR); // New in v1.4
+    free(Overdense_spline_SFR); // New in v2
     free(Nion_spline);
     free(second_derivs_Nion);
     free(xi_SFR);
@@ -372,9 +372,9 @@ int main(int argc, char ** argv){
   i=0;
   double t_ast, dfcolldt, Gamma_R_prefactor, rec;
   float nua, dnua, temparg, Gamma_R, z_eff;
-  float F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, Mlim_Fstar, Mlim_Fesc; //New in v1.4
+  float F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, Mlim_Fstar, Mlim_Fesc; //New in v2
 #ifdef MINI_HALO
-  float F_STAR10m, F_ESC10m, Mlim_Fstarm, ION_EFF_FACTOR_MINI,M_MINm, M_MINa, Splined_Fcollm, dfcolldtm,Gamma_R_prefactorm,ST_over_PSm,f_collm, Mcrit_atom, Mcrit_LW, mean_f_coll_stm; //New in v1.5
+  float F_STAR10m, F_ESC10m, Mlim_Fstarm, ION_EFF_FACTOR_MINI,M_MINm, M_MINa, Splined_Fcollm, dfcolldtm,Gamma_R_prefactorm,ST_over_PSm,f_collm, Mcrit_atom, Mcrit_LW, mean_f_coll_stm; //New in v2.1
   double X_LUMINOSITYm;
 #else
   float M_MINa;
@@ -456,7 +456,7 @@ int main(int argc, char ** argv){
     // For the new parametrization the number of halos hosting active galaxies (i.e. the duty cycle) is assumed to
     // exponentially decrease below M_TURNOVER Msun, : fduty \propto e^(- M_TURNOVER / M)
     // In this case, we define M_MIN = M_TURN/50.
-    // v1.5 split halos in to atomic and molecular populations, with different fduty see ANAL_PARAMS.H
+    // v2.1 split halos in to atomic and molecular populations, with different fduty see ANAL_PARAMS.H
     init_21cmMC_arrays();
 #ifdef MINI_HALO
     M_MINa = M_TURN > Mcrit_atom ? M_TURN : Mcrit_atom;
@@ -516,7 +516,7 @@ int main(int argc, char ** argv){
 
 
   // compute the mean collpased fraction at this redshift
-  if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY){ // New in v1.4
+  if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY){ // New in v2
     // Here 'mean_f_coll_st' is not the mean collpased fraction, but leave this name as is to simplify the variable name.
     // Nion_ST * ION_EFF_FACTOR = the mean number of IGM ionizing photon per baryon
     // see eq. (17) in Park et al. 2018
@@ -532,9 +532,9 @@ int main(int argc, char ** argv){
     /**********  CHECK IF WE ARE IN THE DARK AGES ******************************/
     // lets check if we are going to bother with computing the inhmogeneous field at all...
 #ifdef MINI_HALO
-  if ((mean_f_coll_st*ION_EFF_FACTOR + mean_f_coll_stm*ION_EFF_FACTOR_MINI < HII_ROUND_ERR)) // way too small to ionize anything...//New in v1.5
+  if ((mean_f_coll_st*ION_EFF_FACTOR + mean_f_coll_stm*ION_EFF_FACTOR_MINI < HII_ROUND_ERR)) // way too small to ionize anything...//New in v2.1
 #else
-  if ((mean_f_coll_st*ION_EFF_FACTOR < HII_ROUND_ERR)) // way too small to ionize anything...//New in v1.4
+  if ((mean_f_coll_st*ION_EFF_FACTOR < HII_ROUND_ERR)) // way too small to ionize anything...//New in v2
 #endif
   {
 #ifdef MINI_HALO
@@ -552,7 +552,7 @@ int main(int argc, char ** argv){
 #endif
 
     if (USE_TS_IN_21CM){ // use the x_e box to set residuals
-      if(HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY){ // New in v1.4
+      if(HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY){ // New in v2
 #ifdef MINI_HALO
         sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN); 
         printf("filename: %s\n",filename);
@@ -668,7 +668,7 @@ int main(int argc, char ** argv){
     }
 
     // and read-in
-    if(HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY){ // New in v1.4
+    if(HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY){ // New in v2
 #ifdef MINI_HALO
       sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%.4f_f_esc10m%.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN);
 #else
@@ -982,7 +982,7 @@ int main(int argc, char ** argv){
       temparg =  2*(pow(sigma_z0(M_MIN), 2) - pow(sigma_z0(massofscaleR), 2) );
       erfc_denom = sqrt(temparg);
         
-      if(HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) { // New in v1.4
+      if(HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) { // New in v2
         initialiseGL_Nion(NGL_SFR, M_MIN, massofscaleR);
         initialise_Nion_spline(REDSHIFT, massofscaleR,M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
 #ifdef MINI_HALO
@@ -1001,7 +1001,7 @@ int main(int argc, char ** argv){
             else{
               density_over_mean = 1.0 + *((float *)deltax_filtered + HII_R_FFT_INDEX(x,y,z));
               if ( (density_over_mean - 1) < Deltac){ // we are not resolving collapsed structures
-                if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) { // New in v1.4
+                if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) { // New in v2
                   // Here again, 'Splined_Fcoll' and 'f_coll' are not the collpased fraction, but leave this name as is to simplify the variable name.
                   // f_coll * ION_EFF_FACTOR = the number of IGM ionizing photon per baryon at a given overdensity.
                   // see eq. (17) in Park et al. 2018

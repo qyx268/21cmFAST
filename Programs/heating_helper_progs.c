@@ -23,26 +23,26 @@ double const_zp_prefactorm;
 double growth_factor_zp, dgrowth_factor_dzp, PS_ION_EFF;
 int NO_LIGHT;
 float M_MIN_at_z, M_MIN_at_zp;
-int HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY; // New in v1.4
-float F_STAR10,F_ESC10,ALPHA_STAR,ALPHA_ESC,M_TURN,T_AST,Mlim_Fstar,Mlim_Fesc,M_MIN,Splined_Fcoll;//,Splined_Fcollz_mean; // New in v1.4
+int HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY; // New in v2
+float F_STAR10,F_ESC10,ALPHA_STAR,ALPHA_ESC,M_TURN,T_AST,Mlim_Fstar,Mlim_Fesc,M_MIN,Splined_Fcoll;// New in v2
 #ifdef MINI_HALO
-float PS_ION_EFFm,F_STAR10m,F_ESC10m,Mlim_Fstarm,Mlim_Fescm,Splined_Fcollm;//,Splined_Fcollz_mean; // New in v1.5
+float PS_ION_EFFm,F_STAR10m,F_ESC10m,Mlim_Fstarm,Mlim_Fescm,Splined_Fcollm;//,Splined_ans; // New in v2.1
 #endif
 double X_LUMINOSITY;
 #ifdef MINI_HALO
 double X_LUMINOSITYm;
 #endif
-float growth_zpp; // New in v1.4
-static float determine_zpp_max, determine_zpp_min,zpp_bin_width; // new in v1.4
+float growth_zpp; // New in v2
+static float determine_zpp_max, determine_zpp_min,zpp_bin_width; // new in v2
 float *second_derivs_Nion_zpp[NUM_FILTER_STEPS_FOR_Ts]; // New
 #ifdef MINI_HALO
 float *second_derivs_Nion_zppm[NUM_FILTER_STEPS_FOR_Ts]; // New
 #endif
 float *redshift_interp_table;
-int Nsteps_zp; //New in v1.4 
-float *zpp_interp_table; //New in v1.4
+int Nsteps_zp; //New in v2 
+float *zpp_interp_table; //New in v2
 #ifdef MINI_HALO
-float *Mcrit_atom_interp_table, *Mcrit_LW_interp_table, *M_MINa_interp_table, *M_MINm_interp_table;//New in v1.5
+float *Mcrit_atom_interp_table, *Mcrit_LW_interp_table, *M_MINa_interp_table, *M_MINm_interp_table;//New in v2.1
 #endif
 gsl_interp_accel *SFRDLow_zpp_spline_acc[NUM_FILTER_STEPS_FOR_Ts];
 gsl_spline *SFRDLow_zpp_spline[NUM_FILTER_STEPS_FOR_Ts];
@@ -51,7 +51,6 @@ gsl_interp_accel *SFRDLow_zpp_spline_accm[NUM_FILTER_STEPS_FOR_Ts];
 gsl_spline *SFRDLow_zpp_splinem[NUM_FILTER_STEPS_FOR_Ts];
 #endif
 
-int i; //TEST
 FILE *LOG;
 
 /* initialization routine */
@@ -94,8 +93,6 @@ double dT_comp(double z, double TK, double xe);
 /* Calculates the optical depth for a photon arriving at z = zp with frequency nu,
  emitted at z = zpp */
 double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_factor_zp); 
-// New in v1.4
-//double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_factor_zp, float M_TURN, float ALPHA_STAR, float F_STAR10);
 
 /* The total weighted HI + HeI + HeII  cross-section in pcm^-2 */
 double species_weighted_x_ray_cross_section(double nu, double x_e); 
@@ -353,11 +350,11 @@ double spectral_emissivity(double nu_norm, int flag)
 void evolveInt(float zp, float curr_delNL0[], double freq_int_heat[], 
            double freq_int_ion[], double freq_int_lya[], 
            double freq_int_heatm[], double freq_int_ionm[], double freq_int_lyam[],
-           int COMPUTE_Ts, double y[], double deriv[])//, float M_TURN, float ALPHA_STAR, float F_STAR10, float T_AST){
+           int COMPUTE_Ts, double y[], double deriv[])
 #else
 void evolveInt(float zp, float curr_delNL0[], double freq_int_heat[], 
            double freq_int_ion[], double freq_int_lya[], 
-           int COMPUTE_Ts, double y[], double deriv[])//, float M_TURN, float ALPHA_STAR, float F_STAR10, float T_AST){
+           int COMPUTE_Ts, double y[], double deriv[])
 #endif
 {
   double  dfdzp, dadia_dzp, dcomp_dzp, dxheat_dt, ddz, dxion_source_dt, dxion_sink_dt;
@@ -365,7 +362,7 @@ void evolveInt(float zp, float curr_delNL0[], double freq_int_heat[],
   int zpp_ct,ithread;
   double T, x_e, dTdzp, dx_edzp, dfcoll, zpp_integrand;
   double dxe_dzp, n_b, dspec_dzp, dxheat_dzp, dxlya_dt, dstarlya_dt;
-  // New in v1.4
+  // New in v2
   float growth_zpp,fcoll;
 #ifdef MINI_HALO
   double dfcollm, zpp_integrandm, dxheat_dtm, dxion_source_dtm, dxlya_dtm, dstarlya_dtm;
@@ -401,7 +398,7 @@ void evolveInt(float zp, float curr_delNL0[], double freq_int_heat[],
       zpp = (zpp_edge[zpp_ct]+zpp_edge[zpp_ct-1])*0.5;
       dzpp = zpp_edge[zpp_ct-1] - zpp_edge[zpp_ct];
     }
-    //New in v1.4
+	//New in v2
     if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {
       growth_zpp = dicke(zpp);
       // Interpolate Fcoll -------------------------------------------------------------------------------------
@@ -438,7 +435,6 @@ void evolveInt(float zp, float curr_delNL0[], double freq_int_heat[],
 #endif
         }
       }
-      //printf("delta = %.4f, fcoll1 = %.4e, fcoll2 = %.4e\n",Overdensity,fcoll1,fcoll2);
       if (fcoll > 1.) fcoll = 1.;
 #ifdef MINI_HALO
       if (fcollm > 1.) fcollm = 1.;
@@ -458,8 +454,7 @@ void evolveInt(float zp, float curr_delNL0[], double freq_int_heat[],
     else {
       dfcoll = dfcoll_dz(zpp, sigma_Tmin[zpp_ct], curr_delNL0[zpp_ct], sigma_atR[zpp_ct]);
       dfcoll *= ST_over_PS[zpp_ct] * dzpp; // this is now a positive quantity
-      //dfcoll = ST_over_PS[zpp_ct]*sigmaparam_FgtrM_bias(zpp, sigma_Tmin[zpp_ct], curr_delNL0[zpp_ct], sigma_atR[zpp_ct])*hubble(zpp)/0.7*fabs(dtdz(zpp));//TEST
-    }
+	}
     zpp_integrand = dfcoll * (1+curr_delNL0[zpp_ct]*dicke(zpp)) * pow(1+zpp, -X_RAY_SPEC_INDEX);
 
     dxheat_dt += zpp_integrand * freq_int_heat[zpp_ct];
@@ -816,29 +811,27 @@ typedef struct{
 #ifdef MINI_HALO
   double ion_effm;
 #endif
-  // New in v1.4
-  //double nu_0, x_e, ion_eff,M_TURN,ALPHA_STAR,F_STAR10;
 } tauX_params;
 double tauX_integrand(double zhat, void *params){
   double n, drpropdz, nuhat, HI_filling_factor_zhat, sigma_tilde, fcoll;
   tauX_params *p = (tauX_params *) params;
-  float Splined_Fcollz_mean; // New in v1.4: find fcoll from interpolation table
+  float Splined_ans;
 #ifdef MINI_HALO
   double fcollm;
-  float Splined_Fcollz_meanm; // New in v1.5
+  float Splined_ansm; // New in v2.1
 #endif
 
   drpropdz = C * dtdz(zhat);
   n = N_b0 * pow(1+zhat, 3);
   nuhat = p->nu_0 * (1+zhat);
-  // New in v1.4
+  // New in v2
   if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {
     //fcoll = FgtrM(zhat, M_MIN); // TEST
-    Nion_ST_z(zhat,&(Splined_Fcollz_mean));
-    fcoll = Splined_Fcollz_mean;
+    Nion_ST_z(zhat,&(Splined_ans));
+    fcoll = Splined_ans;
 #ifdef MINI_HALO
-    Nion_ST_zm(zhat,&(Splined_Fcollz_meanm));
-    fcollm = Splined_Fcollz_meanm;
+    Nion_ST_zm(zhat,&(Splined_ansm));
+    fcollm = Splined_ansm;
 #endif
   }
   else {
@@ -873,9 +866,9 @@ double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_fact
        gsl_integration_workspace * w 
      = gsl_integration_workspace_alloc (1000);
        tauX_params p;
-  float Splined_Fcollz_mean; // New in v1.4: compute function FgtrM_st_SFR using interpolation.
+  float Splined_ans;
 #ifdef MINI_HALO
-  float Splined_Fcollz_meanm; // New in v1.5: compute function FgtrM_st_SFR using interpolation.
+  float Splined_ansm; // New in v2.1: compute function FgtrM_st_SFR using interpolation.
 #endif
 
        /*
@@ -887,14 +880,14 @@ double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_fact
        p.x_e = x_e;
        // effective efficiency for the PS (not ST) mass function; quicker to compute...
        if (HI_filling_factor_zp > FRACT_FLOAT_ERR){
-         // New in v1.4
+         // New in v2
          if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {
-           Nion_ST_z(zp,&(Splined_Fcollz_mean));
-           fcoll = Splined_Fcollz_mean;
+           Nion_ST_z(zp,&(Splined_ans));
+           fcoll = Splined_ans;
            //fcoll = FgtrM(zp, M_MIN);//TEST
 #ifdef MINI_HALO
-           Nion_ST_zm(zp,&(Splined_Fcollz_meanm));
-           fcollm = Splined_Fcollz_meanm;
+           Nion_ST_zm(zp,&(Splined_ansm));
+           fcollm = Splined_ansm;
 #endif
          }
          else {
@@ -934,8 +927,6 @@ double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_fact
 */
 typedef struct{
   double x_e, zp, zpp, HI_filling_factor_zp;
-  // New in v1.4
-  //double x_e, zp, zpp, HI_filling_factor_zp, M_TURN, ALPHA_STAR, F_STAR10;
 } nu_tau_one_params;
 double nu_tau_one_helper(double nu, void * params){
   nu_tau_one_params *p = (nu_tau_one_params *) params;

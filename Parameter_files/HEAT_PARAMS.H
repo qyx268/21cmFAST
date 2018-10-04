@@ -13,10 +13,11 @@ NOTE:  We encourage the user to perform their own convergance tests if modifying
 
 
 /*
-  Soft band X-ray luminosity, L_X. Used for determining the number of X-ray photons produced per stellar baryon.
-  In v1.4, the old ZETA_X is replaced with a soft-band luminosity L_X. The soft band luminosity now determines the normalisation, 
- and is available as a free parameter. This is defined as the <2keV luminosity, hence NU_X_BAND_MAX = 2000.00.
-  Defined as log10(L_X). E.g. 40 = log10(10^40)
+  The normalization of the soft-band X-ray luminosity per unit star formation, L_X, computed over the band E0 – 2 keV, i.e. NU_X_THRESH - NU_X_BAND_MAX.
+  When making a mock 21-cm observations, we assume the X-ray binary composite SED of Fragos et al. (2013),  with the ISM attenuation from Das et al. (2017), 
+  resulting in a fiducial value of L_{X <2 keV}/SFR = 10^{40.5}erg s^{-1} Msun^{-1} yr.
+  Here, L_X = 40.5 means log10(L_X) = 40.5
+  NOTE: Smallest frequency X-ray photon contributing to IGM heating and ionization
 */
 #define L_X (double) (40.5)
 #ifdef MINI_HALO
@@ -33,6 +34,8 @@ NOTE:  We encourage the user to perform their own convergance tests if modifying
   There might be wierd behaviour if you set this to less than the HeII ionization
   threshold, <~54.4 eV
 */
+#define L_X (double) (40.5)
+#define NU_X_BAND_MAX (double) (2000*NU_over_EV)
 #define NU_X_THRESH (double) (500*NU_over_EV)
 
 
@@ -45,12 +48,6 @@ NOTE:  We encourage the user to perform their own convergance tests if modifying
 // use a hard spectrum following Pacucci+14
 #define X_RAY_SPEC_INDEX_MINI (double) (0.8)
 #endif
-
-
-/*
-  Minimum virial temperature (in K) of halos hosting X-ray sources responsible for heating the IGM
-*/
-#define X_RAY_Tvir_MIN (double) (1e4) // WILL BE REMOVED IN v1.4
 
 
 /*

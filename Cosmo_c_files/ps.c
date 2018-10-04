@@ -43,19 +43,19 @@ static gsl_spline *erfc_spline;
 #define Nlow 100
 #define NMass 2000
 
-/* New in v1.4 - part 1 of 4 start */
+/* New in v2 - part 1 of 4 start */
 #define NSFR_high 200
 #define NSFR_low 250
 #define NGL_SFR 100 
 /* Number of interpolation points for the interpolation table for z'' 
                 This is the same parameter in 21CMMC */
 #define zpp_interp_points (int) (300) 
-/* New in v1.4 - part 1 of 4 end */
+/* New in v2 - part 1 of 4 end */
 
 static gsl_interp_accel *Fcoll_spline_acc;
 static gsl_spline *Fcoll_spline;
 
-/* New in v1.4 - part 2 of 4: begin */
+/* New in v2 - part 2 of 4: begin */
 static double log10_overdense_spline_SFR[NSFR_low], log10_Nion_spline[NSFR_low];
 static gsl_interp_accel *NionLow_spline_acc;
 static gsl_spline *NionLow_spline;
@@ -137,7 +137,7 @@ struct parameters_gsl_SFR_con_int_{
     double LimitMass_Fstar;
     double LimitMass_Fesc;
 };
-/* New in v1.4 - part 2 of 4: end */
+/* New in v2 - part 2 of 4: end */
 #ifdef MINI_HALO
 struct parameters_gsl_SFR_con_intm_{
     double z_obs;
@@ -172,14 +172,8 @@ float dNdM_conditional_second(float z, float M1, float M2, float delta1, float d
 float *Mass_Spline, *Sigma_Spline, *dSigmadm_Spline, *second_derivs_sigma, *second_derivs_dsigma;
 
 void initialiseSplinedSigmaM(float M_Min, float M_Max);
-//void initialiseGL_Fcoll(int n_low, int n_high, float M_Min, float M_Max);
-//void initialiseGL_FcollDblPl(int n_low, int n_high, float M_Min, float M_feedback, float M_Max);
-//void initialiseFcoll_spline(float z, float Mmin, float Mmax, float Mval, float MFeedback, float alphapl);
 
-//double dFdlnM_st_PL (double lnM, void *params);
-//double FgtrM_st_PL(double z, double Mmin, double MFeedback, double alpha_pl);
-
-/* New in v1.4 - part 3 of 4: start */
+/* New in v2 - part 3 of 4: start */
 float *Overdense_spline_SFR,*Nion_spline,*second_derivs_Nion;
 float *xi_SFR,*wi_SFR;
 #ifdef MINI_HALO
@@ -193,7 +187,7 @@ double Nion_ConditionalM(double z, double M1, double M2, double delta1, double d
 
 double dNion_ST(double lnM, void *params);
 double Nion_ST(double z, double M_Min, double MassTurnover, double Alpha_star, double Alpha_esc, double Fstar10, double Fesc10, double Mlim_Fstar, double Mlim_Fesc);
-/* New in v1.4 - part 3 of 4: end */
+/* New in v2 - part 3 of 4: end */
 
 double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;
 
@@ -1207,7 +1201,7 @@ void initialiseSplinedSigmaM(float M_Min, float M_Max)
 }
 
 
-/* New in v1.4 - part 4 of 4 start */
+/* New in v2 - part 4 of 4 start */
 
 /*
  FUNCTION Mass_limit_bisection(M_min, M_max, power-law, normalization)
@@ -1451,7 +1445,6 @@ float Nion_ConditionallnM_GLm(float lnM, struct parameters_gsl_SFR_con_intm_ par
 }
 #endif
 
-//float GaussLegendreQuad_Nion(int n, float z, float M2, float delta1, float delta2, float MassTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc) {
 float GaussLegendreQuad_Nion(int n, float z, float M2, float delta1, float delta2, float MassTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc) {
     //Performs the Gauss-Legendre quadrature.
     int i;
@@ -2015,7 +2008,7 @@ void free_interpolation() {
     gsl_interp_accel_free (Nion_z_spline_accm);
 #endif
 }
-/* New in v1.4: end */
+/* New in v2: end */
 
 
 
