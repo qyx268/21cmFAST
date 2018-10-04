@@ -29,30 +29,29 @@
 #define STELLAR_BARYON_PL (double) (0.5) //power law index w/ halo mass
 #define ESC_FRAC (double) (0.1) // ionizing escape fraction, defined for 10^10 Msun halos
 #define ESC_PL (double) (-0.5) //power law index w/ halo mass
-#define M_TURNOVER (double) (5e8) // Halo mass threshold for efficient star formation (in Msun). 
+//#define M_TURNOVER (double) (5e8) // Halo mass threshold for efficient star formation (in Msun). 
 
 /***********************************************
   MINI HALO PARAMETERS
   NEW in v1.5:
 
   The ionizing efficiency zeta is allowed to scale with the halo mass
-  in two channels -- atomic and molecular cooling halos:
-  \zeta_ato = N_{\gammaUV} x f_{esc} x f_{\ast} 
+  in two populations -- atomic and molecular cooling halos:
+  \zeta_ato = N_{\gammaUV}     x f_{esc}     x f_{\ast} 
   \zeta_mol = N_{\gammaUV,mol} x f_{esc,mol} x f_{\ast,mol}
   \zeta     = \zeta_ato + \zeta_mol
 
   where:
   f_{\ast}     = STELLAR_BARYON_FRAC x (M_{halo}/10^10 M_{sol})^STELLAR_BARYON_PL
-  f_{esc}      = ESC_FRAC x (M_{halo}/10^10 M_{sol})^ESC_PL
+  f_{esc}      = ESC_FRAC            x (M_{halo}/10^10 M_{sol})^ESC_PL
 
   f_{\ast,mol} = STELLAR_BARYON_FRAC_MINI x (M_{halo}/10^10 M_{sol})^STELLAR_BARYON_PL
   f_{esc, mol} = ESC_FRAC_MINI
 
-  and 
   Note that in the current version
   1. the scaling of f_{\ast,mol} is the same as f_\ast
   2. f_{esc, mol} is a constant
-  3. t_STAR is the same as the atomic cooling halo
+  3. t_STAR is the same in the two populations
   4. f_{\ast}, f_{esc}, f_{\ast,mol}, f_{esc, mol} need to be smaller than 1
 
   -----------
@@ -67,7 +66,7 @@
   f_\mathrm{duty,mol}  = \exp[-M_\mathrm{turn,mol,low}(z,\mathbf{r})/M_\mathrm{h}] \times 
                          \exp[-M_\mathrm{h}/M_\mathrm{turn,mol,high}(z)]
   with
-  M_\mathrm{turn,mol,high}(z) = M_\mathrm{crit,atom}(z)
+  M_\mathrm{turn,mol,high}(z)           = M_\mathrm{crit,atom}(z)
   M_\mathrm{turn,mol,low}(z,\mathbf{r}) = \max[M_\mathrm{crit,RE}(z,\mathbf{r}),M_\mathrm{crit,LW}(z,\mathbf{r})]
 
 
@@ -94,10 +93,34 @@
 ***********************************************/
 #define MINI_HALO 1             // operate as a flag, comment this line if MINI_HALO version is not required
 #ifdef MINI_HALO
-#define N_GAMMA_UV_MINI (float) (50000) // number of ionizing photons per stellar baryon for mini halos
-#define STELLAR_BARYON_FRAC_MINI (double) (0.01) // defined for 10^10 Msun mini halos
-#define ESC_FRAC_MINI (double) (0.5)    // ionizing escape fraction for mini halos
-#endif
+  #define N_GAMMA_UV_MINI (float) (50000) // number of ionizing photons per stellar baryon for mini halos
+  #define STELLAR_BARYON_FRAC_MINI (double) (0.01) // defined for 10^10 Msun mini halos
+  #define ESC_FRAC_MINI (double) (0.5)    // ionizing escape fraction for mini halos
+
+  #define INHOMO_FEEDBACK 1 // operate as a flag, comment this line if homogeneous feedback is adopted
+  #ifdef INHOMO_FEEDBACK 
+    // LW suppression follows ?
+    // --
+    // use Sobacchi & Mesinger 2013a; 2014 prescription for reionization
+    #define REION_SM13_M0 (double) 3e9
+    #define REION_SM13_A  (double) 0.17
+    #define REION_SM13_B  (double) -2.1
+    #define REION_SM13_C  (double) 2.0
+    #define REION_SM13_D  (double) 2.5
+  #else  // let's do homogeneous feedback
+    // use Wise+12 prescription for LW suppression
+    #define LW_WISE12_A (double) -2.356
+    #define LW_WISE12_B (double) 0.4562
+    #define LW_WISE12_C (double) -0.02680
+    #define LW_WISE12_D (double) 5.882e-4
+    #define LW_WISE12_E (double) -5.056e-6
+    // --
+    #define REION_SM 1 // operate as a flag, ifdef use obacchi & Mesinger 2013b for homogeneous reionization 
+    #ifndef REION_SM   // otherwise use the free parameter M_TURNOVER for homogeneous reionization
+      #define M_TURNOVER (double) (5e8) 
+    #endif  // end of ifndef REION_SM
+  #endif  // end of ifdef INHOMO_FEEDBACK
+#endif  // end of ifdef MINI_HALO
 
 /**********************************************
   RECOMBINATION PARAMETERS
