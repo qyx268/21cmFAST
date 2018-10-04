@@ -64,6 +64,8 @@ unsigned long long SAMPLING_INTERVAL = (((unsigned long long)(HII_TOT_NUM_PIXELS
 
 int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, float * F_STAR10, 
 #ifdef SHARP_CUTOFF
+                    float * ALPHA_STAR, float * F_ESC10, float * ALPHA_ESC, float * M_TURN, float * T_AST, double * X_LUMINOSITY,
+#else
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
                     float * ALPHA_STAR, float * F_ESC10, float * ALPHA_ESC, float * T_AST, double * X_LUMINOSITY,
@@ -78,8 +80,6 @@ int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, floa
 #else
                     float * ALPHA_STAR, float * F_ESC10, float * ALPHA_ESC, float * M_TURN, float * T_AST, double * X_LUMINOSITY,
 #endif //MINI_HALO
-#else
-                    float * ALPHA_STAR, float * F_ESC10, float * ALPHA_ESC, float * M_TURN, float * T_AST, double * X_LUMINOSITY,
 #endif //SHARP_CUTOFF
                     float * MFP, float * REDSHIFT, float * PREV_REDSHIFT){
 
@@ -383,7 +383,7 @@ int main(int argc, char ** argv){
   float nua, dnua, temparg, Gamma_R, z_eff;
   float F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, Mlim_Fstar, Mlim_Fesc; //New in v2
 #ifdef MINI_HALO
-  float F_STAR10m, F_ESC10m, Mlim_Fstarm, ION_EFF_FACTOR_MINI,M_MINm, M_MINa, Splined_Fcollm, dfcolldtm,Gamma_R_prefactorm,ST_over_PSm,f_collm, Mcrit_atom, Mcrit_LW, mean_f_coll_stm; //New in v2.1
+  float F_STAR10m, F_ESC10m, Mlim_Fstarm, ION_EFF_FACTOR_MINI,M_MINm, M_MINa, Splined_Fcollm, dfcolldtm,Gamma_R_prefactorm,ST_over_PSm,f_collm, Mcrit_atom, Mcrit_LW, Mcrit_RE, mean_f_coll_stm; //New in v2.1
   double X_LUMINOSITYm;
 #else
   float M_MINa;
@@ -416,6 +416,29 @@ int main(int argc, char ** argv){
 #else
     HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY = 1;
 #ifdef MINI_HALO
+    Mcrit_atom = atomic_cooling_threshold(REDSHIFT);
+#ifdef INHOMO_FEEDBACK
+    if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
+               &ALPHA_ESC, &T_AST, &X_LUMINOSITY, &F_STAR10m, &F_ESC10m, &X_LUMINOSITYm, &MFP, &REDSHIFT, &PREV_REDSHIFT)){
+        fprintf(stderr, "find_HII_bubbles <redshift> [<previous redshift>] \n \
+        additional optional arguments: <f_star10> <alpha,star> <f_esc10> <alpha,esc> [<t_star>] [<f_star10,m> <f_esc10,m>]\n \
+        Check that your inclusion (or not) of [<previous redshift>] is consistent with the INHOMO_RECO flag in ../Parameter_files/ANAL_PARAMS.H\n \
+     Also check that your inclusion (or not) of [<t_star>] is consistent with the USE_TS_IN_21CM flag in ../Parameter_files/HEAT_PARAMS.H\nAborting...\n");
+        return -1;
+    }
+#else
+    Mcrit_LW   = lyman_werner_threshold(REDSHIFT);
+#ifdef REION_SM
+    if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
+               &ALPHA_ESC, &T_AST, &X_LUMINOSITY, &F_STAR10m, &F_ESC10m, &X_LUMINOSITYm, &MFP, &REDSHIFT, &PREV_REDSHIFT)){
+        fprintf(stderr, "find_HII_bubbles <redshift> [<previous redshift>] \n \
+        additional optional arguments: <f_star10> <alpha,star> <f_esc10> <alpha,esc> [<t_star>] [<f_star10,m> <f_esc10,m>]\n \
+        Check that your inclusion (or not) of [<previous redshift>] is consistent with the INHOMO_RECO flag in ../Parameter_files/ANAL_PARAMS.H\n \
+     Also check that your inclusion (or not) of [<t_star>] is consistent with the USE_TS_IN_21CM flag in ../Parameter_files/HEAT_PARAMS.H\nAborting...\n");
+        return -1;
+    }
+    Mcrit_RE   = reionization_feedback_SM(REDSHIFT);
+#else
     if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
                &ALPHA_ESC, &M_TURN, &T_AST, &X_LUMINOSITY, &F_STAR10m, &F_ESC10m, &X_LUMINOSITYm, &MFP, &REDSHIFT, &PREV_REDSHIFT)){
         fprintf(stderr, "find_HII_bubbles <redshift> [<previous redshift>] \n \
@@ -424,8 +447,9 @@ int main(int argc, char ** argv){
      Also check that your inclusion (or not) of [<t_star>] is consistent with the USE_TS_IN_21CM flag in ../Parameter_files/HEAT_PARAMS.H\nAborting...\n");
         return -1;
     }
-    Mcrit_atom = atomic_cooling_threshold(REDSHIFT);
-    Mcrit_LW   = lyman_werner_threshold(REDSHIFT);
+    Mcrit_RE   = M_TURN;
+#endif //REION_SM
+#endif //INHOMO_FEEDBACK
 #else
     if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
                &ALPHA_ESC, &M_TURN, &T_AST, &X_LUMINOSITY, &MFP, &REDSHIFT, &PREV_REDSHIFT)){
@@ -435,9 +459,8 @@ int main(int argc, char ** argv){
      Also check that your inclusion (or not) of [<t_star>] is consistent with the USE_TS_IN_21CM flag in ../Parameter_files/HEAT_PARAMS.H\nAborting...\n");
         return -1;
     }
-#endif
-#endif
-
+#endif //MINI_HALO
+#endif //SHARP_CUTOFF
 
   ZSTEP = PREV_REDSHIFT - REDSHIFT;
   fabs_dtdz = fabs(dtdz(REDSHIFT));
@@ -467,16 +490,20 @@ int main(int argc, char ** argv){
     // v2.1 split halos in to atomic and molecular populations, with different fduty see ANAL_PARAMS.H
     init_21cmMC_arrays();
 #ifdef MINI_HALO
-    M_MINa = M_TURN > Mcrit_atom ? M_TURN : Mcrit_atom;
-    M_MINm = M_TURN > Mcrit_LW   ? M_TURN : Mcrit_LW;
-    M_MIN  = M_MINa > M_MINm     ? M_MINm : M_MINa;
+#ifdef INHOMO_FEEDBACK
+	M_MIN  = 1e5;
+#else
+    M_MINa = Mcrit_RE > Mcrit_atom ? Mcrit_RE : Mcrit_atom;
+    M_MINm = Mcrit_RE > Mcrit_LW   ? Mcrit_RE : Mcrit_LW;
+    M_MIN  = M_MINa > M_MINm       ? M_MINm : M_MINa;
     M_MIN /= 50;
+#endif //INHOMO_FEEDBACK
     Mlim_Fstarm         = Mass_limit_bisection(M_MIN, 1e16, ALPHA_STAR, F_STAR10m);
     ION_EFF_FACTOR_MINI = N_GAMMA_UV_MINI * F_STAR10m * F_ESC10m;
 #else
     M_MINa = M_TURN;
     M_MIN  = M_TURN/50;
-#endif
+#endif //MINI_HALO
     Mlim_Fstar     = Mass_limit_bisection(M_MIN, 1e16, ALPHA_STAR, F_STAR10);
     Mlim_Fesc      = Mass_limit_bisection(M_MIN, 1e16, ALPHA_ESC, F_ESC10);
     ION_EFF_FACTOR = N_GAMMA_UV      * F_STAR10  * F_ESC10;
