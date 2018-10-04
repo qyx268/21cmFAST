@@ -393,8 +393,6 @@ int main(int argc, char ** argv){
   const float dz = 0.01;
   *error_message = '\0';
 
-  int HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY = 0;
-  
   double aveR = 0;
   unsigned long long Rct = 0;
 
@@ -414,7 +412,6 @@ int main(int argc, char ** argv){
         return -1;
     }
 #else
-    HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY = 1;
 #ifdef MINI_HALO
     Mcrit_atom = atomic_cooling_threshold(REDSHIFT);
 #ifdef INHOMO_FEEDBACK
@@ -481,7 +478,7 @@ int main(int argc, char ** argv){
   Fcollm = (float *) malloc(sizeof(float)*HII_TOT_FFT_NUM_PIXELS);
 #endif
   if (INHOMO_RECO) {  init_MHR();}
-  if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {
+#ifndef SHARP_CUTOFF
     // Set the minimum halo mass hosting ionizing source mass.
     // For constant ionizing efficiency parameter M_MIN is set to be M_TURN which is a sharp cut-off.
     // For the new parametrization the number of halos hosting active galaxies (i.e. the duty cycle) is assumed to
@@ -507,11 +504,10 @@ int main(int argc, char ** argv){
     Mlim_Fstar     = Mass_limit_bisection(M_MIN, 1e16, ALPHA_STAR, F_STAR10);
     Mlim_Fesc      = Mass_limit_bisection(M_MIN, 1e16, ALPHA_ESC, F_ESC10);
     ION_EFF_FACTOR = N_GAMMA_UV      * F_STAR10  * F_ESC10;
-  }
-  else{
+#else
     M_MIN          = M_TURNOVER;
     ION_EFF_FACTOR = N_GAMMA_UV * STELLAR_BARYON_FRAC * ESC_FRAC; // Constant ionizing efficiency parameter.
-  }
+#endif //SHARP_CUTOFF
 
   // check for WDM
   if (P_CUTOFF && ( M_MIN < M_J_WDM())){
@@ -551,7 +547,7 @@ int main(int argc, char ** argv){
 
 
   // compute the mean collpased fraction at this redshift
-  if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY){ // New in v2
+#ifndef SHARP_CUTOFF
     // Here 'mean_f_coll_st' is not the mean collpased fraction, but leave this name as is to simplify the variable name.
     // Nion_ST * ION_EFF_FACTOR = the mean number of IGM ionizing photon per baryon
     // see eq. (17) in Park et al. 2018
@@ -560,10 +556,9 @@ int main(int argc, char ** argv){
     // Nion_ST * ION_EFF_FACTOR + Nion_STm * ION_EFF_FACTOR_MINI = the mean number of IGM ionizing photon per baryon
     mean_f_coll_stm = Nion_STm(REDSHIFT, M_MIN, M_MINm, Mcrit_atom, ALPHA_STAR, F_STAR10m, Mlim_Fstarm);
 #endif
-  }
-  else { 
+#else
     mean_f_coll_st = FgtrM_st(REDSHIFT, M_MIN);
-  }
+#endif
     /**********  CHECK IF WE ARE IN THE DARK AGES ******************************/
     // lets check if we are going to bother with computing the inhmogeneous field at all...
 #ifdef MINI_HALO
@@ -587,7 +582,7 @@ int main(int argc, char ** argv){
 #endif
 
     if (USE_TS_IN_21CM){ // use the x_e box to set residuals
-      if(HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY){ // New in v2
+#ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
         sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN); 
         printf("filename: %s\n",filename);
@@ -595,10 +590,9 @@ int main(int argc, char ** argv){
         sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_Pop%i_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, Pop, HII_DIM, BOX_LEN); 
         printf("filename: %s\n",filename);
 #endif
-      }
-      else {
+#else
         sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_Mmin%.1e_zetaIon%.2f_Pop%i_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, M_MIN, HII_EFF_FACTOR, Pop, HII_DIM, BOX_LEN); 
-      }
+#endif
       if (!(F = fopen(filename, "rb"))){
         fprintf(stderr, "find_HII_bubbles: Unable to open x_e file at %s\nAborting...\n", filename);
         fprintf(LOG, "find_HII_bubbles: Unable to open x_e file at %s\nAborting...\n", filename);
@@ -607,7 +601,11 @@ int main(int argc, char ** argv){
 #ifdef MINI_HALO
         free(Fcollm);
 #endif
-        free_ps();  if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {destroy_21cmMC_arrays();} return -1;
+        free_ps();  
+#ifndef SHARP_CUTOFF
+		destroy_21cmMC_arrays();
+#endif
+		return -1;
       }
       for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++){
         if (fread(&xH[ct], sizeof(float), 1, F)!=1){
@@ -636,7 +634,7 @@ int main(int argc, char ** argv){
     global_xH_m = global_xH;
     switch(FIND_BUBBLE_ALGORITHM){
       case 2:
-        if(HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY){
+#ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
           if (USE_HALO_FIELD)
             sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
@@ -648,16 +646,15 @@ int main(int argc, char ** argv){
           else
             sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
 #endif
-        }
-        else{
+#else
           if (USE_HALO_FIELD)
             sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
           else
             sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
-          }
+#endif
           break;
       default:
-        if(HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY){
+#ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
           if (USE_HALO_FIELD)
             sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
@@ -669,13 +666,12 @@ int main(int argc, char ** argv){
           else
             sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
 #endif
-        }
-        else{
+#else
           if (USE_HALO_FIELD)
             sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
           else
             sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
-        }
+#endif
     }
     F = fopen(filename, "wb");
     fprintf(LOG, "Neutral fraction is %f\nNow writting xH box at %s\n", global_xH, filename);
@@ -689,7 +685,9 @@ int main(int argc, char ** argv){
 #ifdef MINI_HALO
     free(Fcollm);
 #endif
-     if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {destroy_21cmMC_arrays();} return (int) (global_xH * 100);
+#ifndef SHARP_CUTOFF
+     destroy_21cmMC_arrays();
+	 return (int) (global_xH * 100);
   }
   /*************   END CHECK TO SEE IF WE ARE STILL IN THE DARK AGES *************/
 
@@ -703,16 +701,15 @@ int main(int argc, char ** argv){
     }
 
     // and read-in
-    if(HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY){ // New in v2
+#ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
       sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%.4f_f_esc10m%.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN);
 #else
       sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_Pop%i_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, Pop, HII_DIM, BOX_LEN);
 #endif
-    }
-    else{
+#else
       sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_Mmin%.1e_zetaIon%.2f_Pop%i_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, M_MIN, HII_EFF_FACTOR, Pop, HII_DIM, BOX_LEN); 
-    }
+#endif
     if (!(F = fopen(filename, "rb"))){
       strcpy(error_message, "find_HII_bubbles.c: Unable to open x_e file at ");
       strcat(error_message, filename);
@@ -903,7 +900,9 @@ int main(int argc, char ** argv){
 #ifdef MINI_HALO
     free(Fcollm);
 #endif
-      if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {destroy_21cmMC_arrays();}
+#ifndef SHARP_CUTOFF
+    destroy_21cmMC_arrays();
+#endif
       
       return -1;
   }
@@ -1017,13 +1016,13 @@ int main(int argc, char ** argv){
       temparg =  2*(pow(sigma_z0(M_MIN), 2) - pow(sigma_z0(massofscaleR), 2) );
       erfc_denom = sqrt(temparg);
         
-      if(HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) { // New in v2
+#ifndef SHARP_CUTOFF
         initialiseGL_Nion(NGL_SFR, M_MIN, massofscaleR);
         initialise_Nion_spline(REDSHIFT, massofscaleR,M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
 #ifdef MINI_HALO
         initialise_Nion_splinem(REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,M_MINm,Mcrit_atom,F_STAR10m,Mlim_Fstarm);
 #endif
-      }
+#endif
 
       for (x=0; x<HII_DIM; x++){
         for (y=0; y<HII_DIM; y++){
@@ -1036,7 +1035,7 @@ int main(int argc, char ** argv){
             else{
               density_over_mean = 1.0 + *((float *)deltax_filtered + HII_R_FFT_INDEX(x,y,z));
               if ( (density_over_mean - 1) < Deltac){ // we are not resolving collapsed structures
-                if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) { // New in v2
+#ifndef SHARP_CUTOFF
                   // Here again, 'Splined_Fcoll' and 'f_coll' are not the collpased fraction, but leave this name as is to simplify the variable name.
                   // f_coll * ION_EFF_FACTOR = the number of IGM ionizing photon per baryon at a given overdensity.
                   // see eq. (17) in Park et al. 2018
@@ -1044,11 +1043,9 @@ int main(int argc, char ** argv){
 #ifdef MINI_HALO
                   Nion_Spline_densitym(density_over_mean - 1,&(Splined_Fcollm));
 #endif
-                }
-                else{ // we can assume the classic constant ionizing luminosity to halo mass ratio
+#else
                   erfc_num = (Deltac - (density_over_mean-1)) /  growth_factor;
                   Splined_Fcoll = splined_erfc(erfc_num/erfc_denom);
-                }          
               }
               else { // the entrire cell belongs to a collpased halo...  this is rare...
                 Splined_Fcoll =  1.0;
@@ -1322,7 +1319,7 @@ int main(int argc, char ** argv){
   // print out the xH box
   switch(FIND_BUBBLE_ALGORITHM){
     case 2:
-      if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY != 0) {
+#ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
         if (USE_HALO_FIELD)
           sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
@@ -1334,16 +1331,15 @@ int main(int argc, char ** argv){
         else
           sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
 #endif
-      }
-      else {
+#else
         if (USE_HALO_FIELD)
         sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
         else
         sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
-      }
+#endif
       break;
     default:
-      if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY != 0) {
+#ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
         if (USE_HALO_FIELD)
           sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_f_star10m%.4f_f_esc10m%.4f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, F_STAR10m, F_ESC10m, HII_FILTER, MFP, HII_DIM, BOX_LEN);
@@ -1355,13 +1351,12 @@ int main(int argc, char ** argv){
         else
           sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_Fstar%.4f_starPL%.4f_Fesc%.4f_escPL%.4f_Mturn%.2e_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, HII_FILTER, MFP, HII_DIM, BOX_LEN);
 #endif
-      }
-      else {
+#else
         if (USE_HALO_FIELD)
         sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
         else
         sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_eff%.1f_effPLindex0_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
-      }
+#endif
   }
   if (!(F = fopen(filename, "wb"))){
     fprintf(stderr, "find_HII_bubbles: ERROR: unable to open file %s for writting!\n", filename);
@@ -1401,7 +1396,9 @@ int main(int argc, char ** argv){
       fftwf_free(xe_unfiltered);
       fftwf_free(N_rec_unfiltered);
       fftwf_free(N_rec_filtered);
-      if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {destroy_21cmMC_arrays();}
+#ifndef SHARP_CUTOFF
+      destroy_21cmMC_arrays();
+#endif
       
       return 0;
 }

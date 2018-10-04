@@ -23,7 +23,6 @@ double const_zp_prefactorm;
 double growth_factor_zp, dgrowth_factor_dzp, PS_ION_EFF;
 int NO_LIGHT;
 float M_MIN_at_z, M_MIN_at_zp;
-int HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY; // New in v2
 float F_STAR10,F_ESC10,ALPHA_STAR,ALPHA_ESC,M_TURN,T_AST,Mlim_Fstar,Mlim_Fesc,M_MIN,Splined_Fcoll;// New in v2
 #ifdef MINI_HALO
 float PS_ION_EFFm,F_STAR10m,F_ESC10m,Mlim_Fstarm,Mlim_Fescm,Splined_Fcollm;//,Splined_ans; // New in v2.1
@@ -399,7 +398,7 @@ void evolveInt(float zp, float curr_delNL0[], double freq_int_heat[],
       dzpp = zpp_edge[zpp_ct-1] - zpp_edge[zpp_ct];
     }
 	//New in v2
-    if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {
+#ifndef SHARP_CUTOFF
       growth_zpp = dicke(zpp);
       // Interpolate Fcoll -------------------------------------------------------------------------------------
       if (curr_delNL0[zpp_ct]*growth_zpp < 1.5){
@@ -450,11 +449,10 @@ void evolveInt(float zp, float curr_delNL0[], double freq_int_heat[],
 #ifdef MINI_HALO
       dfcollm = ST_over_PSm[zpp_ct]*(double)fcollm*hubble(zpp)/T_AST*fabs(dtdz(zpp))*fabs(dzpp);
 #endif
-    }
-    else {
+#else
       dfcoll = dfcoll_dz(zpp, sigma_Tmin[zpp_ct], curr_delNL0[zpp_ct], sigma_atR[zpp_ct]);
       dfcoll *= ST_over_PS[zpp_ct] * dzpp; // this is now a positive quantity
-	}
+#endif
     zpp_integrand = dfcoll * (1+curr_delNL0[zpp_ct]*dicke(zpp)) * pow(1+zpp, -X_RAY_SPEC_INDEX);
 
     dxheat_dt += zpp_integrand * freq_int_heat[zpp_ct];
@@ -825,7 +823,7 @@ double tauX_integrand(double zhat, void *params){
   n = N_b0 * pow(1+zhat, 3);
   nuhat = p->nu_0 * (1+zhat);
   // New in v2
-  if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {
+#ifndef SHARP_CUTOFF
     //fcoll = FgtrM(zhat, M_MIN); // TEST
     Nion_ST_z(zhat,&(Splined_ans));
     fcoll = Splined_ans;
@@ -833,10 +831,9 @@ double tauX_integrand(double zhat, void *params){
     Nion_ST_zm(zhat,&(Splined_ansm));
     fcollm = Splined_ansm;
 #endif
-  }
-  else {
+#else
     fcoll = FgtrM(zhat, M_MIN);
-  }
+#endif
 #ifdef MINI_HALO
   if (fcoll + fcollm < 1e-20)
     HI_filling_factor_zhat = 1;
@@ -881,7 +878,7 @@ double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_fact
        // effective efficiency for the PS (not ST) mass function; quicker to compute...
        if (HI_filling_factor_zp > FRACT_FLOAT_ERR){
          // New in v2
-         if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {
+#ifndef SHARP_CUTOFF
            Nion_ST_z(zp,&(Splined_ans));
            fcoll = Splined_ans;
            //fcoll = FgtrM(zp, M_MIN);//TEST
@@ -889,10 +886,9 @@ double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_fact
            Nion_ST_zm(zp,&(Splined_ansm));
            fcollm = Splined_ansm;
 #endif
-         }
-         else {
+#else
            fcoll = FgtrM(zp, M_MIN);
-         }
+#endif
          p.ion_eff = (1.0 - HI_filling_factor_zp) / fcoll * (1.0 - x_e_ave);
          PS_ION_EFF = p.ion_eff;
 #ifdef MINI_HALO

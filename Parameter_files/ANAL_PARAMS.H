@@ -95,26 +95,34 @@
                                      \times ((1+z)/26)^-1.5
 
 ***********************************************/
-#define MINI_HALO 1             // operate as a flag, comment this line if MINI_HALO version is not required
-#ifdef MINI_HALO
-  #define N_GAMMA_UV_MINI (float) (50000) // number of ionizing photons per stellar baryon for mini halos
-  #define STELLAR_BARYON_FRAC_MINI (double) (0.01) // defined for 10^10 Msun mini halos
-  #define ESC_FRAC_MINI (double) (0.5)    // ionizing escape fraction for mini halos
-
-  #define INHOMO_FEEDBACK 1 // operate as a flag, comment this line if homogeneous feedback is adopted
-  #ifdef INHOMO_FEEDBACK 
-    // LW suppression follows ?
-    // --
-    // use Sobacchi & Mesinger 2013a; 2014 prescription for reionization
-    #define REION_SM13_M0 (double) 3e9
-    #define REION_SM13_A  (double) 0.17
-    #define REION_SM13_B  (double) -2.1
-    #define REION_SM13_C  (double) 2.0
-    #define REION_SM13_D  (double) 2.5
-  #else  // let's do homogeneous feedback
-    // use Wise+12 prescription for LW suppression
-    #define LW_WISE12_A (double) -2.356
-    #define LW_WISE12_B (double) 0.4562
+/*
+  This version still keeps support for the constant ionizing efficiency with sharp cut-off for minimum halo mass.
+  If SHARP_CUTOFF = 1, use the constant ionizing efficency parameter \zeta = N_{\gammaUV} x f_{esc} x f_{\ast}
+  with sharp cut-off at M_TURNOVER.
+  New in v2.1: Now SHARP_CUTOFF works as a flag, commit it if do not want it
+*/
+//#define SHARP_CUTOFF (int) (0)
+#ifndef SHARP_CUTOFF
+  #define MINI_HALO 1             // operate as a flag, comment this line if MINI_HALO version is not required
+  #ifdef MINI_HALO
+    #define N_GAMMA_UV_MINI (float) (50000) // number of ionizing photons per stellar baryon for mini halos
+    #define STELLAR_BARYON_FRAC_MINI (double) (0.01) // defined for 10^10 Msun mini halos
+    #define ESC_FRAC_MINI (double) (0.5)    // ionizing escape fraction for mini halos
+  
+    #define INHOMO_FEEDBACK 1 // operate as a flag, comment this line if homogeneous feedback is adopted
+    #ifdef INHOMO_FEEDBACK 
+      // LW suppression follows ?
+      // --
+      // use Sobacchi & Mesinger 2013a; 2014 prescription for reionization
+      #define REION_SM13_M0 (double) 3e9
+      #define REION_SM13_A  (double) 0.17
+      #define REION_SM13_B  (double) -2.1
+      #define REION_SM13_C  (double) 2.0
+      #define REION_SM13_D  (double) 2.5
+    #else  // let's do homogeneous feedback
+      // use Wise+12 prescription for LW suppression
+      #define LW_WISE12_A (double) -2.356
+      #define LW_WISE12_B (double) 0.4562
     #define LW_WISE12_C (double) -0.02680
     #define LW_WISE12_D (double) 5.882e-4
     #define LW_WISE12_E (double) -5.056e-6
@@ -125,6 +133,7 @@
     #endif  // end of ifndef REION_SM
   #endif  // end of ifdef INHOMO_FEEDBACK
 #endif  // end of ifdef MINI_HALO
+#endif // end of ifdef SHARP_CUTOFF
 
 /**********************************************
   RECOMBINATION PARAMETERS
@@ -153,14 +162,6 @@
 /**************************************************************************************************************/
 /**************************************************************************************************************/
 
-
-/*
-  This version still keeps support for the constant ionizing efficiency with sharp cut-off for minimum halo mass.
-  If SHARP_CUTOFF = 1, use the constant ionizing efficency parameter \zeta = N_{\gammaUV} x f_{esc} x f_{\ast}
-  with sharp cut-off at M_TURNOVER.
-  New in v2.1: Now SHARP_CUTOFF works as a flag, commit it if do not want it
-*/
-//#define SHARP_CUTOFF (int) (0)
 
 /*
   Maximum horizon for ionizing photons, in comoving Mpc.

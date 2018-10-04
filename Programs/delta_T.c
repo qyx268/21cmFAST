@@ -38,13 +38,7 @@ int main(int argc, char ** argv){
   x_pos_offset = calloc(N_RSD_STEPS,sizeof(float));
   delta_T_RSD_LOS = calloc(HII_DIM,sizeof(float));
   
-  int HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY = 0;
-
-
   /************  BEGIN INITIALIZATION ****************************/
-#ifdef SHARP_CUTOFF
-  HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY = 1;
-#endif
   max = -1e3;
   min = 1e3;
   ave = 0;

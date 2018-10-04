@@ -196,7 +196,6 @@ int main(int argc, char ** argv){
       fprintf(stderr, "Usage: Ts <REDSHIFT>  [reload zp redshift]\nAborting...\n");
       return -1;
     }
-    HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY = 0;
     X_LUMINOSITY = pow(10.,L_X);
     F_STAR10 = STELLAR_BARYON_FRAC;
     M_MIN = M_TURNOVER;
@@ -258,7 +257,6 @@ int main(int argc, char ** argv){
       fprintf(stderr, "Usage: Ts <REDSHIFT> [reload zp redshift] [<f_star10> <alpha_star> <f_esc10> <alpha_esc> <M_turn> <t_star> <X_luminosity>] \nAborting...\n");
       return -1;
     }
-    HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY = 1;
     ION_EFF_FACTOR      = N_GAMMA_UV      * F_STAR10  * F_ESC10;
     ION_EFF_FACTOR_MINI = N_GAMMA_UV_MINI * F_STAR10m * F_ESC10m;
     M_MIN = 1e16;
@@ -307,7 +305,6 @@ int main(int argc, char ** argv){
       fprintf(stderr, "Usage: Ts <REDSHIFT> [reload zp redshift] [<f_star10> <alpha_star> <f_esc10> <alpha_esc> <M_turn> <t_star> <X_luminosity>] \nAborting...\n");
       return -1;
     }
-    HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY = 1;
     ION_EFF_FACTOR = N_GAMMA_UV * F_STAR10 * F_ESC10;
     M_MIN = M_TURNOVER;
 #endif
@@ -355,16 +352,15 @@ int main(int argc, char ** argv){
  
     // open output
     // New in v2
-    if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {
+#ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
     sprintf(filename, "../Boxes/Ts_z%06.2f_L_X%.1e_alphaX%.1f_f_star%06.4f_alpha_star%06.4f_MturnX%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, M_TURN, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN); 
 #else
     sprintf(filename, "../Boxes/Ts_z%06.2f_L_X%.1e_alphaX%.1f_f_star%06.4f_alpha_star%06.4f_MturnX%.1e_t_star%06.4f_Pop%i_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, M_TURN, T_AST, Pop, HII_DIM, BOX_LEN); 
 #endif
-    }
-    else {
+#else
     sprintf(filename, "../Boxes/Ts_z%06.2f_L_X%.1e_alphaX%.1f_MminX%.1e_zetaIon%.2f_Pop%i_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, M_MIN, HII_EFF_FACTOR, Pop, HII_DIM, BOX_LEN); 
-    }
+#endif
     if (!(OUT=fopen(filename, "wb"))){
       fprintf(stderr, "Ts.c: WARNING: Unable to open output file %s\n", filename);
       fprintf(LOG, "Ts.c: WARNING: Unable to open output file %s\n", filename);
@@ -404,7 +400,7 @@ int main(int argc, char ** argv){
  
   // open global evolution output file
   // New in v2
-  if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {
+#ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
   sprintf(filename, "../Output_files/Ts_outs/global_evolution_Nsteps%i_zprimestepfactor%.3f_L_X%.1e_alphaX%.1f_f_star10%06.4f_alpha_star%06.4f_f_esc10%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", NUM_FILTER_STEPS_FOR_Ts, ZPRIME_STEP_FACTOR, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN);
 #else
@@ -414,14 +410,13 @@ int main(int argc, char ** argv){
       GLOBAL_EVOL = fopen(filename, "a");
     else
       GLOBAL_EVOL = fopen(filename, "w");
-  }
-  else {
+#else
   sprintf(filename, "../Output_files/Ts_outs/global_evolution_zetaIon%.2f_Nsteps%i_zprimestepfactor%.3f_L_X%.1e_alphaX%.1f_TvirminX%.1e_Pop%i_%i_%.0fMpc", HII_EFF_FACTOR, NUM_FILTER_STEPS_FOR_Ts, ZPRIME_STEP_FACTOR, X_LUMINOSITY, X_RAY_SPEC_INDEX, M_TURN, Pop, HII_DIM, BOX_LEN);
     if (argc > 2) // restarting
       GLOBAL_EVOL = fopen(filename, "a");
     else
       GLOBAL_EVOL = fopen(filename, "w");
-  }
+#endif
   if (!GLOBAL_EVOL){
     fprintf(stderr, "Unable to open global evolution file at %s\nAborting...\n",
         filename);
@@ -601,16 +596,15 @@ int main(int argc, char ** argv){
   }
   else{ // we need to load the evolution files from the intermediate output
     // first Tk
-    if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) { // New in v2
+#ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
     sprintf(filename, "../Boxes/Ts_evolution/Tk_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN);
 #else
     sprintf(filename, "../Boxes/Ts_evolution/Tk_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, Pop, HII_DIM, BOX_LEN);
 #endif
-    }
-    else {
+#else
     sprintf(filename, "../Boxes/Ts_evolution/Tk_zprime%06.2f_L_X%.1e_alphaX%.1f_Mmin%.1e_zetaIon%.2f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, M_MIN, HII_EFF_FACTOR, Pop, HII_DIM, BOX_LEN);
-    }
+#endif
     if (!(F=fopen(filename, "rb"))){
       fprintf(stderr, "Ts.c: WARNING: Unable to open input file %s\nAborting\n", filename);
       fprintf(LOG, "Ts.c: WARNING: Unable to open input file %s\nAborting\n", filename);
@@ -635,16 +629,16 @@ int main(int argc, char ** argv){
     }
     // then xe_neutral
     // New in v2
-    if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {
+#ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
       sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN); 
 #else
       sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, Pop, HII_DIM, BOX_LEN); 
 #endif
     }
-    else {
+#else
       sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_Mmin%.1e_zetaIon%.2f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, M_MIN, HII_EFF_FACTOR, Pop, HII_DIM, BOX_LEN);
-    }
+#endif
     if (!(F=fopen(filename, "rb"))){
       fprintf(stderr, "Ts.c: WARNING: Unable to open output file %s\nAborting\n", filename);
       fprintf(LOG, "Ts.c: WARNING: Unable to open output file %s\nAborting\n", filename);
@@ -716,7 +710,7 @@ int main(int argc, char ** argv){
   zp_ct=0;
   COMPUTE_Ts = 0;
   // New in v2
-  if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {
+#ifndef SHARP_CUTOFF
     init_21cmMC_arrays();
 
     // Find the highest and lowest redshfit to initialise interpolation of the mean number of IGM ionizing photon per baryon
@@ -807,9 +801,8 @@ int main(int argc, char ** argv){
     initialise_SFRD_Conditional_tablem(Nsteps_zp,NUM_FILTER_STEPS_FOR_Ts,redshift_interp_table,R_values, M_MIN, M_TURN, ALPHA_STAR, F_STAR10m);
     printf("\n Generated the table of SFRD using conditional mass function = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
 #endif
+#endif
     
-  }
-  
   if (RESTART == 1){
     zp = zp_temp;
     prev_zp = prev_zp_temp;
@@ -819,7 +812,7 @@ int main(int argc, char ** argv){
   while (zp > REDSHIFT){
 
     // New in v2: initialise interpolation of SFRD over zpp and overdensity.
-    if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {
+#ifndef SHARP_CUTOFF
       arr_num = NUM_FILTER_STEPS_FOR_Ts*counter; // New
       for (i=0; i<NUM_FILTER_STEPS_FOR_Ts; i++) {
         gsl_spline_init(SFRDLow_zpp_spline[i], log10_overdense_low_table, log10_SFRD_z_low_table[arr_num + i], NSFR_low);
@@ -829,14 +822,14 @@ int main(int argc, char ** argv){
         spline(Overdense_high_table-1,SFRD_z_high_tablem[arr_num + i]-1,NSFR_high,0,0,second_derivs_Nion_zppm[i]-1); 
 #endif
       }
-    }
+#endif
 
     // check if we will next compute the spin temperature (i.e. if this is the final zp step)
     if (Ts_verbose || (((1+zp) / ZPRIME_STEP_FACTOR) < (REDSHIFT+1)) )
       COMPUTE_Ts = 1;
 
     // check if we are in the really high z regime before the first stars..
-    if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) { // New in v2
+#ifndef SHARP_CUTOFF
       Nion_ST_z(zp,&(Splined_Nion_ST_zp));
 #ifdef MINI_HALO
       Nion_ST_zm(zp,&(Splined_Nion_ST_zpm));
@@ -847,25 +840,23 @@ int main(int argc, char ** argv){
         NO_LIGHT = 1;
       else
         NO_LIGHT = 0;
-    }
-    else {
+#else
       if (FgtrM(zp, M_MIN) < 1e-15 )
         NO_LIGHT = 1;
       else
         NO_LIGHT = 0;
-    }
+#endif
 
     //New in v2
-    if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {
+#ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
       filling_factor_of_HI_zp = 1 - (ION_EFF_FACTOR * Splined_Nion_ST_zp + ION_EFF_FACTOR_MINI * Splined_Nion_ST_zpm) / (1.0 - x_e_ave); // fcoll including f_esc
 #else
       filling_factor_of_HI_zp = 1 - ION_EFF_FACTOR * Splined_Nion_ST_zp / (1.0 - x_e_ave); // fcoll including f_esc
 #endif
-    }
-    else {
+#else
       filling_factor_of_HI_zp = 1 - HII_EFF_FACTOR * FgtrM_st(zp, M_MIN) / (1.0 - x_e_ave);
-    }
+#endif
 
     if (filling_factor_of_HI_zp > 1) filling_factor_of_HI_zp=1;
     if (filling_factor_of_HI_zp < 0) filling_factor_of_HI_zp=0;
@@ -905,7 +896,7 @@ int main(int argc, char ** argv){
       for (box_ct=0; box_ct<HII_TOT_NUM_PIXELS; box_ct+=(HII_TOT_NUM_PIXELS/1e5+1)){
         sample_ct++;
         // New in v2
-        if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {
+#ifndef SHARP_CUTOFF
           growth_zpp = dicke(zpp);
           //---------- interpolation for fcoll starts ----------
           // Here 'fcoll' is not the collpased fraction, but leave this name as is to simplify the variable name.
@@ -952,29 +943,26 @@ int main(int argc, char ** argv){
 #ifdef MINI_HALO
           fcoll_Rm += Splined_Fcollm;
 #endif
-        } 
-        else {
           fcoll_R += sigmaparam_FgtrM_bias(zpp, sigma_Tmin[R_ct], 
                          delNL0[R_ct][box_ct], sigma_atR[R_ct]);
-        }
+#endif
       }
 
       fcoll_R /= (double) sample_ct;
 
-      if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {// New in v2
+#ifndef SHARP_CUTOFF
         SFRD_ST_z(zpp,&(Splined_SFRD_ST_zpp));
         ST_over_PS[R_ct] = Splined_SFRD_ST_zpp / fcoll_R; 
 #ifdef MINI_HALO
         SFRD_ST_zm(zpp,&(Splined_SFRD_ST_zppm));
         ST_over_PSm[R_ct] = Splined_SFRD_ST_zppm / fcoll_Rm; 
 #endif
-      }
-      else {
+#else
         ST_over_PS[R_ct] = FgtrM_st(zpp, M_MIN) / fcoll_R;
-      }
+#endif
 
       if (DEBUG_ON){
-        if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {
+#ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
       printf("ST/PS=%g(atomic:%g, molecular:%g), mean_ST=%g(atomic:%g, molecular:%g), mean_ps=%g\n, ratios of mean=%g(atomic:%g, molecular:%g)\n", 
          ST_over_PS[R_ct]+ST_over_PSm[R_ct],ST_over_PS[R_ct],ST_over_PSm[R_ct], 
@@ -989,15 +977,12 @@ int main(int argc, char ** argv){
          Splined_SFRD_ST_zpp/FgtrM(zpp, M_MIN)
          );
 #endif
-        }
-
-        else {
+#else
       printf("ST/PS=%g, mean_ST=%g, mean_ps=%g\n, ratios of mean=%g\n", ST_over_PS[R_ct], 
          FgtrM_st(zpp, M_MIN), 
          FgtrM(zpp, M_MIN),
          FgtrM_st(zpp, M_MIN)/FgtrM(zpp, M_MIN)
          );
-        }
       }
 
       lower_int_limit = FMAX(nu_tau_one(zp, zpp, x_e_ave, filling_factor_of_HI_zp), NU_X_THRESH);
@@ -1260,16 +1245,15 @@ int main(int argc, char ** argv){
 
       // first Tk
         // New v2
-      if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {
+#ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
       sprintf(filename, "../Boxes/Ts_evolution/Tk_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN);
 #else
       sprintf(filename, "../Boxes/Ts_evolution/Tk_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, Pop, HII_DIM, BOX_LEN);
 #endif
-      }
-      else {
+#else
       sprintf(filename, "../Boxes/Ts_evolution/Tk_zprime%06.2f_L_X%.1e_alphaX%.1f_Mmin%.1e_zetaIon%.2f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, M_MIN, HII_EFF_FACTOR, Pop, HII_DIM, BOX_LEN);
-      }
+#endif
       if (!(F=fopen(filename, "wb"))){
     fprintf(stderr, "Ts.c: WARNING: Unable to open output file %s\n", filename);
     fprintf(LOG, "Ts.c: WARNING: Unable to open output file %s\n", filename);
@@ -1283,16 +1267,15 @@ int main(int argc, char ** argv){
       }
       // then xe_neutral
         // New in v2
-      if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {
+#ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
       sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN);
 #else
       sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, Pop, HII_DIM, BOX_LEN);
 #endif
-      }
-      else {
+#else
       sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_Mmin%.1e_zetaIon%.2f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, M_MIN, HII_EFF_FACTOR, Pop, HII_DIM, BOX_LEN);
-      }
+#endif
       if (!(F=fopen(filename, "wb"))){
     fprintf(stderr, "Ts.c: WARNING: Unable to open output file %s\n", filename);
     fprintf(LOG, "Ts.c: WARNING: Unable to open output file %s\n", filename);
@@ -1309,16 +1292,15 @@ int main(int argc, char ** argv){
     // and the spin temperature if desired
   if ( COMPUTE_Ts ){
     // New in v2
-    if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY != 0) {
+#ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
     sprintf(filename, "../Boxes/Ts_z%06.2f_L_X%.1e_alphaX%.1f_f_star%06.4f_alpha_star%06.4f_f_esc%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN); 
 #else
     sprintf(filename, "../Boxes/Ts_z%06.2f_L_X%.1e_alphaX%.1f_f_star%06.4f_alpha_star%06.4f_f_esc%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, Pop, HII_DIM, BOX_LEN); 
 #endif
-    }
-    else {
+#else
     sprintf(filename, "../Boxes/Ts_z%06.2f_L_X%.1e_alphaX%.1f_TvirminX%.1e_zetaIon%.2f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, M_TURN, HII_EFF_FACTOR, Pop, HII_DIM, BOX_LEN); 
-    }
+#endif
       if (!(F=fopen(filename, "wb"))){
     fprintf(stderr, "Ts.c: WARNING: Unable to open output file %s\n", filename);
     fprintf(LOG, "Ts.c: WARNING: Unable to open output file %s\n", filename);
@@ -1342,10 +1324,10 @@ int main(int argc, char ** argv){
 
   //deallocate
   fclose(LOG); fclose(GLOBAL_EVOL); free(Tk_box); free(x_e_box); free(Ts);
-  if (HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY) {
-      destroy_21cmMC_arrays();
-    free_interpolation();
-  }
+#ifndef SHARP_CUTOFF
+   destroy_21cmMC_arrays();
+   free_interpolation();
+#endif
   for (R_ct=0; R_ct<NUM_FILTER_STEPS_FOR_Ts; R_ct++){
     free(delNL0[R_ct]);
   }
