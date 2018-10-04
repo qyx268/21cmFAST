@@ -140,7 +140,7 @@ for path in args.input:
     # check if it is a 21cm brightness temperature box
     if basename(filename)[0:3]=='del':
         if args.min > 1e4:
-            minrange = -140
+            minrange = -120
         if args.max < -1e4:
             maxrange = 20
         cmap = LinearSegmentedColormap.from_list('mycmap', ['yellow','red','black','green','blue'])
@@ -153,7 +153,7 @@ for path in args.input:
         c_dens.set_clim(vmin=minrange,vmax=maxrange)
         c_bar = fig.colorbar(c_dens, orientation='vertical')
         c_bar.set_label(r'${\rm \delta T_b [\mathrm{mK}]}$', fontsize=24, rotation=-90, labelpad=32)
-        tick_array = np.linspace(minrange, maxrange, 9)
+        tick_array = np.linspace(minrange, maxrange, 8)
 
     # check if it is a neutral fraction box
     elif basename(filename)[0:3]=='xH_':
