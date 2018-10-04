@@ -63,10 +63,20 @@ FILE *LOG;
 unsigned long long SAMPLING_INTERVAL = (((unsigned long long)(HII_TOT_NUM_PIXELS/1.0e6)) + 1); //used to sample density field to compute mean collapsed fraction
 
 int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, float * F_STAR10, 
-                    float * ALPHA_STAR, float * F_ESC10, float * ALPHA_ESC, float * M_TURN, float * T_AST, double * X_LUMINOSITY,
 #ifdef MINI_HALO
+#ifdef INHOMO_FEEDBACK
+                    float * ALPHA_STAR, float * F_ESC10, float * ALPHA_ESC, float * T_AST, double * X_LUMINOSITY,
+#else
+#ifdef REION_SM
+                    float * ALPHA_STAR, float * F_ESC10, float * ALPHA_ESC, float * T_AST, double * X_LUMINOSITY,
+#else
+                    float * ALPHA_STAR, float * F_ESC10, float * ALPHA_ESC, float * M_TURN, float * T_AST, double * X_LUMINOSITY,
+#endif //REION_SM
+#endif //INHOMO_FEEDBACK
                     float * F_STAR10m, float * F_ESC10m, double * X_LUMINOSITYm,
-#endif
+#else
+                    float * ALPHA_STAR, float * F_ESC10, float * ALPHA_ESC, float * M_TURN, float * T_AST, double * X_LUMINOSITY,
+#endif //MINI_HALO
                     float * MFP, float * REDSHIFT, float * PREV_REDSHIFT){
 
   int min_argc = 2;
@@ -102,6 +112,56 @@ int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, floa
   else {
     if (USE_TS_IN_21CM) {
 #ifdef MINI_HALO
+#ifdef INHOMO_FEEDBACK
+      if (argc == (*arg_offset + min_argc+9)){
+        *F_STAR10 = atof(argv[*arg_offset + min_argc]);
+        *ALPHA_STAR = atof(argv[*arg_offset + min_argc+1]);
+        *F_ESC10 = atof(argv[*arg_offset + min_argc+2]);
+        *ALPHA_ESC = atof(argv[*arg_offset + min_argc+3]);
+        *T_AST = atof(argv[*arg_offset + min_argc+4]);
+        *X_LUMINOSITY = pow(10.,atof(argv[*arg_offset + min_argc+5]));
+        *F_STAR10m = atof(argv[*arg_offset + min_argc+6]);
+        *F_ESC10m = atof(argv[*arg_offset + min_argc+7]);
+        *X_LUMINOSITYm = pow(10.,atof(argv[*arg_offset + min_argc+8]));
+      }
+      else if (argc == (*arg_offset + min_argc)){ //These parameters give the result which is the same with the default model.
+        *F_STAR10 = STELLAR_BARYON_FRAC;       
+        *ALPHA_STAR = STELLAR_BARYON_PL;
+        *F_ESC10 = ESC_FRAC;
+        *ALPHA_ESC = ESC_PL;
+        *T_AST = t_STAR;
+        *X_LUMINOSITY = pow(10.,L_X);
+        *F_STAR10m = STELLAR_BARYON_FRAC_MINI;
+        *F_ESC10m = ESC_FRAC_MINI;
+        *X_LUMINOSITYm = pow(10.,L_X_MINI);
+      }
+      else{ return 0;} // format is not allowed
+#else
+#ifdef REION_SM
+      if (argc == (*arg_offset + min_argc+9)){
+        *F_STAR10 = atof(argv[*arg_offset + min_argc]);
+        *ALPHA_STAR = atof(argv[*arg_offset + min_argc+1]);
+        *F_ESC10 = atof(argv[*arg_offset + min_argc+2]);
+        *ALPHA_ESC = atof(argv[*arg_offset + min_argc+3]);
+        *T_AST = atof(argv[*arg_offset + min_argc+4]);
+        *X_LUMINOSITY = pow(10.,atof(argv[*arg_offset + min_argc+5]));
+        *F_STAR10m = atof(argv[*arg_offset + min_argc+6]);
+        *F_ESC10m = atof(argv[*arg_offset + min_argc+7]);
+        *X_LUMINOSITYm = pow(10.,atof(argv[*arg_offset + min_argc+8]));
+      }
+      else if (argc == (*arg_offset + min_argc)){ //These parameters give the result which is the same with the default model.
+        *F_STAR10 = STELLAR_BARYON_FRAC;       
+        *ALPHA_STAR = STELLAR_BARYON_PL;
+        *F_ESC10 = ESC_FRAC;
+        *ALPHA_ESC = ESC_PL;
+        *T_AST = t_STAR;
+        *X_LUMINOSITY = pow(10.,L_X);
+        *F_STAR10m = STELLAR_BARYON_FRAC_MINI;
+        *F_ESC10m = ESC_FRAC_MINI;
+        *X_LUMINOSITYm = pow(10.,L_X_MINI);
+      }
+      else{ return 0;} // format is not allowed
+#else
       if (argc == (*arg_offset + min_argc+10)){
         *F_STAR10 = atof(argv[*arg_offset + min_argc]);
         *ALPHA_STAR = atof(argv[*arg_offset + min_argc+1]);
@@ -127,6 +187,8 @@ int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, floa
         *X_LUMINOSITYm = pow(10.,L_X_MINI);
       }
       else{ return 0;} // format is not allowed
+#endif //REION_SM
+#endif //INHOMO_FEEDBACK
 #else
       if (argc == (*arg_offset + min_argc+7)){
         *F_STAR10 = atof(argv[*arg_offset + min_argc]);
@@ -147,10 +209,60 @@ int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, floa
         *X_LUMINOSITY = pow(10.,L_X);
       }
       else{ return 0;} // format is not allowed
-#endif
+#endif //MINI_HALO
     }
     else {
 #ifdef MINI_HALO
+#ifdef INHOMO_FEEDBACK
+      if (argc == (*arg_offset + min_argc+6)){
+        *F_STAR10 = atof(argv[*arg_offset + min_argc]);
+        *ALPHA_STAR = atof(argv[*arg_offset + min_argc+1]);
+        *F_ESC10 = atof(argv[*arg_offset + min_argc+2]);
+        *ALPHA_ESC = atof(argv[*arg_offset + min_argc+3]);
+        *T_AST = t_STAR;
+        *X_LUMINOSITY = 0;
+        *F_STAR10m = atof(argv[*arg_offset + min_argc+4]);
+        *F_ESC10m = atof(argv[*arg_offset + min_argc+5]);
+        *X_LUMINOSITYm = 0;
+      }
+      else if (argc == (*arg_offset + min_argc)){ //These parameters give the result which is the same with the default model.
+        *F_STAR10 = STELLAR_BARYON_FRAC;        
+        *ALPHA_STAR = STELLAR_BARYON_PL;
+        *F_ESC10 = ESC_FRAC;
+        *ALPHA_ESC = ESC_PL;
+        *T_AST = t_STAR;
+        *X_LUMINOSITY = 0;
+        *F_STAR10m = STELLAR_BARYON_FRAC_MINI;
+        *F_ESC10m = ESC_FRAC_MINI;
+        *X_LUMINOSITYm = 0;
+      }
+      else{ return 0;} // format is not allowed
+#else
+#ifdef REION_SM
+      if (argc == (*arg_offset + min_argc+6)){
+        *F_STAR10 = atof(argv[*arg_offset + min_argc]);
+        *ALPHA_STAR = atof(argv[*arg_offset + min_argc+1]);
+        *F_ESC10 = atof(argv[*arg_offset + min_argc+2]);
+        *ALPHA_ESC = atof(argv[*arg_offset + min_argc+3]);
+        *T_AST = t_STAR;
+        *X_LUMINOSITY = 0;
+        *F_STAR10m = atof(argv[*arg_offset + min_argc+4]);
+        *F_ESC10m = atof(argv[*arg_offset + min_argc+5]);
+        *X_LUMINOSITYm = 0;
+      }
+      else if (argc == (*arg_offset + min_argc)){ //These parameters give the result which is the same with the default model.
+        *F_STAR10 = STELLAR_BARYON_FRAC;        
+        *ALPHA_STAR = STELLAR_BARYON_PL;
+        *F_ESC10 = ESC_FRAC;
+        *ALPHA_ESC = ESC_PL;
+        *T_AST = t_STAR;
+        *X_LUMINOSITY = 0;
+        *F_STAR10m = STELLAR_BARYON_FRAC_MINI;
+        *F_ESC10m = ESC_FRAC_MINI;
+        *X_LUMINOSITYm = 0;
+      }
+      else{ return 0;} // format is not allowed
+#else
       if (argc == (*arg_offset + min_argc+7)){
         *F_STAR10 = atof(argv[*arg_offset + min_argc]);
         *ALPHA_STAR = atof(argv[*arg_offset + min_argc+1]);
@@ -176,6 +288,8 @@ int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, floa
         *X_LUMINOSITYm = 0;
       }
       else{ return 0;} // format is not allowed
+#endif //REION_SM
+#endif //INHOMO_FEEDBACK
 #else
       if (argc == (*arg_offset + min_argc+5)){
         *F_STAR10 = atof(argv[*arg_offset + min_argc]);
@@ -196,7 +310,7 @@ int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, floa
         *X_LUMINOSITY = 0;
       }
       else{ return 0;} // format is not allowed
-#endif
+#endif //MINI_HALO
     }
     *MFP = R_BUBBLE_MAX;
   } 
@@ -213,12 +327,26 @@ int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, floa
     *PREV_REDSHIFT = *REDSHIFT+0.2; // dummy variable which is not used
 
 #ifdef MINI_HALO
+#ifdef INHOMO_FEEDBACK
+   fprintf(stderr, "MINI_HALO (ON) INHOMO_FEEDBACK (ON)");
+   fprintf(stderr, "find_HII_bubbles: command line parameters are as follows\nnum threads=%i, f_star10=%g, alpha_star=%g, f_esc10=%g, alpha_esc=%g, t_star=%g, L_X=%g, f_star10m=%g, f_esc10m=%g, L_Xm=%g, z=%g, prev z=%g\n",
+      *num_th, *F_STAR10, *ALPHA_STAR, *F_ESC10, *ALPHA_ESC, *T_AST, *X_LUMINOSITY, *F_STAR10m, *F_ESC10m, *X_LUMINOSITYm, *REDSHIFT, *PREV_REDSHIFT);
+#else
+#ifdef REION_SM
+   fprintf(stderr, "MINI_HALO (ON) INHOMO_FEEDBACK (OFF) REION_SM (ON)");
+   fprintf(stderr, "find_HII_bubbles: command line parameters are as follows\nnum threads=%i, f_star10=%g, alpha_star=%g, f_esc10=%g, alpha_esc=%g, t_star=%g, L_X=%g, f_star10m=%g, f_esc10m=%g, L_Xm=%g, z=%g, prev z=%g\n",
+      *num_th, *F_STAR10, *ALPHA_STAR, *F_ESC10, *ALPHA_ESC, *T_AST, *X_LUMINOSITY, *F_STAR10m, *F_ESC10m, *X_LUMINOSITYm, *REDSHIFT, *PREV_REDSHIFT);
+#else
+   fprintf(stderr, "MINI_HALO (ON) INHOMO_FEEDBACK (off) REION_SM (OFF)");
    fprintf(stderr, "find_HII_bubbles: command line parameters are as follows\nnum threads=%i, f_star10=%g, alpha_star=%g, f_esc10=%g, alpha_esc=%g, Mturn=%g, t_star=%g, L_X=%g, f_star10m=%g, f_esc10m=%g, L_Xm=%g, z=%g, prev z=%g\n",
       *num_th, *F_STAR10, *ALPHA_STAR, *F_ESC10, *ALPHA_ESC, *M_TURN, *T_AST, *X_LUMINOSITY, *F_STAR10m, *F_ESC10m, *X_LUMINOSITYm, *REDSHIFT, *PREV_REDSHIFT);
+#endif //REION_SM
+#endif //INHOMO_FEEDBACK
 #else
+   fprintf(stderr, "MINI_HALO (OFF)");
    fprintf(stderr, "find_HII_bubbles: command line parameters are as follows\nnum threads=%i, f_star10=%g, alpha_star=%g, f_esc10=%g, alpha_esc=%g, Mturn=%g, t_star=%g, L_X=%g, z=%g, prev z=%g\n",
       *num_th, *F_STAR10, *ALPHA_STAR, *F_ESC10, *ALPHA_ESC, *M_TURN, *T_AST, *X_LUMINOSITY, *REDSHIFT, *PREV_REDSHIFT);
-#endif
+#endif //MINI_HALO
 
   return 1;
 }
@@ -268,13 +396,8 @@ int main(int argc, char ** argv){
 
   // PARSE COMMAND LINE ARGUMENTS
   if(SHARP_CUTOFF){
-#ifdef MINI_HALO
-    if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
-               &ALPHA_ESC, &M_TURN, &T_AST, &X_LUMINOSITY, &F_STAR10m, &F_ESC10m, &X_LUMINOSITYm, &MFP, &REDSHIFT, &PREV_REDSHIFT))
-#else
     if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
                &ALPHA_ESC, &M_TURN, &T_AST, &X_LUMINOSITY, &MFP, &REDSHIFT, &PREV_REDSHIFT))
-#endif
     {
         fprintf(stderr, "find_HII_bubbles <redshift> [<previous redshift>] \n \
             Aborting...\n                               \
@@ -980,7 +1103,7 @@ int main(int argc, char ** argv){
 #else
           if ( (f_coll*ION_EFF_FACTOR > xHI_from_xrays*(1.0+rec)) )
 #endif
-		  {
+          {
         
             // if this is the first crossing of the ionization barrier for this cell (largest R), record the gamma
             // this assumes photon-starved growth of HII regions...  breaks down post EoR
