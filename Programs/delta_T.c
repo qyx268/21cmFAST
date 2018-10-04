@@ -42,7 +42,9 @@ int main(int argc, char ** argv){
 
 
   /************  BEGIN INITIALIZATION ****************************/
-  if (SHARP_CUTOFF) HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY = 1;
+#ifdef SHARP_CUTOFF
+  HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY = 1;
+#endif
   max = -1e3;
   min = 1e3;
   ave = 0;

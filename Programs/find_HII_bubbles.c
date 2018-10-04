@@ -63,6 +63,7 @@ FILE *LOG;
 unsigned long long SAMPLING_INTERVAL = (((unsigned long long)(HII_TOT_NUM_PIXELS/1.0e6)) + 1); //used to sample density field to compute mean collapsed fraction
 
 int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, float * F_STAR10, 
+#ifdef SHARP_CUTOFF
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
                     float * ALPHA_STAR, float * F_ESC10, float * ALPHA_ESC, float * T_AST, double * X_LUMINOSITY,
@@ -77,6 +78,9 @@ int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, floa
 #else
                     float * ALPHA_STAR, float * F_ESC10, float * ALPHA_ESC, float * M_TURN, float * T_AST, double * X_LUMINOSITY,
 #endif //MINI_HALO
+#else
+                    float * ALPHA_STAR, float * F_ESC10, float * ALPHA_ESC, float * M_TURN, float * T_AST, double * X_LUMINOSITY,
+#endif //SHARP_CUTOFF
                     float * MFP, float * REDSHIFT, float * PREV_REDSHIFT){
 
   int min_argc = 2;
@@ -96,7 +100,7 @@ int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, floa
   }
 
   // parse the remaining arguments
-  if (SHARP_CUTOFF) {
+#ifdef SHARP_CUTOFF
     if (argc == (*arg_offset + min_argc)){
       *MFP = R_BUBBLE_MAX;
       *F_STAR10 = STELLAR_BARYON_FRAC;     
@@ -108,8 +112,7 @@ int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, floa
       *X_LUMINOSITY = 0;
     }
     else{ return 0;} // format is not allowed
-  } 
-  else {
+#else
     if (USE_TS_IN_21CM) {
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
@@ -313,7 +316,7 @@ int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, floa
 #endif //MINI_HALO
     }
     *MFP = R_BUBBLE_MAX;
-  } 
+#endif // SHARP_CUTOFF 
 
   *REDSHIFT = atof(argv[*arg_offset+1]);
   if (INHOMO_RECO){
@@ -326,27 +329,33 @@ int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, floa
   else
     *PREV_REDSHIFT = *REDSHIFT+0.2; // dummy variable which is not used
 
+#ifdef SHARP_CUTOFF
+   fprintf(stderr, "SHARP_CUTOFF (ON)");
+   fprintf(stderr, "find_HII_bubbles: command line parameters are as follows\nnum threads=%i, f_star10=%g, alpha_star=%g, f_esc10=%g, alpha_esc=%g, Mturn=%g, t_star=%g, L_X=%g, z=%g, prev z=%g\n",
+      *num_th, *F_STAR10, *ALPHA_STAR, *F_ESC10, *ALPHA_ESC, *M_TURN, *T_AST, *X_LUMINOSITY, *REDSHIFT, *PREV_REDSHIFT);
+#else
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-   fprintf(stderr, "MINI_HALO (ON) INHOMO_FEEDBACK (ON)");
+   fprintf(stderr, "SHARP_CUTOFF (OFF) MINI_HALO (ON) INHOMO_FEEDBACK (ON)");
    fprintf(stderr, "find_HII_bubbles: command line parameters are as follows\nnum threads=%i, f_star10=%g, alpha_star=%g, f_esc10=%g, alpha_esc=%g, t_star=%g, L_X=%g, f_star10m=%g, f_esc10m=%g, L_Xm=%g, z=%g, prev z=%g\n",
       *num_th, *F_STAR10, *ALPHA_STAR, *F_ESC10, *ALPHA_ESC, *T_AST, *X_LUMINOSITY, *F_STAR10m, *F_ESC10m, *X_LUMINOSITYm, *REDSHIFT, *PREV_REDSHIFT);
 #else
 #ifdef REION_SM
-   fprintf(stderr, "MINI_HALO (ON) INHOMO_FEEDBACK (OFF) REION_SM (ON)");
+   fprintf(stderr, "SHARP_CUTOFF (OFF) MINI_HALO (ON) INHOMO_FEEDBACK (OFF) REION_SM (ON)");
    fprintf(stderr, "find_HII_bubbles: command line parameters are as follows\nnum threads=%i, f_star10=%g, alpha_star=%g, f_esc10=%g, alpha_esc=%g, t_star=%g, L_X=%g, f_star10m=%g, f_esc10m=%g, L_Xm=%g, z=%g, prev z=%g\n",
       *num_th, *F_STAR10, *ALPHA_STAR, *F_ESC10, *ALPHA_ESC, *T_AST, *X_LUMINOSITY, *F_STAR10m, *F_ESC10m, *X_LUMINOSITYm, *REDSHIFT, *PREV_REDSHIFT);
 #else
-   fprintf(stderr, "MINI_HALO (ON) INHOMO_FEEDBACK (off) REION_SM (OFF)");
+   fprintf(stderr, "SHARP_CUTOFF (OFF) MINI_HALO (ON) INHOMO_FEEDBACK (off) REION_SM (OFF)");
    fprintf(stderr, "find_HII_bubbles: command line parameters are as follows\nnum threads=%i, f_star10=%g, alpha_star=%g, f_esc10=%g, alpha_esc=%g, Mturn=%g, t_star=%g, L_X=%g, f_star10m=%g, f_esc10m=%g, L_Xm=%g, z=%g, prev z=%g\n",
       *num_th, *F_STAR10, *ALPHA_STAR, *F_ESC10, *ALPHA_ESC, *M_TURN, *T_AST, *X_LUMINOSITY, *F_STAR10m, *F_ESC10m, *X_LUMINOSITYm, *REDSHIFT, *PREV_REDSHIFT);
 #endif //REION_SM
 #endif //INHOMO_FEEDBACK
 #else
-   fprintf(stderr, "MINI_HALO (OFF)");
+   fprintf(stderr, "SHARP_CUTOFF (OFF) MINI_HALO (OFF)");
    fprintf(stderr, "find_HII_bubbles: command line parameters are as follows\nnum threads=%i, f_star10=%g, alpha_star=%g, f_esc10=%g, alpha_esc=%g, Mturn=%g, t_star=%g, L_X=%g, z=%g, prev z=%g\n",
       *num_th, *F_STAR10, *ALPHA_STAR, *F_ESC10, *ALPHA_ESC, *M_TURN, *T_AST, *X_LUMINOSITY, *REDSHIFT, *PREV_REDSHIFT);
 #endif //MINI_HALO
+#endif //SHARP_CUTOFF
 
   return 1;
 }
@@ -395,7 +404,7 @@ int main(int argc, char ** argv){
   /*************************************************************************************/  
 
   // PARSE COMMAND LINE ARGUMENTS
-  if(SHARP_CUTOFF){
+#ifdef SHARP_CUTOFF
     if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
                &ALPHA_ESC, &M_TURN, &T_AST, &X_LUMINOSITY, &MFP, &REDSHIFT, &PREV_REDSHIFT))
     {
@@ -404,8 +413,7 @@ int main(int argc, char ** argv){
         Check that your inclusion (or not) of [<previous redshift>] is consistent with the INHOMO_RECO flag in ../Parameter_files/ANAL_PARAMS.H\nAborting...\n");
         return -1;
     }
-  }
-  else {
+#else
     HALO_MASS_DEPENDENT_IONIZING_EFFICIENCY = 1;
 #ifdef MINI_HALO
     if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
@@ -428,7 +436,7 @@ int main(int argc, char ** argv){
         return -1;
     }
 #endif
-  }
+#endif
 
 
   ZSTEP = PREV_REDSHIFT - REDSHIFT;

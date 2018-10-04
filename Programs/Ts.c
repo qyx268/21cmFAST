@@ -187,7 +187,7 @@ int main(int argc, char ** argv){
  
   /**********  BEGIN INITIALIZATION   **************************************/
   //New in v2
-  if (SHARP_CUTOFF) {
+#ifdef SHARP_CUTOFF
     if (argc == 3){
       RESTART = 1;
       zp = atof(argv[2]);
@@ -200,8 +200,7 @@ int main(int argc, char ** argv){
     X_LUMINOSITY = pow(10.,L_X);
     F_STAR10 = STELLAR_BARYON_FRAC;
     M_MIN = M_TURNOVER;
-  }
-  else {
+#else
 #ifdef MINI_HALO
     if (argc  == 13) {
       RESTART = 1;
@@ -312,7 +311,7 @@ int main(int argc, char ** argv){
     ION_EFF_FACTOR = N_GAMMA_UV * F_STAR10 * F_ESC10;
     M_MIN = M_TURNOVER;
 #endif
-  }
+#endif
   REDSHIFT = atof(argv[1]);
   system("mkdir ../Log_files");
   system("mkdir ../Output_files");
@@ -892,7 +891,9 @@ int main(int argc, char ** argv){
       zpp_edge[R_ct] = prev_zpp - (R_values[R_ct] - prev_R)*CMperMPC / drdz(prev_zpp); // cell size
       zpp = (zpp_edge[R_ct]+prev_zpp)*0.5; // average redshift value of shell: z'' + 0.5 * dz''
       if (zpp - redshift_interp_table[arr_num+R_ct] > 1e-3) printf("zpp = %.4f, zpp_array = %.4f\n", zpp, redshift_interp_table[arr_num+R_ct]);
-      if(SHARP_CUTOFF) sigma_Tmin[R_ct] =  sigma_z0(M_MIN); // In v2 sigma_Tmin doesn't nedd to be an array, just a constant.
+#ifdef SHARP_CUTOFF 
+	  sigma_Tmin[R_ct] =  sigma_z0(M_MIN); // In v2 sigma_Tmin doesn't nedd to be an array, just a constant.
+#endif
 
       // let's now normalize the total collapse fraction so that the mean is the
       // Sheth-Torman collapse fraction

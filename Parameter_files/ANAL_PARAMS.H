@@ -158,8 +158,9 @@
   This version still keeps support for the constant ionizing efficiency with sharp cut-off for minimum halo mass.
   If SHARP_CUTOFF = 1, use the constant ionizing efficency parameter \zeta = N_{\gammaUV} x f_{esc} x f_{\ast}
   with sharp cut-off at M_TURNOVER.
+  New in v2.1: Now SHARP_CUTOFF works as a flag, commit it if do not want it
 */
-#define SHARP_CUTOFF (int) (0)
+//#define SHARP_CUTOFF (int) (0)
 
 /*
   Maximum horizon for ionizing photons, in comoving Mpc.
