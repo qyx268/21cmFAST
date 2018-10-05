@@ -111,12 +111,14 @@ int main (int argc, char ** argv){
 #else //USE_HALO_FIELD
     sprintf(filename, "../Output_files/Size_distributions/neutral_no_halos_nf%f_z%06.2f_%i_%.0fMpc", nf, REDSHIFT, HII_DIM, BOX_LEN);
 #endif //USE_HALO_FIELD
+  }
   else{
 #ifdef USE_HALO_FIELD
     sprintf(filename, "../Output_files/Size_distributions/ionized_nf%f_z%06.2f_%i_%.0fMpc", nf, REDSHIFT, HII_DIM, BOX_LEN);
 #else //USE_HALO_FIELD
     sprintf(filename, "../Output_files/Size_distributions/ionized_no_halos_nf%f_z%06.2f_%i_%.0fMpc", nf, REDSHIFT, HII_DIM, BOX_LEN);
 #endif //USE_HALO_FIELD
+  }
   F=fopen(filename, "w");
   if (!F){
     fprintf(stderr, "gen_size_distr: Error opening output file\nAborting...\n");

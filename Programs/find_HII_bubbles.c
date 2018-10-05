@@ -559,7 +559,7 @@ int main(int argc, char ** argv){
   for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++){    xH[ct] = 1;  }
 
   // If inhomogeneous feedback is OFF
-#ifndef INHOMO_FEEDBACK
+//#ifndef INHOMO_FEEDBACK
   // compute the mean collpased fraction at this redshift
 #ifndef SHARP_CUTOFF
   // Here 'mean_f_coll_st' is not the mean collpased fraction, but leave this name as is to simplify the variable name.
@@ -1075,75 +1075,72 @@ int main(int argc, char ** argv){
     f_collm = 0.0;
 #endif
     massofscaleR = RtoM(R);
-    if (!USE_HALO_FIELD){
-      fprintf(LOG, "begin f_coll normalization, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
-      fflush(LOG);
-      temparg =  2*(pow(sigma_z0(M_MIN), 2) - pow(sigma_z0(massofscaleR), 2) );
-      erfc_denom = sqrt(temparg);
+#ifndef USE_HALO_FIELD
+    fprintf(LOG, "begin f_coll normalization, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
+    fflush(LOG);
+    temparg =  2*(pow(sigma_z0(M_MIN), 2) - pow(sigma_z0(massofscaleR), 2) );
+    erfc_denom = sqrt(temparg);
         
 #ifndef SHARP_CUTOFF
-      initialiseGL_Nion(NGL_SFR, M_MIN, massofscaleR);
-      initialise_Nion_spline(REDSHIFT, massofscaleR,M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
+    initialiseGL_Nion(NGL_SFR, M_MIN, massofscaleR);
+    initialise_Nion_spline(REDSHIFT, massofscaleR,M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
 #ifdef MINI_HALO
-      initialise_Nion_splinem(REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,M_MINm,Mcrit_atom,F_STAR10m,Mlim_Fstarm);
-#endif
-#endif
+    initialise_Nion_splinem(REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,M_MINm,Mcrit_atom,F_STAR10m,Mlim_Fstarm);
+#endif //SHARP_CUTOFF
+#endif //MINI_HALO
+#endif //USE_HALO_FIELD
 
-      for (x=0; x<HII_DIM; x++){
-        for (y=0; y<HII_DIM; y++){
-          for (z=0; z<HII_DIM; z++){
-            if (USE_HALO_FIELD){
-              Splined_Fcoll = *((float *)M_coll_filtered + HII_R_FFT_INDEX(x,y,z)) / (massofscaleR*density_over_mean);
-              Splined_Fcoll *= (4/3.0)*PI*pow(R,3) / pixel_volume;
-            }
-          
-            else{
-              density_over_mean = 1.0 + *((float *)deltax_filtered + HII_R_FFT_INDEX(x,y,z));
-              if ( (density_over_mean - 1) < Deltac){ // we are not resolving collapsed structures
+    for (x=0; x<HII_DIM; x++){
+      for (y=0; y<HII_DIM; y++){
+        for (z=0; z<HII_DIM; z++){
+#ifdef USE_HALO_FIELD
+          Splined_Fcoll = *((float *)M_coll_filtered + HII_R_FFT_INDEX(x,y,z)) / (massofscaleR*density_over_mean);
+          Splined_Fcoll *= (4/3.0)*PI*pow(R,3) / pixel_volume;
+#else //USE_HALO_FIELD
+          density_over_mean = 1.0 + *((float *)deltax_filtered + HII_R_FFT_INDEX(x,y,z));
+          if ( (density_over_mean - 1) < Deltac){ // we are not resolving collapsed structures
 #ifndef SHARP_CUTOFF
-                // Here again, 'Splined_Fcoll' and 'f_coll' are not the collpased fraction, but leave this name as is to simplify the variable name.
-                // f_coll * ION_EFF_FACTOR = the number of IGM ionizing photon per baryon at a given overdensity.
-                // see eq. (17) in Park et al. 2018
-                Nion_Spline_density(density_over_mean - 1,&(Splined_Fcoll));
+            // Here again, 'Splined_Fcoll' and 'f_coll' are not the collpased fraction, but leave this name as is to simplify the variable name.
+            // f_coll * ION_EFF_FACTOR = the number of IGM ionizing photon per baryon at a given overdensity.
+            // see eq. (17) in Park et al. 2018
+            Nion_Spline_density(density_over_mean - 1,&(Splined_Fcoll));
 #ifdef MINI_HALO
-                Nion_Spline_densitym(density_over_mean - 1,&(Splined_Fcollm));
-#endif
-#else
-                erfc_num = (Deltac - (density_over_mean-1)) /  growth_factor;
-                Splined_Fcoll = splined_erfc(erfc_num/erfc_denom);
-              }
-              else { // the entrire cell belongs to a collpased halo...  this is rare...
-                Splined_Fcoll =  1.0;
-#ifdef MINI_HALO
-                Splined_Fcollm =  1.0;
-#endif
-              }
-            }
-  
-            // save the value of the collasped fraction into the Fcoll array
-            Fcoll[HII_R_FFT_INDEX(x,y,z)] = Splined_Fcoll;
-            f_coll += Splined_Fcoll;        
-#ifdef MINI_HALO
-            Fcollm[HII_R_FFT_INDEX(x,y,z)] = Splined_Fcollm;
-            f_collm += Splined_Fcollm;
-#endif
+            Nion_Spline_densitym(density_over_mean - 1,&(Splined_Fcollm));
+#endif //MINI_HALO
+#else //SHARP_CUTOFF
+            erfc_num = (Deltac - (density_over_mean-1)) /  growth_factor;
+            Splined_Fcoll = splined_erfc(erfc_num/erfc_denom);
+#endif //SHARP_CUTOFF
           }
-        }
-      } //  end loop through Fcoll box
-
-      f_coll  /= (double) HII_TOT_NUM_PIXELS; // ave PS fcoll for this filter scale
-      ST_over_PS = mean_f_coll_st/f_coll; // normalization ratio used to adjust the PS conditional collapsed fraction
+          else { // the entrire cell belongs to a collpased halo...  this is rare...
+            Splined_Fcoll =  1.0;
 #ifdef MINI_HALO
-      f_collm /= (double) HII_TOT_NUM_PIXELS; // ave PS fcoll for this filter scale
-      ST_over_PSm = mean_f_coll_stm/f_collm; // normalization ratio used to adjust the PS conditional collapsed fraction
+            Splined_Fcollm =  1.0;
+#endif //MINI_HALO
+          }
+#endif //USE_HALO_FIELD
+
+          // save the value of the collasped fraction into the Fcoll array
+          Fcoll[HII_R_FFT_INDEX(x,y,z)] = Splined_Fcoll;
+          f_coll += Splined_Fcoll;        
+#ifdef MINI_HALO
+          Fcollm[HII_R_FFT_INDEX(x,y,z)] = Splined_Fcollm;
+          f_collm += Splined_Fcollm;
 #endif
-      fprintf(LOG, "end f_coll normalization if, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
-      fflush(LOG);
-    } // end ST fcoll normalization
+        }
+      }
+    } //  end loop through Fcoll box
+
+    f_coll  /= (double) HII_TOT_NUM_PIXELS; // ave PS fcoll for this filter scale
+    ST_over_PS = mean_f_coll_st/f_coll; // normalization ratio used to adjust the PS conditional collapsed fraction
+#ifdef MINI_HALO
+    f_collm /= (double) HII_TOT_NUM_PIXELS; // ave PS fcoll for this filter scale
+    ST_over_PSm = mean_f_coll_stm/f_collm; // normalization ratio used to adjust the PS conditional collapsed fraction
+#endif
+    fprintf(LOG, "end f_coll normalization if, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
+    fflush(LOG);
     
     //     fprintf(stderr, "Last filter %i, R_filter=%f, fcoll=%f, ST_over_PS=%f, mean normalized fcoll=%f\n", LAST_FILTER_STEP, R, f_coll, ST_over_PS, f_coll*ST_over_PS);
-
-    
 
     /****************************************************************************/
     /************  MAIN LOOP THROUGH THE BOX FOR THIS FILTER SCALE **************/
