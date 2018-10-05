@@ -33,7 +33,7 @@
 #define STELLAR_BARYON_PL (double) (0.5) //power law index w/ halo mass
 #define ESC_FRAC (double) (0.1) // ionizing escape fraction, defined for 10^10 Msun halos
 #define ESC_PL (double) (-0.5) //power law index w/ halo mass
-//#define M_TURNOVER (double) (5e8) // Halo mass threshold for efficient star formation (in Msun). 
+#define M_TURNOVER (double) (5e8) // Halo mass threshold for efficient star formation (in Msun). 
 
 /***********************************************
   MINI HALO PARAMETERS
@@ -86,13 +86,33 @@
   Omega_m_z(z) = 1./(1.+(Omega_L/Omega_m/(1.+z)**3))
   Delta_c(z)   = 18 * pi**2 + 82 * (Omega_m_z(z) - 1.0) -39 * (Omega_m_z(z) - 1.0) ** 2
 
-  2. Reionization feedback (following Sobacchi & Mesinger 2013a,b; 2014)
-  M_\mathrm{crit,RE}(z,\mathbf{r}) = 3e9 \mathrm{M}_\odot [\Gamma_{\mathrm{halo, HII}}(z,\mathbf{r})/1e-12 s^{-1}]^0.17
-                                     \times ((1+z)/10)^-2.1 \times {1-[(1+z)/1+z_\mathrm{IN}(z,\mathbf{r})]^2.0}^2.5
+  2. Reionization feedback 
+     1) ifdef INHOMO_FEEDBACK: (following Sobacchi & Mesinger 2013a; 2014)
+        M_\mathrm{crit,RE}(z,\mathbf{r}) = M0 x [\Gamma_{\mathrm{halo, HII}}(z,\mathbf{r})/1e-12 s^{-1}]^A
+                                           \times ((1+z)/10)^B x {1-[(1+z)/1+z_\mathrm{IN}(z,\mathbf{r})]^C}^D
+     2) ifndef INHOMO_FEEDBACK: 
+        a. ifdef REION_SM (following Sobacchi & Mesinger 2013b)
+           M_\mathrm{crit,RE}(z) = Mcool x (M0 / Mcool) ^g
+           with
+           g = 1 / {1 + exp[(z - z_re + Delta_z_sc) / Delta_z_re]}
+           NOTE: 
+           (i)   we set M0 to M_vir(T_vir = 5e4) and Mcool to molecular cooling threshold M_\mathrm{crit,mol}
+                 M_\mathrm{crit,mol} =  2.5e5 \mathrm{M}_\odot \times ((1+z)/26)^-1.5
+           (ii)  z_re and Delta_z_re are the time and duration of reionization, estimated from ???
+           (iii) Delta_z_sc corresponds to sound-crossing time-scale at z_re
+                 Delta_t_sc = 0.2Gyr x (M/1e8 \mathrm{M}_\odot) ^ (1/3) x 
+                              [(1+z)/10] ^(-1) x (Omega_m h^2 / 0.15 )^(-1/3)
+
+        b. ifndef REION_SM: 
+           M_\mathrm{crit,RE} = M_TURNOVER
 
   3. Lyman-Werner (LW) suppression (following Visbal, Haiman & Bryan 2017)
-  M_\mathrm{crit,LW}(z,\mathbf{r}) = 2.5e5 \mathrm{M}_\odot \times {1+6.96[4PI J_\mathrm{LW,21}(z,\mathbf{r})]^0.47}
-                                     \times ((1+z)/26)^-1.5
+     M_\mathrm{crit,LW}(z,\mathbf{r}) = M_\mathrm{crit,mol} x 
+                                        {1+6.96[4PI J_\mathrm{LW,21}(z,\mathbf{r})]^0.47}
+     1) ifdef INHOMO_FEEDBACK: 
+        ???
+     2) ifndef INHOMO_FEEDBACK: (folloiwng Wise+12)
+        J_\mathrm{LW,21}(z) = A + Bz + Cz^2 + Dz^3 + Ez^4
 
 ***********************************************/
 /*
@@ -109,30 +129,11 @@
     #define STELLAR_BARYON_FRAC_MINI (double) (0.01) // defined for 10^10 Msun mini halos
     #define ESC_FRAC_MINI (double) (0.5)    // ionizing escape fraction for mini halos
   
-    #define INHOMO_FEEDBACK 1 // operate as a flag, comment this line if homogeneous feedback is adopted
-    #ifdef INHOMO_FEEDBACK 
-      // LW suppression follows ?
-      // --
-      // use Sobacchi & Mesinger 2013a; 2014 prescription for reionization
-      #define REION_SM13_M0 (double) 3e9
-      #define REION_SM13_A  (double) 0.17
-      #define REION_SM13_B  (double) -2.1
-      #define REION_SM13_C  (double) 2.0
-      #define REION_SM13_D  (double) 2.5
-    #else  // let's do homogeneous feedback
-      // use Wise+12 prescription for LW suppression
-      #define LW_WISE12_A (double) -2.356
-      #define LW_WISE12_B (double) 0.4562
-    #define LW_WISE12_C (double) -0.02680
-    #define LW_WISE12_D (double) 5.882e-4
-    #define LW_WISE12_E (double) -5.056e-6
-    // --
-    #define REION_SM 1 // operate as a flag, ifdef use obacchi & Mesinger 2013b for homogeneous reionization 
-    #ifndef REION_SM   // otherwise use the free parameter M_TURNOVER for homogeneous reionization
-      #define M_TURNOVER (double) (5e8) 
-    #endif  // end of ifndef REION_SM
-  #endif  // end of ifdef INHOMO_FEEDBACK
-#endif  // end of ifdef MINI_HALO
+    //#define INHOMO_FEEDBACK 1 // operate as a flag, comment this line if homogeneous feedback is adopted
+    #ifndef INHOMO_FEEDBACK
+      #define REION_SM 1 // operate as a flag, ifdef use Sobacchi & Mesinger 2013b for homogeneous reionization 
+    #endif  // end of ifdef INHOMO_FEEDBACK
+  #endif  // end of ifdef MINI_HALO
 #endif // end of ifdef SHARP_CUTOFF
 
 /**********************************************

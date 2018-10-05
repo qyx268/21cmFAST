@@ -548,7 +548,6 @@ int main(int argc, char ** argv){
            }
        }
    }
-  }
 #else //SUBCELL_RSD
         
   // now add the velocity correction to the delta_T maps

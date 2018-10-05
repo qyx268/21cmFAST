@@ -1819,6 +1819,7 @@ void initialise_Nion_ST_spline(int Nbin, float zmin, float zmax, float Mmin, flo
     gsl_spline_init(Nion_z_spline, z_val, Nion_z_val, Nbin);
 }
 #ifdef MINI_HALO
+#ifndef INHOMO_FEEDBACK
 void initialise_Nion_ST_splinem(int Nbin, float zmin, float zmax, float Mmin, float MassTurn, float Alpha_star, float Fstar10m){
     int i;
     float Mlim_Fstarm;
@@ -1837,6 +1838,7 @@ void initialise_Nion_ST_splinem(int Nbin, float zmin, float zmax, float Mmin, fl
     }
     gsl_spline_init(Nion_z_splinem, z_val, Nion_z_valm, Nbin);
 }
+#endif
 #endif
 
 void Nion_ST_z(float z, float *splined_value){
@@ -1876,6 +1878,7 @@ void initialise_SFRD_ST_spline(int Nbin, float zmin, float zmax, float Mmin, flo
     gsl_spline_init(SFRD_ST_z_spline, z_X_val, SFRD_val, Nbin);
 }
 #ifdef MINI_HALO
+#ifndef INHOMO_FEEDBACK
 void initialise_SFRD_ST_splinem(int Nbin, float zmin, float zmax, float Mmin, float MassTurn, float Alpha_star, float Fstar10m){
     int i;
     float Mlim_Fstarm;
@@ -1894,6 +1897,7 @@ void initialise_SFRD_ST_splinem(int Nbin, float zmin, float zmax, float Mmin, fl
     }
     gsl_spline_init(SFRD_ST_z_splinem, z_X_val, SFRD_valm, Nbin);
 }
+#endif
 #endif
 
 void SFRD_ST_z(float z, float *splined_value){

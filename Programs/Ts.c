@@ -733,6 +733,7 @@ int main(int argc, char ** argv){
     for (i=0; i<zpp_interp_points;i++) {
         zpp_interp_table[i] = determine_zpp_min + (determine_zpp_max - determine_zpp_min)*(float)i/((float)zpp_interp_points-1.0);
 #ifdef MINI_HALO
+#ifndef INHOMO_FEEDBACK
         Mcrit_atom_interp_table[i] = atomic_cooling_threshold(zpp_interp_table[i]);
         Mcrit_LW_interp_table[i]   = lyman_werner_threshold(zpp_interp_table[i]);
         M_MINa_interp_table[i]     = M_TURN > Mcrit_atom_interp_table[i] ? M_TURN : Mcrit_atom_interp_table[i];
@@ -742,6 +743,7 @@ int main(int argc, char ** argv){
         if(M_MIN > M_MINm_interp_table[i])
             M_MIN = M_MINm_interp_table[i];
         printf("z=%f, Mcrit_atom=%g, Mcrit_LW=%g, Mmin_a=%g, Mmin_m=%g\n",zpp_interp_table[i], Mcrit_atom_interp_table[i],Mcrit_LW_interp_table[i] ,M_MINa_interp_table[i],M_MINm_interp_table[i]);
+#endif
 #endif
     }
 #ifdef MINI_HALO

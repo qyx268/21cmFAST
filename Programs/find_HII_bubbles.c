@@ -40,8 +40,8 @@ void init_21cmMC_arrays() { // defined in Cosmo_c_files/ps.c
     Nion_spline = calloc(NSFR_high,sizeof(float));
     second_derivs_Nion = calloc(NSFR_high,sizeof(float));
 #ifdef MINI_HALO
-    Nion_spline = calloc(NSFR_high,sizeof(float));
-    second_derivs_Nion = calloc(NSFR_high,sizeof(float));
+    Nion_splinem = calloc(NSFR_high,sizeof(float));
+    second_derivs_Nionm = calloc(NSFR_high,sizeof(float));
 #endif //MINI_HALO
     xi_SFR = calloc((NGL_SFR+1),sizeof(float));
     wi_SFR = calloc((NGL_SFR+1),sizeof(float));
@@ -443,7 +443,7 @@ int main(int argc, char ** argv){
      Also check that your inclusion (or not) of [<t_star>] is consistent with the USE_TS_IN_21CM flag in ../Parameter_files/HEAT_PARAMS.H\nAborting...\n");
         return -1;
     }
-    Mcrit_RE   = reionization_feedback_SM(REDSHIFT);
+    Mcrit_RE   = reionization_feedback(REDSHIFT);
 #else //REION_SM
     if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
                &ALPHA_ESC, &M_TURN, &T_AST, &X_LUMINOSITY, &F_STAR10m, &F_ESC10m, &X_LUMINOSITYm, &MFP, &REDSHIFT, &PREV_REDSHIFT)){

@@ -1,6 +1,7 @@
 #ifndef COSMOLOGY_H
 #define COSMOLOGY_H
 
+#include "ANAL_PARAMS.H"
 #include <math.h>
 
 /****** New in v1.1. ******/
@@ -107,5 +108,29 @@
 #define f_He (double) (He_No/(No+He_No))  /* helium number fraction */
 #define T21 (double) (0.0628) /* temperature corresponding to the 21cm photon */
 #define A10_HYPERFINE (double) (2.85e-15) /* spontaneous emission coefficient in s^-1 */
+
+#ifdef INHOMO_FEEDBACK
+  // LW suppression follows ?
+  // --
+  // use Sobacchi & Mesinger 2013a; 2014 prescription for reionization
+  #define REION_SM13_M0 (double) 3e9
+  #define REION_SM13_A  (double) 0.17
+  #define REION_SM13_B  (double) -2.1
+  #define REION_SM13_C  (double) 2.0
+  #define REION_SM13_D  (double) 2.5
+#else  // let's do homogeneous feedback
+  // use Wise+12 prescription for LW suppression
+  #define LW_WISE12_A (double) -2.356
+  #define LW_WISE12_B (double) 0.4562
+  #define LW_WISE12_C (double) -0.02680
+  #define LW_WISE12_D (double) 5.882e-4
+  #define LW_WISE12_E (double) -5.056e-6
+  // --
+  #ifdef REION_SM   // otherwise use the free parameter M_TURNOVER for homogeneous reionization
+    #define REION_SM13_Z_RE (double) 9.3
+    #define REION_SM13_DELTA_Z_RE (double) 1.0
+    #define REION_SM13_DELTA_Z_SC (double) 2.0
+  #endif
+#endif
 
 #endif
