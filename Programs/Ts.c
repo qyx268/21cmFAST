@@ -635,7 +635,6 @@ int main(int argc, char ** argv){
 #else
       sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, Pop, HII_DIM, BOX_LEN); 
 #endif
-    }
 #else
       sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_Mmin%.1e_zetaIon%.2f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, M_MIN, HII_EFF_FACTOR, Pop, HII_DIM, BOX_LEN);
 #endif
@@ -711,13 +710,73 @@ int main(int argc, char ** argv){
   COMPUTE_Ts = 0;
   // New in v2
 #ifndef SHARP_CUTOFF
-    init_21cmMC_arrays();
+  init_21cmMC_arrays();
 
-    // Find the highest and lowest redshfit to initialise interpolation of the mean number of IGM ionizing photon per baryon
-    determine_zpp_min = REDSHIFT*0.999;
+  // Find the highest and lowest redshfit to initialise interpolation of the mean number of IGM ionizing photon per baryon
+  determine_zpp_min = REDSHIFT*0.999;
+  for (R_ct=0; R_ct<NUM_FILTER_STEPS_FOR_Ts; R_ct++){
+      if (R_ct==0){
+          prev_zpp = zp;
+          prev_R = 0; 
+      }    
+      else{
+          prev_zpp = zpp_edge[R_ct-1];
+          prev_R = R_values[R_ct-1];
+      }    
+      zpp_edge[R_ct] = prev_zpp - (R_values[R_ct] - prev_R)*CMperMPC / drdz(prev_zpp); // cell size
+      zpp = (zpp_edge[R_ct]+prev_zpp)*0.5; // average redshift value of shell: z'' + 0.5 * dz''
+  }    
+  determine_zpp_max = zpp*1.001;
+
+  zpp_bin_width = (determine_zpp_max - determine_zpp_min)/((float)zpp_interp_points-1.0);
+  for (i=0; i<zpp_interp_points;i++) {
+    zpp_interp_table[i] = determine_zpp_min + (determine_zpp_max - determine_zpp_min)*(float)i/((float)zpp_interp_points-1.0);
+#ifdef MINI_HALO
+#ifndef INHOMO_FEEDBACK
+    Mcrit_atom_interp_table[i] = atomic_cooling_threshold(zpp_interp_table[i]);
+    Mcrit_LW_interp_table[i]   = lyman_werner_threshold(zpp_interp_table[i]);
+    M_MINa_interp_table[i]     = M_TURN > Mcrit_atom_interp_table[i] ? M_TURN : Mcrit_atom_interp_table[i];
+    M_MINm_interp_table[i]     = M_TURN > Mcrit_LW_interp_table[i]   ? M_TURN : Mcrit_LW_interp_table[i];
+    if(M_MIN > M_MINa_interp_table[i])
+        M_MIN = M_MINa_interp_table[i];
+    if(M_MIN > M_MINm_interp_table[i])
+        M_MIN = M_MINm_interp_table[i];
+    printf("z=%f, Mcrit_atom=%g, Mcrit_LW=%g, Mmin_a=%g, Mmin_m=%g\n",zpp_interp_table[i], Mcrit_atom_interp_table[i],Mcrit_LW_interp_table[i] ,M_MINa_interp_table[i],M_MINm_interp_table[i]);
+#endif
+#endif
+  }
+#ifdef MINI_HALO
+  M_MIN         /= 50;
+#else
+  M_MIN  = M_TURN/50;
+#endif
+  printf("setting minimum mass for integral at %g\n",M_MIN);
+
+  /* initialise interpolation of the mean number of IGM ionizing photon per baryon for global reionization.
+     compute 'Nion_ST' corresponding to an array of redshift. */
+  initialise_Nion_ST_spline(zpp_interp_points,determine_zpp_min, determine_zpp_max, M_MIN, M_TURN, ALPHA_STAR, ALPHA_ESC, F_STAR10, F_ESC10);
+  printf("\n Completed initialise Nion_ST, Time = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
+#ifdef MINI_HALO
+  initialise_Nion_ST_splinem(zpp_interp_points,determine_zpp_min, determine_zpp_max, M_MIN, M_TURN, ALPHA_STAR, F_STAR10m);
+  printf("\n Completed initialise Nion_ST for mini halos, Time = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
+#endif
+  
+  /* initialise interpolation of the mean SFRD.
+     compute 'Nion_ST' corresponding to an array of redshift, but assume f_{esc10} = 1 and \alpha_{esc} = 0. */
+  initialise_SFRD_ST_spline(zpp_interp_points,determine_zpp_min, determine_zpp_max, M_MIN, M_TURN, ALPHA_STAR, F_STAR10);
+  printf("\n Completed initialise SFRD using Sheth-Tormen halo mass function, Time = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
+#ifdef MINI_HALO
+  initialise_SFRD_ST_splinem(zpp_interp_points,determine_zpp_min, determine_zpp_max, M_MIN, M_TURN, ALPHA_STAR, F_STAR10m);
+  printf("\n Completed initialise SFRD for mini halos using Sheth-Tormen halo mass function, Time = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
+#endif
+  
+  // initialise redshift table corresponding to all the redshifts to initialise interpolation for the conditional mass function.
+  zp_table = zp;
+  counter = 0;
+  for (i=0; i<Nsteps_zp; i++) {
     for (R_ct=0; R_ct<NUM_FILTER_STEPS_FOR_Ts; R_ct++){
         if (R_ct==0){
-            prev_zpp = zp;
+            prev_zpp = zp_table;
             prev_R = 0; 
         }    
         else{
@@ -726,82 +785,22 @@ int main(int argc, char ** argv){
         }    
         zpp_edge[R_ct] = prev_zpp - (R_values[R_ct] - prev_R)*CMperMPC / drdz(prev_zpp); // cell size
         zpp = (zpp_edge[R_ct]+prev_zpp)*0.5; // average redshift value of shell: z'' + 0.5 * dz''
+        redshift_interp_table[counter] = zpp;
+        counter += 1;
     }    
-    determine_zpp_max = zpp*1.001;
+    prev_zp = zp_table;
+    zp_table = ((1+prev_zp) / ZPRIME_STEP_FACTOR - 1);
+  } 
 
-    zpp_bin_width = (determine_zpp_max - determine_zpp_min)/((float)zpp_interp_points-1.0);
-    for (i=0; i<zpp_interp_points;i++) {
-        zpp_interp_table[i] = determine_zpp_min + (determine_zpp_max - determine_zpp_min)*(float)i/((float)zpp_interp_points-1.0);
+  /* generate a table for interpolation of the SFRD using the conditional mass function, as functions of 
+  filtering scale, redshift and overdensity.
+     See eq. (8) in Park et al. (2018)
+     Note that at a given zp, zpp values depends on the filtering scale R. */
+  initialise_SFRD_Conditional_table(Nsteps_zp,NUM_FILTER_STEPS_FOR_Ts,redshift_interp_table,R_values, M_MIN, M_TURN, ALPHA_STAR, F_STAR10);
+  printf("\n Generated the table of SFRD using conditional mass function = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
 #ifdef MINI_HALO
-#ifndef INHOMO_FEEDBACK
-        Mcrit_atom_interp_table[i] = atomic_cooling_threshold(zpp_interp_table[i]);
-        Mcrit_LW_interp_table[i]   = lyman_werner_threshold(zpp_interp_table[i]);
-        M_MINa_interp_table[i]     = M_TURN > Mcrit_atom_interp_table[i] ? M_TURN : Mcrit_atom_interp_table[i];
-        M_MINm_interp_table[i]     = M_TURN > Mcrit_LW_interp_table[i]   ? M_TURN : Mcrit_LW_interp_table[i];
-        if(M_MIN > M_MINa_interp_table[i])
-            M_MIN = M_MINa_interp_table[i];
-        if(M_MIN > M_MINm_interp_table[i])
-            M_MIN = M_MINm_interp_table[i];
-        printf("z=%f, Mcrit_atom=%g, Mcrit_LW=%g, Mmin_a=%g, Mmin_m=%g\n",zpp_interp_table[i], Mcrit_atom_interp_table[i],Mcrit_LW_interp_table[i] ,M_MINa_interp_table[i],M_MINm_interp_table[i]);
-#endif
-#endif
-    }
-#ifdef MINI_HALO
-    M_MIN         /= 50;
-#else
-    M_MIN  = M_TURN/50;
-#endif
-    printf("setting minimum mass for integral at %g\n",M_MIN);
-
-    /* initialise interpolation of the mean number of IGM ionizing photon per baryon for global reionization.
-       compute 'Nion_ST' corresponding to an array of redshift. */
-    initialise_Nion_ST_spline(zpp_interp_points,determine_zpp_min, determine_zpp_max, M_MIN, M_TURN, ALPHA_STAR, ALPHA_ESC, F_STAR10, F_ESC10);
-    printf("\n Completed initialise Nion_ST, Time = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
-#ifdef MINI_HALO
-    initialise_Nion_ST_splinem(zpp_interp_points,determine_zpp_min, determine_zpp_max, M_MIN, M_TURN, ALPHA_STAR, F_STAR10m);
-    printf("\n Completed initialise Nion_ST for mini halos, Time = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
-#endif
-    
-    /* initialise interpolation of the mean SFRD.
-       compute 'Nion_ST' corresponding to an array of redshift, but assume f_{esc10} = 1 and \alpha_{esc} = 0. */
-    initialise_SFRD_ST_spline(zpp_interp_points,determine_zpp_min, determine_zpp_max, M_MIN, M_TURN, ALPHA_STAR, F_STAR10);
-    printf("\n Completed initialise SFRD using Sheth-Tormen halo mass function, Time = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
-#ifdef MINI_HALO
-    initialise_SFRD_ST_splinem(zpp_interp_points,determine_zpp_min, determine_zpp_max, M_MIN, M_TURN, ALPHA_STAR, F_STAR10m);
-    printf("\n Completed initialise SFRD for mini halos using Sheth-Tormen halo mass function, Time = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
-#endif
-    
-    // initialise redshift table corresponding to all the redshifts to initialise interpolation for the conditional mass function.
-    zp_table = zp;
-    counter = 0;
-    for (i=0; i<Nsteps_zp; i++) {
-      for (R_ct=0; R_ct<NUM_FILTER_STEPS_FOR_Ts; R_ct++){
-          if (R_ct==0){
-              prev_zpp = zp_table;
-              prev_R = 0; 
-          }    
-          else{
-              prev_zpp = zpp_edge[R_ct-1];
-              prev_R = R_values[R_ct-1];
-          }    
-          zpp_edge[R_ct] = prev_zpp - (R_values[R_ct] - prev_R)*CMperMPC / drdz(prev_zpp); // cell size
-          zpp = (zpp_edge[R_ct]+prev_zpp)*0.5; // average redshift value of shell: z'' + 0.5 * dz''
-          redshift_interp_table[counter] = zpp;
-          counter += 1;
-      }    
-      prev_zp = zp_table;
-      zp_table = ((1+prev_zp) / ZPRIME_STEP_FACTOR - 1);
-    } 
-
-    /* generate a table for interpolation of the SFRD using the conditional mass function, as functions of 
-    filtering scale, redshift and overdensity.
-       See eq. (8) in Park et al. (2018)
-       Note that at a given zp, zpp values depends on the filtering scale R. */
-    initialise_SFRD_Conditional_table(Nsteps_zp,NUM_FILTER_STEPS_FOR_Ts,redshift_interp_table,R_values, M_MIN, M_TURN, ALPHA_STAR, F_STAR10);
-    printf("\n Generated the table of SFRD using conditional mass function = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
-#ifdef MINI_HALO
-    initialise_SFRD_Conditional_tablem(Nsteps_zp,NUM_FILTER_STEPS_FOR_Ts,redshift_interp_table,R_values, M_MIN, M_TURN, ALPHA_STAR, F_STAR10m);
-    printf("\n Generated the table of SFRD using conditional mass function = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
+  initialise_SFRD_Conditional_tablem(Nsteps_zp,NUM_FILTER_STEPS_FOR_Ts,redshift_interp_table,R_values, M_MIN, M_TURN, ALPHA_STAR, F_STAR10m);
+  printf("\n Generated the table of SFRD using conditional mass function = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
 #endif
 #endif
     
@@ -885,7 +884,7 @@ int main(int argc, char ** argv){
       zpp = (zpp_edge[R_ct]+prev_zpp)*0.5; // average redshift value of shell: z'' + 0.5 * dz''
       if (zpp - redshift_interp_table[arr_num+R_ct] > 1e-3) printf("zpp = %.4f, zpp_array = %.4f\n", zpp, redshift_interp_table[arr_num+R_ct]);
 #ifdef SHARP_CUTOFF 
-	  sigma_Tmin[R_ct] =  sigma_z0(M_MIN); // In v2 sigma_Tmin doesn't nedd to be an array, just a constant.
+      sigma_Tmin[R_ct] =  sigma_z0(M_MIN); // In v2 sigma_Tmin doesn't nedd to be an array, just a constant.
 #endif
 
       // let's now normalize the total collapse fraction so that the mean is the
@@ -953,17 +952,17 @@ int main(int argc, char ** argv){
       fcoll_R /= (double) sample_ct;
 
 #ifndef SHARP_CUTOFF
-        SFRD_ST_z(zpp,&(Splined_SFRD_ST_zpp));
-        ST_over_PS[R_ct] = Splined_SFRD_ST_zpp / fcoll_R; 
+      SFRD_ST_z(zpp,&(Splined_SFRD_ST_zpp));
+      ST_over_PS[R_ct] = Splined_SFRD_ST_zpp / fcoll_R; 
 #ifdef MINI_HALO
-        SFRD_ST_zm(zpp,&(Splined_SFRD_ST_zppm));
-        ST_over_PSm[R_ct] = Splined_SFRD_ST_zppm / fcoll_Rm; 
+      SFRD_ST_zm(zpp,&(Splined_SFRD_ST_zppm));
+      ST_over_PSm[R_ct] = Splined_SFRD_ST_zppm / fcoll_Rm; 
 #endif
 #else
-        ST_over_PS[R_ct] = FgtrM_st(zpp, M_MIN) / fcoll_R;
+      ST_over_PS[R_ct] = FgtrM_st(zpp, M_MIN) / fcoll_R;
 #endif
 
-      if (DEBUG_ON){
+#ifdef DEBUG_ON
 #ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
       printf("ST/PS=%g(atomic:%g, molecular:%g), mean_ST=%g(atomic:%g, molecular:%g), mean_ps=%g\n, ratios of mean=%g(atomic:%g, molecular:%g)\n", 
@@ -972,20 +971,21 @@ int main(int argc, char ** argv){
          FgtrM(zpp, M_MIN),
          (Splined_SFRD_ST_zpp+Splined_SFRD_ST_zppm)/FgtrM(zpp, M_MIN),Splined_SFRD_ST_zpp/FgtrM(zpp, M_MIN),Splined_SFRD_ST_zppm/FgtrM(zpp, M_MIN)
          );
-#else
+#else //MINI_HALO
       printf("ST/PS=%g, mean_ST=%g, mean_ps=%g\n, ratios of mean=%g\n", ST_over_PS[R_ct], 
          Splined_SFRD_ST_zpp,
          FgtrM(zpp, M_MIN),
          Splined_SFRD_ST_zpp/FgtrM(zpp, M_MIN)
          );
-#endif
-#else
+#endif //MINI_HALO
+#else //SHARP_CUTOFF
       printf("ST/PS=%g, mean_ST=%g, mean_ps=%g\n, ratios of mean=%g\n", ST_over_PS[R_ct], 
          FgtrM_st(zpp, M_MIN), 
          FgtrM(zpp, M_MIN),
          FgtrM_st(zpp, M_MIN)/FgtrM(zpp, M_MIN)
          );
-      }
+#endif //SHARP_CUTOFF
+#endif //DEBUG_ON
 
       lower_int_limit = FMAX(nu_tau_one(zp, zpp, x_e_ave, filling_factor_of_HI_zp), NU_X_THRESH);
 
@@ -1027,7 +1027,7 @@ int main(int argc, char ** argv){
     sum_lyn[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0, 2);
     sum_lynm[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0, 3);
 #else
-    sum_lyn[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0);
+      sum_lyn[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0);
 #endif
       }
     } // end loop over R_ct filter steps
@@ -1115,7 +1115,7 @@ int main(int argc, char ** argv){
       if (xHII_call > x_int_XHII[x_int_NXHII-1]*0.999) {
         xHII_call = x_int_XHII[x_int_NXHII-1]*0.999;
       } 
-	  else if (xHII_call < x_int_XHII[0]) {
+      else if (xHII_call < x_int_XHII[0]) {
         xHII_call = 1.001*x_int_XHII[0];
       }
       //interpolate to correct nu integral value based on the cell's ionization state
