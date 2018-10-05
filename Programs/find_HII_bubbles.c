@@ -953,11 +953,13 @@ int main(int argc, char ** argv){
       fftwf_free(N_rec_filtered);
       free(Fcoll);
 #ifdef MINI_HALO
-    free(Fcollm);
+      free(Fcollm);
 #endif
 #ifndef SHARP_CUTOFF
-    destroy_21cmMC_arrays();
+      destroy_21cmMC_arrays();
 #endif
+      fftwf_destroy_plan(plan);
+      fftwf_cleanup();
       
       return -1;
   }
@@ -1033,8 +1035,6 @@ int main(int argc, char ** argv){
 #endif //INHOMO_RECO
     plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)deltax_filtered, (float *)deltax_filtered, FFTW_ESTIMATE);
     fftwf_execute(plan);
-    fftwf_destroy_plan(plan);
-    fftwf_cleanup();
     fprintf(LOG, "end fft with R=%f, clock=%06.2f\n", R, (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
 
