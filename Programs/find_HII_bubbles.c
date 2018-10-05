@@ -39,6 +39,10 @@ void init_21cmMC_arrays() { // defined in Cosmo_c_files/ps.c
     Overdense_spline_SFR = calloc(NSFR_high,sizeof(float)); // New in v2
     Nion_spline = calloc(NSFR_high,sizeof(float));
     second_derivs_Nion = calloc(NSFR_high,sizeof(float));
+#ifdef MINI_HALO
+    Nion_spline = calloc(NSFR_high,sizeof(float));
+    second_derivs_Nion = calloc(NSFR_high,sizeof(float));
+#endif //MINI_HALO
     xi_SFR = calloc((NGL_SFR+1),sizeof(float));
     wi_SFR = calloc((NGL_SFR+1),sizeof(float));
 }
@@ -54,6 +58,10 @@ void destroy_21cmMC_arrays() {
     free(Overdense_spline_SFR); // New in v2
     free(Nion_spline);
     free(second_derivs_Nion);
+#ifdef MINI_HALO
+    free(Nion_splinem);
+    free(second_derivs_Nionm);
+#endif //MINI_HALO
     free(xi_SFR);
     free(wi_SFR);
 }
