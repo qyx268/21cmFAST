@@ -1023,7 +1023,7 @@ int main(int argc, char ** argv){
       zpp = (zpp_edge[R_ct]+prev_zpp)*0.5; // average redshift value of shell: z'' + 0.5 * dz''
       if (zpp - redshift_interp_table[arr_num+R_ct] > 1e-3) printf("zpp = %.4f, zpp_array = %.4f\n", zpp, redshift_interp_table[arr_num+R_ct]);
 #ifdef SHARP_CUTOFF 
-      sigma_Tmin[R_ct] =  sigma_z0(M_MIN); // In v2 sigma_Tmin doesn't nedd to be an array, just a constant.
+      sigma_Tmin[R_ct] =  sigma_z0(M_MIN); // In v2 sigma_Tmin doesn't need to be an array, just a constant.
 #endif
 
       // let's now normalize the total collapse fraction so that the mean is the
@@ -1083,12 +1083,16 @@ int main(int argc, char ** argv){
 #ifdef MINI_HALO
           fcoll_Rm += Splined_Fcollm;
 #endif
+#else //SHARP_CUTOFF
           fcoll_R += sigmaparam_FgtrM_bias(zpp, sigma_Tmin[R_ct], 
                          delNL0[R_ct][box_ct], sigma_atR[R_ct]);
-#endif
+#endif //SHARP_CUTOFF
       }
 
       fcoll_R /= (double) sample_ct;
+#ifdef MINI_HALO
+      fcoll_R /= (double) sample_ct;
+#endif
 
 #ifndef SHARP_CUTOFF
       SFRD_ST_z(zpp,&(Splined_SFRD_ST_zpp));

@@ -480,7 +480,7 @@ double sigmaparam_FgtrM_bias(float z, float sigsmallR, float del_bias, float sig
 
   if (!(sig_bias < sigsmallR)){ // biased region is smaller that halo!
     fprintf(stderr, "local_FgtrM_bias: Biased region is smaller than halo!\nResult is bogus.\n");
-printf("In function: zpp = %.4f, sigma_Tmin = %.4e, sigma_atR = %.4e, delta = %.5f\n",z,sigsmallR,sig_bias,del_bias);
+    fprintf(stderr, "In function: zpp = %.4f, sigma_Tmin = %.4e, sigma_atR = %.4e, delta = %.5f\n",z,sigsmallR,sig_bias,del_bias);
     return 0;
   }
 
