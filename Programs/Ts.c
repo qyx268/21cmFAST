@@ -43,14 +43,6 @@ void init_21cmMC_arrays() {
     xi_SFR = calloc((NGL_SFR+1),sizeof(float));
     wi_SFR = calloc((NGL_SFR+1),sizeof(float));
 
-    zpp_interp_table = calloc(zpp_interp_points, sizeof(float));
-#ifdef MINI_HALO
-    Mcrit_atom_interp_table = calloc(zpp_interp_points, sizeof(float));
-    Mcrit_LW_interp_table   = calloc(zpp_interp_points, sizeof(float));
-    M_MINa_interp_table     = calloc(zpp_interp_points, sizeof(float));
-    M_MINm_interp_table     = calloc(zpp_interp_points, sizeof(float));
-#endif
-
     redshift_interp_table = calloc(NUM_FILTER_STEPS_FOR_Ts*Nsteps_zp, sizeof(float)); // New
 
     log10_overdense_low_table = calloc(NSFR_low,sizeof(double));
@@ -84,14 +76,6 @@ void destroy_21cmMC_arrays() {
 
     free(xi_SFR);
     free(wi_SFR);
-
-    free(zpp_interp_table);
-#ifdef MINI_HALO
-    free(Mcrit_atom_interp_table);
-    free(Mcrit_LW_interp_table);
-    free(M_MINa_interp_table);
-    free(M_MINm_interp_table);
-#endif
     free(redshift_interp_table);
 
     for(i=0;i<NUM_FILTER_STEPS_FOR_Ts*Nsteps_zp;i++) {
@@ -164,7 +148,7 @@ int main(int argc, char ** argv){
 #endif
   double nuprime, fcoll_R, Ts_ave;
 #ifdef MINI_HALO
-  double fcoll_Rm;
+  double Mcrit_RE, fcoll_Rm;
 #endif
   float *delNL0[NUM_FILTER_STEPS_FOR_Ts], xHII_call, curr_xalpha;
   float z, Jalpha, TK, TS, xe, deltax;
@@ -867,51 +851,61 @@ int main(int argc, char ** argv){
           prev_R = R_values[R_ct-1];
       }    
       zpp_edge[R_ct] = prev_zpp - (R_values[R_ct] - prev_R)*CMperMPC / drdz(prev_zpp); // cell size
-      zpp = (zpp_edge[R_ct]+prev_zpp)*0.5; // average redshift value of shell: z'' + 0.5 * dz''
+      zpp = (zpp_edge[R_ct]+prev_zpp)*0.5; // average redshift value of shell: z'' + 0.5 * dz'' 
   }    
   determine_zpp_max = zpp*1.001;
 
-  zpp_bin_width = (determine_zpp_max - determine_zpp_min)/((float)zpp_interp_points-1.0);
   for (i=0; i<zpp_interp_points;i++) {
     zpp_interp_table[i] = determine_zpp_min + (determine_zpp_max - determine_zpp_min)*(float)i/((float)zpp_interp_points-1.0);
 #ifdef MINI_HALO
 #ifndef INHOMO_FEEDBACK
     Mcrit_atom_interp_table[i] = atomic_cooling_threshold(zpp_interp_table[i]);
+#ifdef REION_SM    
+    Mcrit_RE_interp_table[i]   = reionization_feedback(zpp_interp_table[i]);
+#else //REION_SM
+    Mcrit_RE_interp_table[i]   = M_TURN;
+#endif //REION_SM
     Mcrit_LW_interp_table[i]   = lyman_werner_threshold(zpp_interp_table[i]);
-    M_MINa_interp_table[i]     = M_TURN > Mcrit_atom_interp_table[i] ? M_TURN : Mcrit_atom_interp_table[i];
-    M_MINm_interp_table[i]     = M_TURN > Mcrit_LW_interp_table[i]   ? M_TURN : Mcrit_LW_interp_table[i];
+    M_MINa_interp_table[i]     = Mcrit_RE_interp_table[i] > Mcrit_atom_interp_table[i] ? Mcrit_RE_interp_table[i] : Mcrit_atom_interp_table[i];
+    M_MINm_interp_table[i]     = Mcrit_RE_interp_table[i] > Mcrit_LW_interp_table[i]   ? Mcrit_RE_interp_table[i] : Mcrit_LW_interp_table[i];
     if(M_MIN > M_MINa_interp_table[i])
         M_MIN = M_MINa_interp_table[i];
     if(M_MIN > M_MINm_interp_table[i])
         M_MIN = M_MINm_interp_table[i];
     printf("z=%f, Mcrit_atom=%g, Mcrit_LW=%g, Mmin_a=%g, Mmin_m=%g\n",zpp_interp_table[i], Mcrit_atom_interp_table[i],Mcrit_LW_interp_table[i] ,M_MINa_interp_table[i],M_MINm_interp_table[i]);
-#endif
-#endif
+#endif //INHOMO_FEEDBACK
+#else //MINI_HALO
+    M_MINa_interp_table[i]     = M_TURN;
+#endif //MINI_HALO
   }
 #ifdef MINI_HALO
-  M_MIN         /= 50;
-#else
+#ifdef INHOMO_FEEDBACK
+  M_MIN  = 1e5;
+#else //INHOMO_FEEDBACK
+  M_MIN /= 50;
+#endif //INHOMO_FEEDBACK
+#else //MINI_HALO
   M_MIN  = M_TURN/50;
-#endif
+#endif //MINI_HALO
   printf("setting minimum mass for integral at %g\n",M_MIN);
 
   /* initialise interpolation of the mean number of IGM ionizing photon per baryon for global reionization.
      compute 'Nion_ST' corresponding to an array of redshift. */
-  initialise_Nion_ST_spline(zpp_interp_points,determine_zpp_min, determine_zpp_max, M_MIN, M_TURN, ALPHA_STAR, ALPHA_ESC, F_STAR10, F_ESC10);
+  initialise_Nion_ST_spline(zpp_interp_points, zpp_interp_table, M_MIN, M_MINa_interp_table, ALPHA_STAR, ALPHA_ESC, F_STAR10, F_ESC10);
   printf("\n Completed initialise Nion_ST, Time = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
 #ifdef MINI_HALO
-  initialise_Nion_ST_splinem(zpp_interp_points,determine_zpp_min, determine_zpp_max, M_MIN, M_TURN, ALPHA_STAR, F_STAR10m);
+  initialise_Nion_ST_splinem(zpp_interp_points, zpp_interp_table, M_MIN, M_MINm_interp_table, Mcrit_atom_interp_table, ALPHA_STAR, F_STAR10m);
   printf("\n Completed initialise Nion_ST for mini halos, Time = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
-#endif
+#endif //MINI_HALO
   
   /* initialise interpolation of the mean SFRD.
      compute 'Nion_ST' corresponding to an array of redshift, but assume f_{esc10} = 1 and \alpha_{esc} = 0. */
-  initialise_SFRD_ST_spline(zpp_interp_points,determine_zpp_min, determine_zpp_max, M_MIN, M_TURN, ALPHA_STAR, F_STAR10);
+  initialise_SFRD_ST_spline(zpp_interp_points, zpp_interp_table, M_MIN, M_MINa_interp_table, ALPHA_STAR, F_STAR10);
   printf("\n Completed initialise SFRD using Sheth-Tormen halo mass function, Time = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
 #ifdef MINI_HALO
-  initialise_SFRD_ST_splinem(zpp_interp_points,determine_zpp_min, determine_zpp_max, M_MIN, M_TURN, ALPHA_STAR, F_STAR10m);
+  initialise_SFRD_ST_splinem(zpp_interp_points, zpp_interp_table, M_MIN, M_MINm_interp_table, Mcrit_atom_interp_table, ALPHA_STAR, F_STAR10m);
   printf("\n Completed initialise SFRD for mini halos using Sheth-Tormen halo mass function, Time = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
-#endif
+#endif //MINI_HALO
   
   // initialise redshift table corresponding to all the redshifts to initialise interpolation for the conditional mass function.
   zp_table = zp;
@@ -939,13 +933,15 @@ int main(int argc, char ** argv){
   filtering scale, redshift and overdensity.
      See eq. (8) in Park et al. (2018)
      Note that at a given zp, zpp values depends on the filtering scale R. */
+  // Note from YQ: due to the initial configuration left from v2, I will construct M_MINa_interp_table and M_MINm_interp_table inside these two
+  // functions (which is fine because we are only going to use them once, although there are unnecessary duplicated calculations...)
   initialise_SFRD_Conditional_table(Nsteps_zp,NUM_FILTER_STEPS_FOR_Ts,redshift_interp_table,R_values, M_MIN, M_TURN, ALPHA_STAR, F_STAR10);
   printf("\n Generated the table of SFRD using conditional mass function = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
 #ifdef MINI_HALO
   initialise_SFRD_Conditional_tablem(Nsteps_zp,NUM_FILTER_STEPS_FOR_Ts,redshift_interp_table,R_values, M_MIN, M_TURN, ALPHA_STAR, F_STAR10m);
   printf("\n Generated the table of SFRD using conditional mass function = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
-#endif
-#endif
+#endif //MINI_HALO
+#endif //SHARP_CUTOFF
     
   if (RESTART == 1){
     zp = zp_temp;

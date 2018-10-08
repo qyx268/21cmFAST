@@ -32,16 +32,16 @@ double X_LUMINOSITY;
 double X_LUMINOSITYm;
 #endif
 float growth_zpp; // New in v2
-static float determine_zpp_max, determine_zpp_min,zpp_bin_width; // new in v2
+static float determine_zpp_max, determine_zpp_min; // new in v2
 float *second_derivs_Nion_zpp[NUM_FILTER_STEPS_FOR_Ts]; // New
 #ifdef MINI_HALO
 float *second_derivs_Nion_zppm[NUM_FILTER_STEPS_FOR_Ts]; // New
 #endif
 float *redshift_interp_table;
 int Nsteps_zp; //New in v2 
-float *zpp_interp_table; //New in v2
+static double zpp_interp_table[zpp_interp_points], M_MINa_interp_table[zpp_interp_points]; //New in v2
 #ifdef MINI_HALO
-float *Mcrit_atom_interp_table, *Mcrit_LW_interp_table, *M_MINa_interp_table, *M_MINm_interp_table;//New in v2.1
+double Mcrit_atom_interp_table[zpp_interp_points], Mcrit_RE_interp_table[zpp_interp_points], Mcrit_LW_interp_table[zpp_interp_points], M_MINm_interp_table[zpp_interp_points];//New in v2.1
 #endif
 gsl_interp_accel *SFRDLow_zpp_spline_acc[NUM_FILTER_STEPS_FOR_Ts];
 gsl_spline *SFRDLow_zpp_spline[NUM_FILTER_STEPS_FOR_Ts];

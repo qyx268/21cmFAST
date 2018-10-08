@@ -509,7 +509,7 @@ int main(int argc, char ** argv){
 #endif //INHOMO_FEEDBACK
   Mlim_Fstarm         = Mass_limit_bisection(M_MIN, 1e16, ALPHA_STAR, F_STAR10m);
   ION_EFF_FACTOR_MINI = N_GAMMA_UV_MINI * F_STAR10m * F_ESC10m;
-#else
+#else //MINI_HALO
   M_MINa = M_TURN;
   M_MIN  = M_TURN/50;
 #endif //MINI_HALO
