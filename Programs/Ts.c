@@ -1106,7 +1106,7 @@ int main(int argc, char ** argv){
       ST_over_PS[R_ct] = FgtrM_st(zpp, M_MIN) / fcoll_R;
 #endif
 
-#ifdef DEBUG_ON
+//#ifdef DEBUG_ON
 #ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
       fprintf(stderr, "ST/PS=%g(atomic:%g, molecular:%g)\n mean_ST=%g(atomic:%g, molecular:%g)\n mean_ps=%e\ne ratios of mean=%g(atomic:%g, molecular:%g)\n", 
@@ -1129,7 +1129,7 @@ int main(int argc, char ** argv){
          FgtrM_st(zpp, M_MIN)/FgtrM(zpp, M_MIN)
          );
 #endif //SHARP_CUTOFF
-#endif //DEBUG_ON
+//#endif //DEBUG_ON
 
       lower_int_limit = FMAX(nu_tau_one(zp, zpp, x_e_ave, filling_factor_of_HI_zp), NU_X_THRESH);
 
