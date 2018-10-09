@@ -267,8 +267,8 @@ double lyman_werner_threshold(float z, float J_21_LW){
 }
 
 double reionization_feedback(float z, float Gamma_halo_HII, float z_IN){
-	return REION_SM13_M0 * pow(Gamma_halo_HII / 1e-12, REION_SM13_A) * pow((1.+z)/10, REION_SM13_B) *
-		   pow(1 - pow((1.+z)/(1.+z_IN), REION_SM13_C), REION_SM13_D);
+    return REION_SM13_M0 * pow(Gamma_halo_HII / 1e-12, REION_SM13_A) * pow((1.+z)/10, REION_SM13_B) *
+           pow(1 - pow((1.+z)/(1.+z_IN), REION_SM13_C), REION_SM13_D);
 }
 #else
 double lyman_werner_threshold(float z){
@@ -276,11 +276,16 @@ double lyman_werner_threshold(float z){
 }
 #ifdef REION_SM
 double reionization_feedback(float z){
-	double M0, Mcool, g;
-	M0    = TtoM(z, 5e4, 0.59);
-	Mcool = molecular_cooling_threshold(z);
-	g     = 1. / (1. + exp( (z -  REION_SM13_Z_RE + REION_SM13_DELTA_Z_SC) / REION_SM13_DELTA_Z_RE));
-	return  Mcool * pow(M0 / Mcool, g);
+    // NOTE: ideally we want to solve REION_SM13_Z_RE and REION_SM13_DELTA_Z_RE self-consistently
+    // But ifndef INHOMO_FEEDBACK the LW suppression is also from a fixed background (Wise+12), 
+    // I see no point of doing a self-consistent reionization background.
+    // But we could of course do it later. My first goal is to have a simple uniform background 
+    // for start and use it as a reference to compare with the INHOMO_FEEDBACK implementation
+    double M0, Mcool, g;
+    M0    = TtoM(z, 5e4, 0.59);
+    Mcool = molecular_cooling_threshold(z);
+    g     = 1. / (1. + exp( (z -  REION_SM13_Z_RE + REION_SM13_DELTA_Z_SC) / REION_SM13_DELTA_Z_RE));
+    return  Mcool * pow(M0 / Mcool, g);
 }
 #endif
 #endif
