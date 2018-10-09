@@ -745,7 +745,7 @@ double integrate_over_num(double zp, double local_x_e, double lower_int_limit, i
      = gsl_integration_workspace_alloc (1000);
 
 #ifdef DEBUG_ON
-     fprintf(stderr, "integrate over nu, parameters: %f, %f, %e, %i, thread# %i\n", zp, local_x_e, lower_int_limit, FLAG, omp_get_thread_num());
+     fprintf(stderr, "integrate over nu for mini halos, parameters: %f, %f, %e, %i, thread# %i\n", zp, local_x_e, lower_int_limit, FLAG, omp_get_thread_num());
 #endif //DEBUG_ON
        /*
        if (DO_NOT_COMPARE_NUS)
@@ -1000,7 +1000,7 @@ double nu_tau_one(double zp, double zpp, double x_e, double HI_filling_factor_zp
   // deallocate and return
   gsl_root_fsolver_free (s);
 #ifdef DEBUG_ON
-  fprintf(stderr, "Root found at %e eV", r/NU_over_EV);
+  fprintf(stderr, "Root found at %e eV\n", r/NU_over_EV);
 #endif //DEBUG_ON
 
   return r;

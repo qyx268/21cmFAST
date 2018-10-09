@@ -1109,7 +1109,7 @@ int main(int argc, char ** argv){
 #ifdef DEBUG_ON
 #ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
-      fprintf(stderr, "ST/PS=%g(atomic:%g, molecular:%g), mean_ST=%g(atomic:%g, molecular:%g), mean_ps=%g\n, ratios of mean=%g(atomic:%g, molecular:%g)\n", 
+      fprintf(stderr, "ST/PS=%g(atomic:%g, molecular:%g)\n mean_ST=%g(atomic:%g, molecular:%g)\n mean_ps=%e\ne ratios of mean=%g(atomic:%g, molecular:%g)\n", 
          ST_over_PS[R_ct]+ST_over_PSm[R_ct],ST_over_PS[R_ct],ST_over_PSm[R_ct], 
          Splined_SFRD_ST_zpp+Splined_SFRD_ST_zppm,Splined_SFRD_ST_zpp,Splined_SFRD_ST_zppm,
          FgtrM(zpp, M_MIN),
