@@ -41,6 +41,13 @@ OBJ_FILES = init \
 
 #########################################################################
 
+drive_logZscroll_Ts_mini: drive_logZscroll_Ts_mini.c \
+	bubble_helper_progs.c \
+	${OBJ_FILES} \
+	${COSMO_FILES} \
+
+	${CC} ${CPPFLAGS} -o drive_logZscroll_Ts_mini drive_logZscroll_Ts_mini.c ${LDFLAGS} 
+
 drive_logZscroll_Ts: drive_logZscroll_Ts.c \
 	bubble_helper_progs.c \
 	${OBJ_FILES} \
@@ -153,4 +160,4 @@ update_halo_pos:	update_halo_pos.c \
 
 
 clean:
-	rm drive_logZscroll_Ts ${OBJ_FILES} *~ *\#
+	rm drive_logZscroll_Ts drive_logZscroll_Ts_mini ${OBJ_FILES} *~ *\#
