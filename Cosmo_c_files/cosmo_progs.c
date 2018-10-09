@@ -255,7 +255,7 @@ double molecular_cooling_threshold(float z){
 
 #ifndef INHOMO_FEEDBACK
 double J_21_LW_Wise12(float z){
-    return pow(10, LW_WISE12_A + LW_WISE12_B*z +LW_WISE12_C*z*z + LW_WISE12_D*z*z*z -LW_WISE12_E*z*z*z*z);
+    return pow(10, LW_WISE12_A + LW_WISE12_B*z +LW_WISE12_C*z*z + LW_WISE12_D*z*z*z +LW_WISE12_E*z*z*z*z);
 }
 #endif
 

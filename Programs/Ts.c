@@ -872,7 +872,8 @@ int main(int argc, char ** argv){
         M_MIN = M_MINa_interp_table[i];
     if(M_MIN > M_MINm_interp_table[i])
         M_MIN = M_MINm_interp_table[i];
-    fprintf(stderr, "z=%f, Mcrit_atom=%g, Mcrit_LW=%g, Mmin_a=%g, Mmin_m=%g\n",zpp_interp_table[i], Mcrit_atom_interp_table[i],Mcrit_LW_interp_table[i] ,M_MINa_interp_table[i],M_MINm_interp_table[i]);
+    fprintf(stderr, "z=%f, Mcrit_RE=%g, Mcrit_atom=%g, Mcrit_LW=%g, Mmin_a=%g, Mmin_m=%g\n",
+			zpp_interp_table[i], Mcrit_RE_interp_table[i], Mcrit_atom_interp_table[i],Mcrit_LW_interp_table[i] ,M_MINa_interp_table[i],M_MINm_interp_table[i]);
 #endif //INHOMO_FEEDBACK
 #else //MINI_HALO
     M_MINa_interp_table[i]     = M_TURN;
