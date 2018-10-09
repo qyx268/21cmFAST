@@ -389,7 +389,7 @@ double gettime(double z){
 
 /* function TIMESINCE returns the time elapsed from parameter redshift zsource to parameter redshift z */
 double timesince(double z, double zsource){
-  if (z > zsource){printf("Invalid usage of TIMESINCE. Z must be <= Zsource."); return 0;}
+  if (z > zsource){fprintf(stderr, "Invalid usage of TIMESINCE. Z must be <= Zsource."); return 0;}
   else if ((zsource-z) < TINY){ return 0;}
   return (gettime(z) - gettime(zsource));
 }

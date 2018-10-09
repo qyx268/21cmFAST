@@ -703,7 +703,7 @@ int main(int argc, char ** argv){
     x_e_ave = xe_BC;
     Tk_ave = Tk_BC;
 
-    printf("Starting at at z_max=%f, Tk=%f, x_e=%e\n", Z_HEAT_MAX, Tk_ave, x_e_ave);
+    fprintf(stderr, "Starting at at z_max=%f, Tk=%f, x_e=%e\n", Z_HEAT_MAX, Tk_ave, x_e_ave);
   }
   else{ // we need to load the evolution files from the intermediate output
     // first Tk
@@ -872,7 +872,7 @@ int main(int argc, char ** argv){
         M_MIN = M_MINa_interp_table[i];
     if(M_MIN > M_MINm_interp_table[i])
         M_MIN = M_MINm_interp_table[i];
-    printf("z=%f, Mcrit_atom=%g, Mcrit_LW=%g, Mmin_a=%g, Mmin_m=%g\n",zpp_interp_table[i], Mcrit_atom_interp_table[i],Mcrit_LW_interp_table[i] ,M_MINa_interp_table[i],M_MINm_interp_table[i]);
+    fprintf(stderr, "z=%f, Mcrit_atom=%g, Mcrit_LW=%g, Mmin_a=%g, Mmin_m=%g\n",zpp_interp_table[i], Mcrit_atom_interp_table[i],Mcrit_LW_interp_table[i] ,M_MINa_interp_table[i],M_MINm_interp_table[i]);
 #endif //INHOMO_FEEDBACK
 #else //MINI_HALO
     M_MINa_interp_table[i]     = M_TURN;
@@ -887,24 +887,24 @@ int main(int argc, char ** argv){
 #else //MINI_HALO
   M_MIN  = M_TURN/50;
 #endif //MINI_HALO
-  printf("setting minimum mass for integral at %g\n",M_MIN);
+  fprintf(stderr, "setting minimum mass for integral at %g\n",M_MIN);
 
   /* initialise interpolation of the mean number of IGM ionizing photon per baryon for global reionization.
      compute 'Nion_ST' corresponding to an array of redshift. */
   initialise_Nion_ST_spline(zpp_interp_points, zpp_interp_table, M_MIN, M_MINa_interp_table, ALPHA_STAR, ALPHA_ESC, F_STAR10, F_ESC10);
-  printf("\n Completed initialise Nion_ST, Time = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
+  fprintf(stderr, "\n Completed initialise Nion_ST, Time = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
 #ifdef MINI_HALO
   initialise_Nion_ST_splinem(zpp_interp_points, zpp_interp_table, M_MIN, M_MINm_interp_table, Mcrit_atom_interp_table, ALPHA_STAR, F_STAR10m);
-  printf("\n Completed initialise Nion_ST for mini halos, Time = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
+  fprintf(stderr, "\n Completed initialise Nion_ST for mini halos, Time = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
 #endif //MINI_HALO
   
   /* initialise interpolation of the mean SFRD.
      compute 'Nion_ST' corresponding to an array of redshift, but assume f_{esc10} = 1 and \alpha_{esc} = 0. */
   initialise_SFRD_ST_spline(zpp_interp_points, zpp_interp_table, M_MIN, M_MINa_interp_table, ALPHA_STAR, F_STAR10);
-  printf("\n Completed initialise SFRD using Sheth-Tormen halo mass function, Time = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
+  fprintf(stderr, "\n Completed initialise SFRD using Sheth-Tormen halo mass function, Time = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
 #ifdef MINI_HALO
   initialise_SFRD_ST_splinem(zpp_interp_points, zpp_interp_table, M_MIN, M_MINm_interp_table, Mcrit_atom_interp_table, ALPHA_STAR, F_STAR10m);
-  printf("\n Completed initialise SFRD for mini halos using Sheth-Tormen halo mass function, Time = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
+  fprintf(stderr, "\n Completed initialise SFRD for mini halos using Sheth-Tormen halo mass function, Time = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
 #endif //MINI_HALO
   
   // initialise redshift table corresponding to all the redshifts to initialise interpolation for the conditional mass function.
@@ -936,10 +936,10 @@ int main(int argc, char ** argv){
   // Note from YQ: due to the initial configuration left from v2, I will construct M_MINa_interp_table and M_MINm_interp_table inside these two
   // functions (which is fine because we are only going to use them once, although there are unnecessary duplicated calculations...)
   initialise_SFRD_Conditional_table(Nsteps_zp,NUM_FILTER_STEPS_FOR_Ts,redshift_interp_table,R_values, M_MIN, M_TURN, ALPHA_STAR, F_STAR10);
-  printf("\n Generated the table of SFRD using conditional mass function = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
+  fprintf(stderr, "\n Generated the table of SFRD using conditional mass function = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
 #ifdef MINI_HALO
   initialise_SFRD_Conditional_tablem(Nsteps_zp,NUM_FILTER_STEPS_FOR_Ts,redshift_interp_table,R_values, M_MIN, M_TURN, ALPHA_STAR, F_STAR10m);
-  printf("\n Generated the table of SFRD using conditional mass function for mini halos = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
+  fprintf(stderr, "\n Generated the table of SFRD using conditional mass function for mini halos = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
 #endif //MINI_HALO
 #endif //SHARP_CUTOFF
     
@@ -1021,7 +1021,7 @@ int main(int argc, char ** argv){
     
       zpp_edge[R_ct] = prev_zpp - (R_values[R_ct] - prev_R)*CMperMPC / drdz(prev_zpp); // cell size
       zpp = (zpp_edge[R_ct]+prev_zpp)*0.5; // average redshift value of shell: z'' + 0.5 * dz''
-      if (zpp - redshift_interp_table[arr_num+R_ct] > 1e-3) printf("zpp = %.4f, zpp_array = %.4f\n", zpp, redshift_interp_table[arr_num+R_ct]);
+      if (zpp - redshift_interp_table[arr_num+R_ct] > 1e-3) fprintf(stderr, "zpp = %.4f, zpp_array = %.4f\n", zpp, redshift_interp_table[arr_num+R_ct]);
 #ifdef SHARP_CUTOFF 
       sigma_Tmin[R_ct] =  sigma_z0(M_MIN); // In v2 sigma_Tmin doesn't need to be an array, just a constant.
 #endif
@@ -1108,21 +1108,21 @@ int main(int argc, char ** argv){
 #ifdef DEBUG_ON
 #ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
-      printf("ST/PS=%g(atomic:%g, molecular:%g), mean_ST=%g(atomic:%g, molecular:%g), mean_ps=%g\n, ratios of mean=%g(atomic:%g, molecular:%g)\n", 
+      fprintf(stderr, "ST/PS=%g(atomic:%g, molecular:%g), mean_ST=%g(atomic:%g, molecular:%g), mean_ps=%g\n, ratios of mean=%g(atomic:%g, molecular:%g)\n", 
          ST_over_PS[R_ct]+ST_over_PSm[R_ct],ST_over_PS[R_ct],ST_over_PSm[R_ct], 
          Splined_SFRD_ST_zpp+Splined_SFRD_ST_zppm,Splined_SFRD_ST_zpp,Splined_SFRD_ST_zppm,
          FgtrM(zpp, M_MIN),
          (Splined_SFRD_ST_zpp+Splined_SFRD_ST_zppm)/FgtrM(zpp, M_MIN),Splined_SFRD_ST_zpp/FgtrM(zpp, M_MIN),Splined_SFRD_ST_zppm/FgtrM(zpp, M_MIN)
          );
 #else //MINI_HALO
-      printf("ST/PS=%g, mean_ST=%g, mean_ps=%g\n, ratios of mean=%g\n", ST_over_PS[R_ct], 
+      fprintf(stderr, "ST/PS=%g, mean_ST=%g, mean_ps=%g\n, ratios of mean=%g\n", ST_over_PS[R_ct], 
          Splined_SFRD_ST_zpp,
          FgtrM(zpp, M_MIN),
          Splined_SFRD_ST_zpp/FgtrM(zpp, M_MIN)
          );
 #endif //MINI_HALO
 #else //SHARP_CUTOFF
-      printf("ST/PS=%g, mean_ST=%g, mean_ps=%g\n, ratios of mean=%g\n", ST_over_PS[R_ct], 
+      fprintf(stderr, "ST/PS=%g, mean_ST=%g, mean_ps=%g\n, ratios of mean=%g\n", ST_over_PS[R_ct], 
          FgtrM_st(zpp, M_MIN), 
          FgtrM(zpp, M_MIN),
          FgtrM_st(zpp, M_MIN)/FgtrM(zpp, M_MIN)
@@ -1209,7 +1209,7 @@ int main(int argc, char ** argv){
         Luminosity_conversion_factorm = pow( NU_X_BAND_MAX , 1. - X_RAY_SPEC_INDEX_MINI ) - pow( NU_X_THRESH , 1. - X_RAY_SPEC_INDEX_MINI ) ;
         Luminosity_conversion_factorm = 1./Luminosity_conversion_factorm;
         Luminosity_conversion_factorm *= pow( NU_X_THRESH, - X_RAY_SPEC_INDEX_MINI )*(1 - X_RAY_SPEC_INDEX_MINI);
-    }    
+    }
     // Finally, convert to the correct units. NU_over_EV*hplank as only want to divide by eV -> erg (owing to the definition of Luminosity)
     Luminosity_conversion_factorm *= (3.1556226e7)/(hplank);
     const_zp_prefactorm = ( X_LUMINOSITYm * Luminosity_conversion_factorm ) / NU_X_THRESH * C 

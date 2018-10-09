@@ -641,7 +641,7 @@ double integrate_over_nu(double zp, double local_x_e, double lower_int_limit, in
      = gsl_integration_workspace_alloc (1000);
 
 #ifdef DEBUG_ON
-     printf("integrate over nu, parameters: %f, %f, %e, %i, thread# %i\n", zp, local_x_e, lower_int_limit, FLAG, omp_get_thread_num());
+     fprintf(stderr, "integrate over nu, parameters: %f, %f, %e, %i, thread# %i\n", zp, local_x_e, lower_int_limit, FLAG, omp_get_thread_num());
 #endif //DEBUG_ON
        /*
        if (DO_NOT_COMPARE_NUS)
@@ -745,7 +745,7 @@ double integrate_over_num(double zp, double local_x_e, double lower_int_limit, i
      = gsl_integration_workspace_alloc (1000);
 
 #ifdef DEBUG_ON
-     printf("integrate over nu, parameters: %f, %f, %e, %i, thread# %i\n", zp, local_x_e, lower_int_limit, FLAG, omp_get_thread_num());
+     fprintf(stderr, "integrate over nu, parameters: %f, %f, %e, %i, thread# %i\n", zp, local_x_e, lower_int_limit, FLAG, omp_get_thread_num());
 #endif //DEBUG_ON
        /*
        if (DO_NOT_COMPARE_NUS)
@@ -824,15 +824,15 @@ double tauX_integrand(double zhat, void *params){
   nuhat = p->nu_0 * (1+zhat);
   // New in v2
 #ifndef SHARP_CUTOFF
-    //fcoll = FgtrM(zhat, M_MIN); // TEST
-    Nion_ST_z(zhat,&(Splined_ans));
-    fcoll = Splined_ans;
+  //fcoll = FgtrM(zhat, M_MIN); // TEST
+  Nion_ST_z(zhat,&(Splined_ans));
+  fcoll = Splined_ans;
 #ifdef MINI_HALO
-    Nion_ST_zm(zhat,&(Splined_ansm));
-    fcollm = Splined_ansm;
+  Nion_ST_zm(zhat,&(Splined_ansm));
+  fcollm = Splined_ansm;
 #endif
 #else
-    fcoll = FgtrM(zhat, M_MIN);
+  fcoll = FgtrM(zhat, M_MIN);
 #endif
 #ifdef MINI_HALO
   if (fcoll + fcollm < 1e-20)
@@ -940,7 +940,7 @@ double nu_tau_one(double zp, double zpp, double x_e, double HI_filling_factor_zp
   nu_tau_one_params p;
 
 #ifdef DEBUG_ON
-    printf("in nu tau one, called with parameters: zp=%f, zpp=%f, x_e=%e, HI_filling_at_zp=%e\n",
+    fprintf(stderr, "in nu tau one, called with parameters: zp=%f, zpp=%f, x_e=%e, HI_filling_at_zp=%e\n",
        zp, zpp, x_e, HI_filling_factor_zp);
 #endif //DEBUG_ON
 
@@ -978,7 +978,7 @@ double nu_tau_one(double zp, double zpp, double x_e, double HI_filling_factor_zp
 
   // iterate until we guess close enough
 #ifdef DEBUG_ON
-  printf ("%5s [%9s, %9s] %9s %9s\n", "iter", "lower", "upper", "root", "err(est)");
+  fprintf (stderr, "%5s [%9s, %9s] %9s %9s\n", "iter", "lower", "upper", "root", "err(est)");
 #endif //DEBUG_ON
   iter = 0;
   max_iter = 100;
@@ -991,7 +991,7 @@ double nu_tau_one(double zp, double zpp, double x_e, double HI_filling_factor_zp
       x_hi = gsl_root_fsolver_x_upper (s);
       status = gsl_root_test_interval (x_lo, x_hi, 0, relative_error);
 #ifdef DEBUG_ON
-  printf ("%5d [%.7e, %.7e] %.7e %.7e\n", iter, x_lo, x_hi, r, (x_hi - x_lo)/r);  
+  fprintf (stderr, "%5d [%.7e, %.7e] %.7e %.7e\n", iter, x_lo, x_hi, r, (x_hi - x_lo)/r);  
   fflush(NULL);
 #endif //DEBUG_ON
   }
@@ -1000,7 +1000,7 @@ double nu_tau_one(double zp, double zpp, double x_e, double HI_filling_factor_zp
   // deallocate and return
   gsl_root_fsolver_free (s);
 #ifdef DEBUG_ON
-  printf("Root found at %e eV", r/NU_over_EV);
+  fprintf(stderr, "Root found at %e eV", r/NU_over_EV);
 #endif //DEBUG_ON
 
   return r;

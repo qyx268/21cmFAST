@@ -1260,8 +1260,8 @@ float Mass_limit_bisection(float Mmin, float Mmax, float PL, float FRAC){
     x = x1;
   }
   while(iter < max_iter);
-  printf("\n Failed to find a mass limit to regulate stellar fraction/escape fraction is between 0 and 1.\n");
-  printf(" The solution does not converge or iterations are not sufficient\n");
+  fprintf(stderr, "\n Failed to find a mass limit to regulate stellar fraction/escape fraction is between 0 and 1.\n");
+  fprintf(stderr, " The solution does not converge or iterations are not sufficient\n");
   return -1;
 }
 
