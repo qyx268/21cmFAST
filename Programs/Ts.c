@@ -1109,24 +1109,30 @@ int main(int argc, char ** argv){
 //#ifdef DEBUG_ON
 #ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
-      fprintf(LOG, "ST/PS          = (atomic:%g, molecular:%g)\n \
+      fprintf(LOG, "scale R        = %06.2fMpc\n \
+                    ST/PS          = (atomic:%g, molecular:%g)\n \
                     mean_ST        = (atomic:%g, molecular:%g)\n \
                     mean_PS        = %g\n \
                     ratios of mean = (atomic:%g, molecular:%g)\n", 
+         R_values[R_ct],
          ST_over_PS[R_ct],ST_over_PSm[R_ct], 
          Splined_SFRD_ST_zpp,Splined_SFRD_ST_zppm,
          FgtrM(zpp, M_MIN),
          Splined_SFRD_ST_zpp/FgtrM(zpp, M_MIN),Splined_SFRD_ST_zppm/FgtrM(zpp, M_MIN)
          );
 #else //MINI_HALO
-      fprintf(LOG, "ST/PS=%g, mean_ST=%g, mean_ps=%g\n, ratios of mean=%g\n", ST_over_PS[R_ct], 
+      fprintf(LOG, "R=%06.2fMpc, ST/PS=%g, mean_ST=%g, mean_ps=%g\n, ratios of mean=%g\n", 
+         R_values[R_ct],
+         ST_over_PS[R_ct], 
          Splined_SFRD_ST_zpp,
          FgtrM(zpp, M_MIN),
          Splined_SFRD_ST_zpp/FgtrM(zpp, M_MIN)
          );
 #endif //MINI_HALO
 #else //SHARP_CUTOFF
-      fprintf(LOG, "ST/PS=%g, mean_ST=%g, mean_ps=%g\n, ratios of mean=%g\n", ST_over_PS[R_ct], 
+      fprintf(LOG, "R=%06.2fMpc, ST/PS=%g, mean_ST=%g, mean_ps=%g\n, ratios of mean=%g\n",
+         R_values[R_ct],
+         ST_over_PS[R_ct], 
          FgtrM_st(zpp, M_MIN), 
          FgtrM(zpp, M_MIN),
          FgtrM_st(zpp, M_MIN)/FgtrM(zpp, M_MIN)
