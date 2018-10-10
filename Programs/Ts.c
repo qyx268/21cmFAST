@@ -405,10 +405,10 @@ int main(int argc, char ** argv){
 #endif //MINI_HALO
 #endif //SHARP_CUTOFF
   REDSHIFT = atof(argv[1]);
-  system("mkdir ../Log_files");
-  system("mkdir ../Output_files");
-  system("mkdir ../Boxes/Ts_evolution/");
-  system("mkdir ../Output_files/Ts_outs/");
+  system("mkdir -p ../Log_files");
+  system("mkdir -p ../Output_files");
+  system("mkdir -p ../Boxes/Ts_evolution/");
+  system("mkdir -p ../Output_files/Ts_outs/");
   system("cp ../Parameter_files/* ../Output_files/Ts_outs/");
   system("cp ../Parameter_files/* ../Boxes/Ts_evolution/");
   init_ps();

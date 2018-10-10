@@ -68,7 +68,7 @@ int main(int argc, char ** argv){
 
   // open LOG file
   REDSHIFT = atof(argv[1+arg_offset]);
-  system("mkdir ../Log_files");
+  system("mkdir -p ../Log_files");
   sprintf(filename, "../Log_files/delta_T_log_file_%d", getpid());
   LOG = fopen(filename, "w");
   if (!LOG){ fprintf(stderr, "delta_T.c: Error opening log file %s\n", filename);}
@@ -76,9 +76,9 @@ int main(int argc, char ** argv){
   H = hubble(REDSHIFT);
   const_factor = 27 * (OMb*hlittle*hlittle/0.023) * 
     sqrt( (0.15/OMm/hlittle/hlittle) * (1+REDSHIFT)/10.0 );
-  system("mkdir ../Output_files/");
-  system("mkdir ../Output_files/Deldel_T_power_spec");
-  system("mkdir ../Log_files");
+  system("mkdir -p ../Output_files/");
+  system("mkdir -p ../Output_files/Deldel_T_power_spec");
+  system("mkdir -p ../Log_files");
 
   // get the neutral fraction and HII filter from the filename
   strcpy(filename, argv[2+arg_offset]);
@@ -718,7 +718,7 @@ int main(int argc, char ** argv){
 #else //DIMENSIONAL_T_POWER_SPEC
   sprintf(psoutputdir, "../Output_files/Deldel_T_power_spec/Dimensionless");
 #endif //DIMENSIONAL_T_POWER_SPEC
-  sprintf(filename, "mkdir %s", psoutputdir);
+  sprintf(filename, "mkdir -p %s", psoutputdir);
   system(filename);
 
   // now lets print out the k bins

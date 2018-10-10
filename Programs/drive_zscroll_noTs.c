@@ -30,14 +30,14 @@ int main(int argc, char ** argv){
   time(&start_time);
 
   // make appropriate directories
-  system("mkdir ../Log_files");
-  system("mkdir ../Boxes");
-  system("mkdir ../Output_files");
-  system("mkdir ../Output_files/DNDLNM_files");
-  system("mkdir ../Output_files/FgtrM_files");
-  system("mkdir ../Output_files/Halo_lists");
-  system("mkdir ../Output_files/Size_distributions");
-  system("mkdir ../Output_files/Deldel_T_power_spec");
+  system("mkdir -p ../Log_files");
+  system("mkdir -p ../Boxes");
+  system("mkdir -p ../Output_files");
+  system("mkdir -p ../Output_files/DNDLNM_files");
+  system("mkdir -p ../Output_files/FgtrM_files");
+  system("mkdir -p ../Output_files/Halo_lists");
+  system("mkdir -p ../Output_files/Size_distributions");
+  system("mkdir -p ../Output_files/Deldel_T_power_spec");
 
 
 

@@ -505,6 +505,8 @@ int main(int argc, char ** argv){
   M_MINm = Mcrit_LW; // basically it's molecular cooling threshold
   M_MIN  = 1e5;
 #else //INHOMO_FEEDBACK
+  //TODO: here is inconsistent with the M_MIN set in Ts, which is the minimum of all scrolled redshifts.
+  //Shouldn't matter too much, but better change it later.
   M_MINa = Mcrit_RE > Mcrit_atom ? Mcrit_RE : Mcrit_atom;
   M_MINm = Mcrit_RE > Mcrit_LW   ? Mcrit_RE : Mcrit_LW;
   M_MIN  = M_MINa > M_MINm       ? M_MINm : M_MINa;
@@ -546,7 +548,7 @@ int main(int argc, char ** argv){
   r = gsl_rng_alloc(T);
   
   // OPEN LOG FILE
-  system("mkdir ../Log_files");
+  system("mkdir -p ../Log_files");
   sprintf(filename, "../Log_files/HII_bubble_log_file_%d", getpid());
   LOG = fopen(filename, "w");
   if (!LOG){

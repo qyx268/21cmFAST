@@ -88,7 +88,7 @@ int main(int argc, char ** argv){
   time(&start_time);
   // initialize power spectrum functions
   init_ps();
-  system("mkdir ../Boxes");
+  system("mkdir -p ../Boxes");
 
   // initialize and allocate thread info
   if (fftwf_init_threads()==0){

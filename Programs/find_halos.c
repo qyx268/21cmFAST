@@ -250,11 +250,11 @@ int main(int argc, char ** argv){
   }
   REDSHIFT = atof(argv[1]);
 
-  system("mkdir ../Log_files");
-  system("mkdir ../Output_files");
-  system("mkdir ../Output_files/DNDLNM_files");
-  system("mkdir ../Output_files/FgtrM_files");
-  system("mkdir ../Output_files/Halo_lists");
+  system("mkdir -p ../Log_files");
+  system("mkdir -p ../Output_files");
+  system("mkdir -p ../Output_files/DNDLNM_files");
+  system("mkdir -p ../Output_files/FgtrM_files");
+  system("mkdir -p ../Output_files/Halo_lists");
   
   // initialize power spectrum 
   init_ps(0, 1e10);
@@ -265,7 +265,7 @@ int main(int argc, char ** argv){
   M_MIN = M_TURNOVER;
 
   // open log file
-  system("mkdir ../Log_files");
+  system("mkdir -p ../Log_files");
   LOG = fopen("../Log_files/zscroll_log_file", "w");
   if (!LOG){
     fprintf(stderr, "find_halos.c: Unable to open log file\n Aborting...\n");

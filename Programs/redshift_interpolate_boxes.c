@@ -171,7 +171,7 @@ int main(int argc, char ** argv){
     fprintf(stderr, "ERROR: redshift_interpolate_boxes: Unable to open box filelist %s.\nAborting.\n", argv[2]);
     return -1;
   }
-  system("mkdir ../Log_files");
+  system("mkdir -p ../Log_files");
   if (!(LOG = fopen("../Log_files/redshift_interpolate_boxes_log", "w"))){
     fprintf(stderr, "WARNING: redshift_interpolate_boxes: Unable to open log file\n");
   }
