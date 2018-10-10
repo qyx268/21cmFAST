@@ -873,7 +873,7 @@ int main(int argc, char ** argv){
     if(M_MIN > M_MINm_interp_table[i])
         M_MIN = M_MINm_interp_table[i];
     fprintf(stderr, "z=%f, Mcrit_RE=%g, Mcrit_atom=%g, Mcrit_LW=%g, Mmin_a=%g, Mmin_m=%g\n",
-			zpp_interp_table[i], Mcrit_RE_interp_table[i], Mcrit_atom_interp_table[i],Mcrit_LW_interp_table[i] ,M_MINa_interp_table[i],M_MINm_interp_table[i]);
+            zpp_interp_table[i], Mcrit_RE_interp_table[i], Mcrit_atom_interp_table[i],Mcrit_LW_interp_table[i] ,M_MINa_interp_table[i],M_MINm_interp_table[i]);
 #endif //INHOMO_FEEDBACK
 #else //MINI_HALO
     M_MINa_interp_table[i]     = M_TURN;
@@ -1109,21 +1109,24 @@ int main(int argc, char ** argv){
 //#ifdef DEBUG_ON
 #ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
-      fprintf(stderr, "ST/PS=%g(atomic:%g, molecular:%g)\n mean_ST=%g(atomic:%g, molecular:%g)\n mean_ps=%e\ne ratios of mean=%g(atomic:%g, molecular:%g)\n", 
-         ST_over_PS[R_ct]+ST_over_PSm[R_ct],ST_over_PS[R_ct],ST_over_PSm[R_ct], 
-         Splined_SFRD_ST_zpp+Splined_SFRD_ST_zppm,Splined_SFRD_ST_zpp,Splined_SFRD_ST_zppm,
+      fprintf(LOG, "ST/PS          = (atomic:%g, molecular:%g)\n \
+                    mean_ST        = (atomic:%g, molecular:%g)\n \
+                    mean_PS        = %g\n \
+                    ratios of mean = (atomic:%g, molecular:%g)\n", 
+         ST_over_PS[R_ct],ST_over_PSm[R_ct], 
+         Splined_SFRD_ST_zpp,Splined_SFRD_ST_zppm,
          FgtrM(zpp, M_MIN),
-         (Splined_SFRD_ST_zpp+Splined_SFRD_ST_zppm)/FgtrM(zpp, M_MIN),Splined_SFRD_ST_zpp/FgtrM(zpp, M_MIN),Splined_SFRD_ST_zppm/FgtrM(zpp, M_MIN)
+         Splined_SFRD_ST_zpp/FgtrM(zpp, M_MIN),Splined_SFRD_ST_zppm/FgtrM(zpp, M_MIN)
          );
 #else //MINI_HALO
-      fprintf(stderr, "ST/PS=%g, mean_ST=%g, mean_ps=%g\n, ratios of mean=%g\n", ST_over_PS[R_ct], 
+      fprintf(LOG, "ST/PS=%g, mean_ST=%g, mean_ps=%g\n, ratios of mean=%g\n", ST_over_PS[R_ct], 
          Splined_SFRD_ST_zpp,
          FgtrM(zpp, M_MIN),
          Splined_SFRD_ST_zpp/FgtrM(zpp, M_MIN)
          );
 #endif //MINI_HALO
 #else //SHARP_CUTOFF
-      fprintf(stderr, "ST/PS=%g, mean_ST=%g, mean_ps=%g\n, ratios of mean=%g\n", ST_over_PS[R_ct], 
+      fprintf(LOG, "ST/PS=%g, mean_ST=%g, mean_ps=%g\n, ratios of mean=%g\n", ST_over_PS[R_ct], 
          FgtrM_st(zpp, M_MIN), 
          FgtrM(zpp, M_MIN),
          FgtrM_st(zpp, M_MIN)/FgtrM(zpp, M_MIN)
