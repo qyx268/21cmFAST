@@ -85,7 +85,7 @@ int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, floa
 #endif //REION_SM
 #endif //INHOMO_FEEDBACK
                     float * F_STAR10m, float * F_ESC10m, double * X_LUMINOSITYm,
-#else ////INHOMO_FEEDBACK
+#else //MINI_HALO
                     float * ALPHA_STAR, float * F_ESC10, float * ALPHA_ESC, float * M_TURN, float * T_AST, double * X_LUMINOSITY,
 #endif //MINI_HALO
 #endif //SHARP_CUTOFF

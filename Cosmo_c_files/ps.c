@@ -1686,7 +1686,7 @@ void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover,
         overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low-1.)*(log10(1.+overdense_small_high)-log10(1.+overdense_small_low));
 
         log10_overdense_spline_SFR[i] = overdense_val;
-        log10_Nion_spline[i] = log10(GaussLegendreQuad_Nion(NGL_SFR,z,log(Mmax),Deltac,pow(10.,overdense_val)-1.,MassTurnover,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc));
+        log10_Nion_spline[i] = log10(GaussLegendreQuad_Nion(NGL_SFR,z,log(Mmax),Deltac,pow(10.,log10_overdense_spline_SFR[i])-1.,MassTurnover,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc));
 
         if(log10_Nion_spline[i] < -40.){
             log10_Nion_spline[i] = -40.;
@@ -1708,9 +1708,9 @@ void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover,
 
 #ifdef MINI_HALO
 void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, float MassTurnoverm, float Mcrit_atom, float Fstar10m, float Mlim_Fstarm){
-    double overdense_val;
-    double overdense_large_high = Deltac, overdense_large_low = 1.5;
-    double overdense_small_high = 1.5, overdense_small_low = -1. + 9e-8;
+    //double overdense_val;
+    //double overdense_large_high = Deltac, overdense_large_low = 1.5;
+   // double overdense_small_high = 1.5, overdense_small_low = -1. + 9e-8;
     int i;
     NionLow_spline_accm = gsl_interp_accel_alloc ();
     NionLow_splinem = gsl_spline_alloc (gsl_interp_cspline, NSFR_low);
@@ -1719,10 +1719,10 @@ void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, 
         //overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low-1.)*(log10(1.+overdense_small_high)-log10(1.+overdense_small_low));
 
         //log10_overdense_spline_SFR[i] = overdense_val;
-        log10_Nion_splinem[i] = log10(GaussLegendreQuad_Nionm(NGL_SFR,z,log(Mmax),Deltac,pow(10.,overdense_val)-1.,Alpha_star,MassTurnoverm,Mcrit_atom,Fstar10m,Mlim_Fstarm));
+        log10_Nion_splinem[i] = log10(GaussLegendreQuad_Nionm(NGL_SFR,z,log(Mmax),Deltac,pow(10.,log10_overdense_spline_SFR[i])-1.,Alpha_star,MassTurnoverm,Mcrit_atom,Fstar10m,Mlim_Fstarm));
 
-        if(log10_Nion_spline[i] < -40.){
-            log10_Nion_spline[i] = -40.;
+        if(log10_Nion_splinem[i] < -40.){
+            log10_Nion_splinem[i] = -40.;
         }
     }
     gsl_spline_init(NionLow_splinem, log10_overdense_spline_SFR, log10_Nion_splinem, NSFR_low);
@@ -1967,7 +1967,7 @@ void initialise_SFRD_Conditional_tablem(int Nsteps_zp, int Nfilter, float z[], d
       i_tot = Nfilter*k;
       for (j=0; j < Nfilter; j++) {
         Mmax = RtoM(R[j]);
-        //initialiseGL_Nion(NGL_SFR, Mmin, Mmax);
+        initialiseGL_Nion(NGL_SFR, Mmin, Mmax);
         Mcrit_atom = atomic_cooling_threshold(z[i_tot+j]);
         Mcrit_LW   = atomic_cooling_threshold(z[i_tot+j]);
 #ifdef REION_SM
