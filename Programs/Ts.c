@@ -1140,7 +1140,15 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
 #endif //SHARP_CUTOFF
 //#endif //DEBUG_ON
 
+#ifdef SHARP_CUTOFF
       lower_int_limit = FMAX(nu_tau_one(zp, zpp, x_e_ave, filling_factor_of_HI_zp), NU_X_THRESH);
+#else //SHARP_CUTOFF
+#ifdef MINI_HALO
+      lower_int_limit = FMAX(nu_tau_one(zp, zpp, x_e_ave, filling_factor_of_HI_zp, ION_EFF_FACTOR, ION_EFF_FACTOR_MINI), NU_X_THRESH);
+#else //MINI_HALO
+      lower_int_limit = FMAX(nu_tau_one(zp, zpp, x_e_ave, filling_factor_of_HI_zp, ION_EFF_FACTOR), NU_X_THRESH);
+#endif //MINI_HALO
+#endif //SHARP_CUTOFF
 
 /***************  PARALLELIZED LOOP ******************************************************************/
       // set up frequency integral table for later interpolation for the cell's x_e value

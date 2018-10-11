@@ -91,14 +91,30 @@ double dT_comp(double z, double TK, double xe);
 
 /* Calculates the optical depth for a photon arriving at z = zp with frequency nu,
  emitted at z = zpp */
-double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_factor_zp); 
+#ifdef SHARP_CUTOFF
+double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_factor_zp);
+#else //SHARP_CUTOFF
+#ifdef MINI_HALO
+double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_factor_zp, double ion_eff, double ion_effm);
+#else //MINI_HALO
+double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_factor_zp, double ion_eff);
+#endif //MINI_HALO
+#endif //SHARP_CUTOFF
 
 /* The total weighted HI + HeI + HeII  cross-section in pcm^-2 */
 double species_weighted_x_ray_cross_section(double nu, double x_e); 
 
 /* Returns the frequency threshold where \tau = 1 between zp and zpp,
  in the IGM with mean electron fraction x_e */
+#ifdef SHARP_CUTOFF
 double nu_tau_one(double zp, double zpp, double x_e, double HI_filling_factor_zp); 
+#else //SHARP_CUTOFF
+#ifdef MINI_HALO
+double nu_tau_one(double zp, double zpp, double x_e, double HI_filling_factor_zp, double ion_eff, double ion_effm); 
+#else //MINI_HALO
+double nu_tau_one(double zp, double zpp, double x_e, double HI_filling_factor_zp, double ion_eff); 
+#endif //MINI_HALO
+#endif //SHARP_CUTOFF
 
  /* Main integral driver for the frequency integral in the evolution equations */
 double integrate_over_nu(double zp, double local_x_e, double lower_int_limit, int FLAG);
@@ -834,6 +850,7 @@ double tauX_integrand(double zhat, void *params){
 #else
   fcoll = FgtrM(zhat, M_MIN);
 #endif
+
 #ifdef MINI_HALO
   if ((fcoll < 1e-20) && (fcollm < 1e-20))
     HI_filling_factor_zhat = 1;
@@ -852,12 +869,19 @@ double tauX_integrand(double zhat, void *params){
 
   return drpropdz * n * HI_filling_factor_zhat * sigma_tilde;
 }
-double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_factor_zp){
-//double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_factor_zp, float M_TURN, float ALPHA_STAR, float F_STAR10){
+#ifdef SHARP_CUTOFF
+double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_factor_zp)
+#else //SHARP_CUTOFF
+#ifdef MINI_HALO
+double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_factor_zp, double ion_eff, double ion_effm)
+#else //MINI_HALO
+double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_factor_zp, double ion_eff)
+#endif //MINI_HALO
+#endif //SHARP_CUTOFF
+{
   double result, error, fcoll;
 #ifdef MINI_HALO
   double fcollm;
-  double ion_eff_spliter =  (N_GAMMA_UV_MINI * F_STAR10m * F_ESC10m) / (N_GAMMA_UV * F_STAR10  * F_ESC10);
 #endif
        gsl_function F;
        double rel_tol  = 0.005; //<- relative tolerance
@@ -877,35 +901,21 @@ double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_fact
        F.function = &tauX_integrand;
        p.nu_0 = nu/(1+zp);
        p.x_e = x_e;
+#ifdef SHARP_CUTOFF
        // effective efficiency for the PS (not ST) mass function; quicker to compute...
        if (HI_filling_factor_zp > FRACT_FLOAT_ERR){
-         // New in v2
-#ifndef SHARP_CUTOFF
-           Nion_ST_z(zp,&(Splined_ans));
-           fcoll = Splined_ans;
-           //fcoll = FgtrM(zp, M_MIN);//TEST
-#ifdef MINI_HALO
-           Nion_ST_zm(zp,&(Splined_ansm));
-           fcollm = Splined_ansm;
-#endif
-#else
-           fcoll = FgtrM(zp, M_MIN);
-#endif
-#ifdef MINI_HALO
-         p.ion_eff = (1.0 - HI_filling_factor_zp) / fcoll * (1.0 - x_e_ave) / (1. + ion_eff_spliter);
-         PS_ION_EFF = p.ion_eff;
-         p.ion_effm = (1.0 - HI_filling_factor_zp) / fcollm * (1.0 - x_e_ave) / (1. + ion_eff_spliter) * ion_eff_spliter;
-         PS_ION_EFFm = p.ion_effm;
-#else
+         fcoll = FgtrM(zp, M_MIN);
          p.ion_eff = (1.0 - HI_filling_factor_zp) / fcoll * (1.0 - x_e_ave);
          PS_ION_EFF = p.ion_eff;
-#endif
        }
        else
        p.ion_eff = PS_ION_EFF; // uses the previous one in post reionization regime
+#else //SHARP_CUTOFF
+	   p.ion_eff = ion_eff;
 #ifdef MINI_HALO
-       p.ion_effm = PS_ION_EFFm; // uses the previous one in post reionization regime
-#endif
+	   p.ion_effm = ion_effm;
+#endif //MINI_HALO
+#endif //SHARP_CUTOFF
 
        F.params = &p;
        gsl_integration_qag (&F, zpp, zp, 0, rel_tol,
@@ -929,12 +939,35 @@ double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_fact
 */
 typedef struct{
   double x_e, zp, zpp, HI_filling_factor_zp;
+#ifndef SHARP_CUTOFF
+  double ion_eff;
+#ifdef MINI_HALO
+  double ion_effm;
+#endif
+#endif
 } nu_tau_one_params;
 double nu_tau_one_helper(double nu, void * params){
   nu_tau_one_params *p = (nu_tau_one_params *) params;
+#ifdef SHARP_CUTOFF
   return tauX(nu, p->x_e, p->zp, p->zpp, p->HI_filling_factor_zp) - 1;
+#else //SHARP_CUTOFF
+#ifdef MINI_HALO
+  return tauX(nu, p->x_e, p->zp, p->zpp, p->HI_filling_factor_zp, p->ion_eff, p->ion_effm) - 1;
+#else //MINI_HALO
+  return tauX(nu, p->x_e, p->zp, p->zpp, p->HI_filling_factor_zp, p->ion_eff) - 1;
+#endif //MINI_HALO
+#endif //SHARP_CUTOFF
 }
-double nu_tau_one(double zp, double zpp, double x_e, double HI_filling_factor_zp){
+#ifdef SHARP_CUTOFF
+double nu_tau_one(double zp, double zpp, double x_e, double HI_filling_factor_zp)
+#else //SHARP_CUTOFF
+#ifdef MINI_HALO
+double nu_tau_one(double zp, double zpp, double x_e, double HI_filling_factor_zp, double ion_eff, double ion_effm)
+#else //MINI_HALO
+double nu_tau_one(double zp, double zpp, double x_e, double HI_filling_factor_zp, double ion_eff)
+#endif //MINI_HALO
+#endif //SHARP_CUTOFF
+{
   int status, iter, max_iter;
   const gsl_root_fsolver_type * T; 
   gsl_root_fsolver * s;
@@ -964,7 +997,15 @@ double nu_tau_one(double zp, double zpp, double x_e, double HI_filling_factor_zp
   }
 
   //check if lower bound has null
+#ifdef SHARP_CUTOFF
   if (tauX(HeI_NUIONIZATION, x_e, zp, zpp, HI_filling_factor_zp) < 1)
+#else //SHARP_CUTOFF
+#ifdef MINI_HALO
+  if (tauX(HeI_NUIONIZATION, x_e, zp, zpp, HI_filling_factor_zp, ion_eff, ion_effm) < 1)
+#else //MINI_HALO
+  if (tauX(HeI_NUIONIZATION, x_e, zp, zpp, HI_filling_factor_zp, ion_eff) < 1)
+#endif //MINI_HALO
+#endif //SHARP_CUTOFF
     return HeI_NUIONIZATION;
 
   // set frequency boundary values
@@ -976,6 +1017,12 @@ double nu_tau_one(double zp, double zpp, double x_e, double HI_filling_factor_zp
   p.zp = zp;
   p.zpp = zpp;
   p.HI_filling_factor_zp = HI_filling_factor_zp;
+#ifdef SHARP_CUTOFF
+  p.ion_eff = ion_eff;
+#ifdef MINI_HALO
+  p.ion_effm = ion_effm;
+#endif
+#endif
   F.function = &nu_tau_one_helper;  
   F.params = &p;
   gsl_root_fsolver_set (s, &F, x_lo, x_hi);
