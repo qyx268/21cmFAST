@@ -53,6 +53,8 @@ void destroy_21cmMC_arrays() {
     free(second_derivs_Nion);
     free(xi_SFR);
     free(wi_SFR);
+    gsl_spline_free(NionLow_spline);
+    gsl_interp_accel_free(NionLow_spline_acc);
 }
 
 
@@ -174,7 +176,6 @@ int main(int argc, char ** argv){
   double global_xH, ave_xHI_xrays, ave_den, ST_over_PS, mean_f_coll_st, f_coll, ave_fcoll, dNrec;
   const gsl_rng_type * T=NULL;
   gsl_rng * r=NULL;
-  i=0;
   double t_ast, dfcolldt, Gamma_R_prefactor, rec;
   float nua, dnua, temparg, Gamma_R, z_eff;
   float F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, Mlim_Fstar, Mlim_Fesc; //New in v2
@@ -301,6 +302,7 @@ int main(int argc, char ** argv){
     mean_f_coll_st = FgtrM_st(REDSHIFT, M_MIN);
   }
     /**********  CHECK IF WE ARE IN THE DARK AGES ******************************/
+    global_xH = 0;
     // lets check if we are going to bother with computing the inhmogeneous field at all...
     if ((mean_f_coll_st*ION_EFF_FACTOR < HII_ROUND_ERR)){ // way too small to ionize anything...//New in v2
       fprintf(stderr, "The ST mean collapse fraction is %e, which is much smaller than the effective critical collapse fraction of %e\n \
