@@ -1282,6 +1282,7 @@ int main(int argc, char ** argv){
               if (ave_N_min_cell < N_POISSON){ // add poissonian fluctuations to the nalo number
                 N_min_cell = (int) gsl_ran_poisson(r, ave_N_min_cell);
 #ifdef MINI_HALO
+                // TODO: check with andrei
                 f_coll  = N_min_cell * M_MIN / (pixel_mass*density_over_mean) * (f_coll / (f_coll + f_collm));
                 f_collm = N_min_cell * M_MIN / (pixel_mass*density_over_mean) - f_coll;
 #else //MINI_HALO
@@ -1291,7 +1292,7 @@ int main(int argc, char ** argv){
 #endif //USE_HALO_FIELD
           
 #ifdef MINI_HALO
-            res_xH = xHI_from_xrays - f_coll * ION_EFF_FACTOR + f_collm * ION_EFF_FACTOR_MINI;
+            res_xH = xHI_from_xrays - f_coll * ION_EFF_FACTOR - f_collm * ION_EFF_FACTOR_MINI;
 #else //MINI_HALO
             res_xH = xHI_from_xrays - f_coll * ION_EFF_FACTOR;
 #endif //MINI_HALO
