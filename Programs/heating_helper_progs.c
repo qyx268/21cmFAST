@@ -835,7 +835,7 @@ double tauX_integrand(double zhat, void *params){
   fcoll = FgtrM(zhat, M_MIN);
 #endif
 #ifdef MINI_HALO
-  if (fcoll < 1e-20) && (fcollm < 1e-20)
+  if ((fcoll < 1e-20) && (fcollm < 1e-20))
     HI_filling_factor_zhat = 1;
   else    
     HI_filling_factor_zhat = 1 - (p->ion_eff * fcoll + p->ion_effm * fcollm)/(1.0 - x_e_ave); //simplification to use the <x_e> value at zp and not zhat.  should'nt matter much since the evolution in x_e_ave is slower than fcoll.  in principle should make an array to store past values of x_e_ave..
@@ -857,6 +857,7 @@ double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_fact
   double result, error, fcoll;
 #ifdef MINI_HALO
   double fcollm;
+  double ion_eff_spliter =  (N_GAMMA_UV_MINI * F_STAR10m * F_ESC10m) / (N_GAMMA_UV * F_STAR10  * F_ESC10);
 #endif
        gsl_function F;
        double rel_tol  = 0.005; //<- relative tolerance
@@ -891,9 +892,9 @@ double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_fact
            fcoll = FgtrM(zp, M_MIN);
 #endif
 #ifdef MINI_HALO
-         p.ion_eff = (1.0 - HI_filling_factor_zp) / fcoll * (1.0 - x_e_ave) / (1. + ION_EFF_FACTOR_MINI / ION_EFF_FACTOR);
+         p.ion_eff = (1.0 - HI_filling_factor_zp) / fcoll * (1.0 - x_e_ave) / (1. + ion_eff_spliter);
          PS_ION_EFF = p.ion_eff;
-         p.ion_effm = (1.0 - HI_filling_factor_zp) / fcollm * (1.0 - x_e_ave) / (1. + ION_EFF_FACTOR/ ION_EFF_FACTOR_MINI);
+         p.ion_effm = (1.0 - HI_filling_factor_zp) / fcollm * (1.0 - x_e_ave) / (1. + ion_eff_spliter) * ion_eff_spliter;
          PS_ION_EFFm = p.ion_effm;
 #else
          p.ion_eff = (1.0 - HI_filling_factor_zp) / fcoll * (1.0 - x_e_ave);
