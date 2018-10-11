@@ -1092,7 +1092,7 @@ int main(int argc, char ** argv){
 
       fcoll_R /= (double) sample_ct;
 #ifdef MINI_HALO
-      fcoll_R /= (double) sample_ct;
+      fcoll_Rm /= (double) sample_ct;
 #endif
 
 #ifndef SHARP_CUTOFF

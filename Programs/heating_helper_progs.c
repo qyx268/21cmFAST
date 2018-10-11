@@ -397,7 +397,7 @@ void evolveInt(float zp, float curr_delNL0[], double freq_int_heat[],
       zpp = (zpp_edge[zpp_ct]+zpp_edge[zpp_ct-1])*0.5;
       dzpp = zpp_edge[zpp_ct-1] - zpp_edge[zpp_ct];
     }
-	//New in v2
+    //New in v2
 #ifndef SHARP_CUTOFF
       growth_zpp = dicke(zpp);
       // Interpolate Fcoll -------------------------------------------------------------------------------------
@@ -835,7 +835,7 @@ double tauX_integrand(double zhat, void *params){
   fcoll = FgtrM(zhat, M_MIN);
 #endif
 #ifdef MINI_HALO
-  if (fcoll + fcollm < 1e-20)
+  if (fcoll < 1e-20) && (fcollm < 1e-20)
     HI_filling_factor_zhat = 1;
   else    
     HI_filling_factor_zhat = 1 - (p->ion_eff * fcoll + p->ion_effm * fcollm)/(1.0 - x_e_ave); //simplification to use the <x_e> value at zp and not zhat.  should'nt matter much since the evolution in x_e_ave is slower than fcoll.  in principle should make an array to store past values of x_e_ave..
@@ -890,11 +890,14 @@ double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_fact
 #else
            fcoll = FgtrM(zp, M_MIN);
 #endif
+#ifdef MINI_HALO
+         p.ion_eff = (1.0 - HI_filling_factor_zp) / fcoll * (1.0 - x_e_ave) / (1. + ION_EFF_FACTOR_MINI / ION_EFF_FACTOR);
+         PS_ION_EFF = p.ion_eff;
+         p.ion_effm = (1.0 - HI_filling_factor_zp) / fcollm * (1.0 - x_e_ave) / (1. + ION_EFF_FACTOR/ ION_EFF_FACTOR_MINI);
+         PS_ION_EFFm = p.ion_effm;
+#else
          p.ion_eff = (1.0 - HI_filling_factor_zp) / fcoll * (1.0 - x_e_ave);
          PS_ION_EFF = p.ion_eff;
-#ifdef MINI_HALO
-         p.ion_effm = (1.0 - HI_filling_factor_zp) / fcollm * (1.0 - x_e_ave);
-         PS_ION_EFFm = p.ion_effm;
 #endif
        }
        else
