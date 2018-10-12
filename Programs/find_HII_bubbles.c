@@ -66,6 +66,10 @@ void destroy_21cmMC_arrays() {
     free(wi_SFR);
     gsl_spline_free(NionLow_spline);
     gsl_interp_accel_free(NionLow_spline_acc);
+#ifdef MINI_HALO
+    gsl_spline_free(NionLow_splinem);
+    gsl_interp_accel_free(NionLow_spline_accm);
+#endif //MINI_HALO
 }
 
 
