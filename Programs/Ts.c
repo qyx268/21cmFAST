@@ -966,8 +966,10 @@ int main(int argc, char ** argv){
 #endif
 
     // check if we will next compute the spin temperature (i.e. if this is the final zp step)
-    if (Ts_verbose || (((1+zp) / ZPRIME_STEP_FACTOR) < (REDSHIFT+1)) )
-      COMPUTE_Ts = 1;
+#ifndef Ts_verbose
+    if (((1+zp) / ZPRIME_STEP_FACTOR) < (REDSHIFT+1))
+#endif
+    {COMPUTE_Ts = 1;}
 
     // check if we are in the really high z regime before the first stars..
 #ifndef SHARP_CUTOFF
@@ -1400,7 +1402,10 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
     fflush(NULL);
 
     // output these intermediate boxes
-    if ( Ts_verbose || (++zp_ct >= 10)){ // print every 10th z' evolution step, in case we need to restart
+#ifndef Ts_verbose
+    if (++zp_ct >= 10) // print every 10th z' evolution step, in case we need to restart
+#endif //Ts_verbose
+    {
       zp_ct=0;
       fprintf(stderr, "Writting the intermediate output at zp = %.4f, <Tk>=%f, <x_e>=%e\n", zp, Tk_ave, x_e_ave);
       fprintf(LOG, "Writting the intermediate output at zp = %.4f, <Tk>=%f, <x_e>=%e\n", zp, Tk_ave, x_e_ave);
@@ -1466,7 +1471,7 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
     }
     fclose(F);
       }
-    }
+  }
 
     // and the spin temperature if desired
   if ( COMPUTE_Ts ){

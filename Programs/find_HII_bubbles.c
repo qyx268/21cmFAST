@@ -116,221 +116,220 @@ int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, floa
 
   // parse the remaining arguments
 #ifdef SHARP_CUTOFF
-    if (argc == (*arg_offset + min_argc)){
-      *MFP = R_BUBBLE_MAX;
-      *F_STAR10 = STELLAR_BARYON_FRAC;     
-      *ALPHA_STAR = STELLAR_BARYON_PL;
-      *F_ESC10 = ESC_FRAC;
-      *ALPHA_ESC = ESC_PL;
-      *M_TURN = M_TURNOVER;
-      *T_AST = t_STAR;
-      *X_LUMINOSITY = 0;
-    }
-    else{ return 0;} // format is not allowed
+  if (argc == (*arg_offset + min_argc)){
+    *MFP = R_BUBBLE_MAX;
+    *F_STAR10 = STELLAR_BARYON_FRAC;     
+    *ALPHA_STAR = STELLAR_BARYON_PL;
+    *F_ESC10 = ESC_FRAC;
+    *ALPHA_ESC = ESC_PL;
+    *M_TURN = M_TURNOVER;
+    *T_AST = t_STAR;
+    *X_LUMINOSITY = 0;
+  }
+  else{ return 0;} // format is not allowed
 #else //SHARP_CUTOFF
-    if (USE_TS_IN_21CM) {
+#ifdef USE_TS_IN_21CM
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-      if (argc == (*arg_offset + min_argc+9)){
-        *F_STAR10 = atof(argv[*arg_offset + min_argc]);
-        *ALPHA_STAR = atof(argv[*arg_offset + min_argc+1]);
-        *F_ESC10 = atof(argv[*arg_offset + min_argc+2]);
-        *ALPHA_ESC = atof(argv[*arg_offset + min_argc+3]);
-        *T_AST = atof(argv[*arg_offset + min_argc+4]);
-        *X_LUMINOSITY = pow(10.,atof(argv[*arg_offset + min_argc+5]));
-        *F_STAR10m = atof(argv[*arg_offset + min_argc+6]);
-        *F_ESC10m = atof(argv[*arg_offset + min_argc+7]);
-        *X_LUMINOSITYm = pow(10.,atof(argv[*arg_offset + min_argc+8]));
-      }
-      else if (argc == (*arg_offset + min_argc)){ //These parameters give the result which is the same with the default model.
-        *F_STAR10 = STELLAR_BARYON_FRAC;       
-        *ALPHA_STAR = STELLAR_BARYON_PL;
-        *F_ESC10 = ESC_FRAC;
-        *ALPHA_ESC = ESC_PL;
-        *T_AST = t_STAR;
-        *X_LUMINOSITY = pow(10.,L_X);
-        *F_STAR10m = STELLAR_BARYON_FRAC_MINI;
-        *F_ESC10m = ESC_FRAC_MINI;
-        *X_LUMINOSITYm = pow(10.,L_X_MINI);
-      }
-      else{ return 0;} // format is not allowed
+  if (argc == (*arg_offset + min_argc+9)){
+    *F_STAR10 = atof(argv[*arg_offset + min_argc]);
+    *ALPHA_STAR = atof(argv[*arg_offset + min_argc+1]);
+    *F_ESC10 = atof(argv[*arg_offset + min_argc+2]);
+    *ALPHA_ESC = atof(argv[*arg_offset + min_argc+3]);
+    *T_AST = atof(argv[*arg_offset + min_argc+4]);
+    *X_LUMINOSITY = pow(10.,atof(argv[*arg_offset + min_argc+5]));
+    *F_STAR10m = atof(argv[*arg_offset + min_argc+6]);
+    *F_ESC10m = atof(argv[*arg_offset + min_argc+7]);
+    *X_LUMINOSITYm = pow(10.,atof(argv[*arg_offset + min_argc+8]));
+  }
+  else if (argc == (*arg_offset + min_argc)){ //These parameters give the result which is the same with the default model.
+    *F_STAR10 = STELLAR_BARYON_FRAC;       
+    *ALPHA_STAR = STELLAR_BARYON_PL;
+    *F_ESC10 = ESC_FRAC;
+    *ALPHA_ESC = ESC_PL;
+    *T_AST = t_STAR;
+    *X_LUMINOSITY = pow(10.,L_X);
+    *F_STAR10m = STELLAR_BARYON_FRAC_MINI;
+    *F_ESC10m = ESC_FRAC_MINI;
+    *X_LUMINOSITYm = pow(10.,L_X_MINI);
+  }
+  else{ return 0;} // format is not allowed
 #else //INHOMO_FEEDBACK
 #ifdef REION_SM
-      if (argc == (*arg_offset + min_argc+9)){
-        *F_STAR10 = atof(argv[*arg_offset + min_argc]);
-        *ALPHA_STAR = atof(argv[*arg_offset + min_argc+1]);
-        *F_ESC10 = atof(argv[*arg_offset + min_argc+2]);
-        *ALPHA_ESC = atof(argv[*arg_offset + min_argc+3]);
-        *T_AST = atof(argv[*arg_offset + min_argc+4]);
-        *X_LUMINOSITY = pow(10.,atof(argv[*arg_offset + min_argc+5]));
-        *F_STAR10m = atof(argv[*arg_offset + min_argc+6]);
-        *F_ESC10m = atof(argv[*arg_offset + min_argc+7]);
-        *X_LUMINOSITYm = pow(10.,atof(argv[*arg_offset + min_argc+8]));
-      }
-      else if (argc == (*arg_offset + min_argc)){ //These parameters give the result which is the same with the default model.
-        *F_STAR10 = STELLAR_BARYON_FRAC;       
-        *ALPHA_STAR = STELLAR_BARYON_PL;
-        *F_ESC10 = ESC_FRAC;
-        *ALPHA_ESC = ESC_PL;
-        *T_AST = t_STAR;
-        *X_LUMINOSITY = pow(10.,L_X);
-        *F_STAR10m = STELLAR_BARYON_FRAC_MINI;
-        *F_ESC10m = ESC_FRAC_MINI;
-        *X_LUMINOSITYm = pow(10.,L_X_MINI);
-      }
-      else{ return 0;} // format is not allowed
+  if (argc == (*arg_offset + min_argc+9)){
+    *F_STAR10 = atof(argv[*arg_offset + min_argc]);
+    *ALPHA_STAR = atof(argv[*arg_offset + min_argc+1]);
+    *F_ESC10 = atof(argv[*arg_offset + min_argc+2]);
+    *ALPHA_ESC = atof(argv[*arg_offset + min_argc+3]);
+    *T_AST = atof(argv[*arg_offset + min_argc+4]);
+    *X_LUMINOSITY = pow(10.,atof(argv[*arg_offset + min_argc+5]));
+    *F_STAR10m = atof(argv[*arg_offset + min_argc+6]);
+    *F_ESC10m = atof(argv[*arg_offset + min_argc+7]);
+    *X_LUMINOSITYm = pow(10.,atof(argv[*arg_offset + min_argc+8]));
+  }
+  else if (argc == (*arg_offset + min_argc)){ //These parameters give the result which is the same with the default model.
+    *F_STAR10 = STELLAR_BARYON_FRAC;       
+    *ALPHA_STAR = STELLAR_BARYON_PL;
+    *F_ESC10 = ESC_FRAC;
+    *ALPHA_ESC = ESC_PL;
+    *T_AST = t_STAR;
+    *X_LUMINOSITY = pow(10.,L_X);
+    *F_STAR10m = STELLAR_BARYON_FRAC_MINI;
+    *F_ESC10m = ESC_FRAC_MINI;
+    *X_LUMINOSITYm = pow(10.,L_X_MINI);
+  }
+  else{ return 0;} // format is not allowed
 #else //REION_SM
-      if (argc == (*arg_offset + min_argc+10)){
-        *F_STAR10 = atof(argv[*arg_offset + min_argc]);
-        *ALPHA_STAR = atof(argv[*arg_offset + min_argc+1]);
-        *F_ESC10 = atof(argv[*arg_offset + min_argc+2]);
-        *ALPHA_ESC = atof(argv[*arg_offset + min_argc+3]);
-        *M_TURN = atof(argv[*arg_offset + min_argc+4]); 
-        *T_AST = atof(argv[*arg_offset + min_argc+5]);
-        *X_LUMINOSITY = pow(10.,atof(argv[*arg_offset + min_argc+6]));
-        *F_STAR10m = atof(argv[*arg_offset + min_argc+7]);
-        *F_ESC10m = atof(argv[*arg_offset + min_argc+8]);
-        *X_LUMINOSITYm = pow(10.,atof(argv[*arg_offset + min_argc+9]));
-      }
-      else if (argc == (*arg_offset + min_argc)){ //These parameters give the result which is the same with the default model.
-        *F_STAR10 = STELLAR_BARYON_FRAC;       
-        *ALPHA_STAR = STELLAR_BARYON_PL;
-        *F_ESC10 = ESC_FRAC;
-        *ALPHA_ESC = ESC_PL;
-        *M_TURN = M_TURNOVER;
-        *T_AST = t_STAR;
-        *X_LUMINOSITY = pow(10.,L_X);
-        *F_STAR10m = STELLAR_BARYON_FRAC_MINI;
-        *F_ESC10m = ESC_FRAC_MINI;
-        *X_LUMINOSITYm = pow(10.,L_X_MINI);
-      }
-      else{ return 0;} // format is not allowed
+  if (argc == (*arg_offset + min_argc+10)){
+    *F_STAR10 = atof(argv[*arg_offset + min_argc]);
+    *ALPHA_STAR = atof(argv[*arg_offset + min_argc+1]);
+    *F_ESC10 = atof(argv[*arg_offset + min_argc+2]);
+    *ALPHA_ESC = atof(argv[*arg_offset + min_argc+3]);
+    *M_TURN = atof(argv[*arg_offset + min_argc+4]); 
+    *T_AST = atof(argv[*arg_offset + min_argc+5]);
+    *X_LUMINOSITY = pow(10.,atof(argv[*arg_offset + min_argc+6]));
+    *F_STAR10m = atof(argv[*arg_offset + min_argc+7]);
+    *F_ESC10m = atof(argv[*arg_offset + min_argc+8]);
+    *X_LUMINOSITYm = pow(10.,atof(argv[*arg_offset + min_argc+9]));
+  }
+  else if (argc == (*arg_offset + min_argc)){ //These parameters give the result which is the same with the default model.
+    *F_STAR10 = STELLAR_BARYON_FRAC;       
+    *ALPHA_STAR = STELLAR_BARYON_PL;
+    *F_ESC10 = ESC_FRAC;
+    *ALPHA_ESC = ESC_PL;
+    *M_TURN = M_TURNOVER;
+    *T_AST = t_STAR;
+    *X_LUMINOSITY = pow(10.,L_X);
+    *F_STAR10m = STELLAR_BARYON_FRAC_MINI;
+    *F_ESC10m = ESC_FRAC_MINI;
+    *X_LUMINOSITYm = pow(10.,L_X_MINI);
+  }
+  else{ return 0;} // format is not allowed
 #endif //REION_SM
 #endif //INHOMO_FEEDBACK
 #else // MINI_HALO
-      if (argc == (*arg_offset + min_argc+7)){
-        *F_STAR10 = atof(argv[*arg_offset + min_argc]);
-        *ALPHA_STAR = atof(argv[*arg_offset + min_argc+1]);
-        *F_ESC10 = atof(argv[*arg_offset + min_argc+2]);
-        *ALPHA_ESC = atof(argv[*arg_offset + min_argc+3]);
-        *M_TURN = atof(argv[*arg_offset + min_argc+4]); 
-        *T_AST = atof(argv[*arg_offset + min_argc+5]);
-        *X_LUMINOSITY = pow(10.,atof(argv[*arg_offset + min_argc+6]));
-      }
-      else if (argc == (*arg_offset + min_argc)){ //These parameters give the result which is the same with the default model.
-        *F_STAR10 = STELLAR_BARYON_FRAC;       
-        *ALPHA_STAR = STELLAR_BARYON_PL;
-        *F_ESC10 = ESC_FRAC;
-        *ALPHA_ESC = ESC_PL;
-        *M_TURN = M_TURNOVER;
-        *T_AST = t_STAR;
-        *X_LUMINOSITY = pow(10.,L_X);
-      }
-      else{ return 0;} // format is not allowed
+  if (argc == (*arg_offset + min_argc+7)){
+    *F_STAR10 = atof(argv[*arg_offset + min_argc]);
+    *ALPHA_STAR = atof(argv[*arg_offset + min_argc+1]);
+    *F_ESC10 = atof(argv[*arg_offset + min_argc+2]);
+    *ALPHA_ESC = atof(argv[*arg_offset + min_argc+3]);
+    *M_TURN = atof(argv[*arg_offset + min_argc+4]); 
+    *T_AST = atof(argv[*arg_offset + min_argc+5]);
+    *X_LUMINOSITY = pow(10.,atof(argv[*arg_offset + min_argc+6]));
+  }
+  else if (argc == (*arg_offset + min_argc)){ //These parameters give the result which is the same with the default model.
+    *F_STAR10 = STELLAR_BARYON_FRAC;       
+    *ALPHA_STAR = STELLAR_BARYON_PL;
+    *F_ESC10 = ESC_FRAC;
+    *ALPHA_ESC = ESC_PL;
+    *M_TURN = M_TURNOVER;
+    *T_AST = t_STAR;
+    *X_LUMINOSITY = pow(10.,L_X);
+  }
+  else{ return 0;} // format is not allowed
 #endif //MINI_HALO
-    }
-    else {
+#else //USE_TS_IN_21CM
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-      if (argc == (*arg_offset + min_argc+6)){
-        *F_STAR10 = atof(argv[*arg_offset + min_argc]);
-        *ALPHA_STAR = atof(argv[*arg_offset + min_argc+1]);
-        *F_ESC10 = atof(argv[*arg_offset + min_argc+2]);
-        *ALPHA_ESC = atof(argv[*arg_offset + min_argc+3]);
-        *T_AST = t_STAR;
-        *X_LUMINOSITY = 0;
-        *F_STAR10m = atof(argv[*arg_offset + min_argc+4]);
-        *F_ESC10m = atof(argv[*arg_offset + min_argc+5]);
-        *X_LUMINOSITYm = 0;
-      }
-      else if (argc == (*arg_offset + min_argc)){ //These parameters give the result which is the same with the default model.
-        *F_STAR10 = STELLAR_BARYON_FRAC;        
-        *ALPHA_STAR = STELLAR_BARYON_PL;
-        *F_ESC10 = ESC_FRAC;
-        *ALPHA_ESC = ESC_PL;
-        *T_AST = t_STAR;
-        *X_LUMINOSITY = 0;
-        *F_STAR10m = STELLAR_BARYON_FRAC_MINI;
-        *F_ESC10m = ESC_FRAC_MINI;
-        *X_LUMINOSITYm = 0;
-      }
-      else{ return 0;} // format is not allowed
+  if (argc == (*arg_offset + min_argc+6)){
+    *F_STAR10 = atof(argv[*arg_offset + min_argc]);
+    *ALPHA_STAR = atof(argv[*arg_offset + min_argc+1]);
+    *F_ESC10 = atof(argv[*arg_offset + min_argc+2]);
+    *ALPHA_ESC = atof(argv[*arg_offset + min_argc+3]);
+    *T_AST = t_STAR;
+    *X_LUMINOSITY = 0;
+    *F_STAR10m = atof(argv[*arg_offset + min_argc+4]);
+    *F_ESC10m = atof(argv[*arg_offset + min_argc+5]);
+    *X_LUMINOSITYm = 0;
+  }
+  else if (argc == (*arg_offset + min_argc)){ //These parameters give the result which is the same with the default model.
+    *F_STAR10 = STELLAR_BARYON_FRAC;        
+    *ALPHA_STAR = STELLAR_BARYON_PL;
+    *F_ESC10 = ESC_FRAC;
+    *ALPHA_ESC = ESC_PL;
+    *T_AST = t_STAR;
+    *X_LUMINOSITY = 0;
+    *F_STAR10m = STELLAR_BARYON_FRAC_MINI;
+    *F_ESC10m = ESC_FRAC_MINI;
+    *X_LUMINOSITYm = 0;
+  }
+  else{ return 0;} // format is not allowed
 #else //INHOMO_FEEDBACK
 #ifdef REION_SM
-      if (argc == (*arg_offset + min_argc+6)){
-        *F_STAR10 = atof(argv[*arg_offset + min_argc]);
-        *ALPHA_STAR = atof(argv[*arg_offset + min_argc+1]);
-        *F_ESC10 = atof(argv[*arg_offset + min_argc+2]);
-        *ALPHA_ESC = atof(argv[*arg_offset + min_argc+3]);
-        *T_AST = t_STAR;
-        *X_LUMINOSITY = 0;
-        *F_STAR10m = atof(argv[*arg_offset + min_argc+4]);
-        *F_ESC10m = atof(argv[*arg_offset + min_argc+5]);
-        *X_LUMINOSITYm = 0;
-      }
-      else if (argc == (*arg_offset + min_argc)){ //These parameters give the result which is the same with the default model.
-        *F_STAR10 = STELLAR_BARYON_FRAC;        
-        *ALPHA_STAR = STELLAR_BARYON_PL;
-        *F_ESC10 = ESC_FRAC;
-        *ALPHA_ESC = ESC_PL;
-        *T_AST = t_STAR;
-        *X_LUMINOSITY = 0;
-        *F_STAR10m = STELLAR_BARYON_FRAC_MINI;
-        *F_ESC10m = ESC_FRAC_MINI;
-        *X_LUMINOSITYm = 0;
-      }
-      else{ return 0;} // format is not allowed
+  if (argc == (*arg_offset + min_argc+6)){
+    *F_STAR10 = atof(argv[*arg_offset + min_argc]);
+    *ALPHA_STAR = atof(argv[*arg_offset + min_argc+1]);
+    *F_ESC10 = atof(argv[*arg_offset + min_argc+2]);
+    *ALPHA_ESC = atof(argv[*arg_offset + min_argc+3]);
+    *T_AST = t_STAR;
+    *X_LUMINOSITY = 0;
+    *F_STAR10m = atof(argv[*arg_offset + min_argc+4]);
+    *F_ESC10m = atof(argv[*arg_offset + min_argc+5]);
+    *X_LUMINOSITYm = 0;
+  }
+  else if (argc == (*arg_offset + min_argc)){ //These parameters give the result which is the same with the default model.
+    *F_STAR10 = STELLAR_BARYON_FRAC;        
+    *ALPHA_STAR = STELLAR_BARYON_PL;
+    *F_ESC10 = ESC_FRAC;
+    *ALPHA_ESC = ESC_PL;
+    *T_AST = t_STAR;
+    *X_LUMINOSITY = 0;
+    *F_STAR10m = STELLAR_BARYON_FRAC_MINI;
+    *F_ESC10m = ESC_FRAC_MINI;
+    *X_LUMINOSITYm = 0;
+  }
+  else{ return 0;} // format is not allowed
 #else //REION_SM
-      if (argc == (*arg_offset + min_argc+7)){
-        *F_STAR10 = atof(argv[*arg_offset + min_argc]);
-        *ALPHA_STAR = atof(argv[*arg_offset + min_argc+1]);
-        *F_ESC10 = atof(argv[*arg_offset + min_argc+2]);
-        *ALPHA_ESC = atof(argv[*arg_offset + min_argc+3]);
-        *M_TURN = atof(argv[*arg_offset + min_argc+4]); // Input value M_TURN
-        *T_AST = t_STAR;
-        *X_LUMINOSITY = 0;
-        *F_STAR10m = atof(argv[*arg_offset + min_argc+5]);
-        *F_ESC10m = atof(argv[*arg_offset + min_argc+6]);
-        *X_LUMINOSITYm = 0;
-      }
-      else if (argc == (*arg_offset + min_argc)){ //These parameters give the result which is the same with the default model.
-        *F_STAR10 = STELLAR_BARYON_FRAC;        
-        *ALPHA_STAR = STELLAR_BARYON_PL;
-        *F_ESC10 = ESC_FRAC;
-        *ALPHA_ESC = ESC_PL;
-        *M_TURN = M_TURNOVER;
-        *T_AST = t_STAR;
-        *X_LUMINOSITY = 0;
-        *F_STAR10m = STELLAR_BARYON_FRAC_MINI;
-        *F_ESC10m = ESC_FRAC_MINI;
-        *X_LUMINOSITYm = 0;
-      }
-      else{ return 0;} // format is not allowed
+  if (argc == (*arg_offset + min_argc+7)){
+    *F_STAR10 = atof(argv[*arg_offset + min_argc]);
+    *ALPHA_STAR = atof(argv[*arg_offset + min_argc+1]);
+    *F_ESC10 = atof(argv[*arg_offset + min_argc+2]);
+    *ALPHA_ESC = atof(argv[*arg_offset + min_argc+3]);
+    *M_TURN = atof(argv[*arg_offset + min_argc+4]); // Input value M_TURN
+    *T_AST = t_STAR;
+    *X_LUMINOSITY = 0;
+    *F_STAR10m = atof(argv[*arg_offset + min_argc+5]);
+    *F_ESC10m = atof(argv[*arg_offset + min_argc+6]);
+    *X_LUMINOSITYm = 0;
+  }
+  else if (argc == (*arg_offset + min_argc)){ //These parameters give the result which is the same with the default model.
+    *F_STAR10 = STELLAR_BARYON_FRAC;        
+    *ALPHA_STAR = STELLAR_BARYON_PL;
+    *F_ESC10 = ESC_FRAC;
+    *ALPHA_ESC = ESC_PL;
+    *M_TURN = M_TURNOVER;
+    *T_AST = t_STAR;
+    *X_LUMINOSITY = 0;
+    *F_STAR10m = STELLAR_BARYON_FRAC_MINI;
+    *F_ESC10m = ESC_FRAC_MINI;
+    *X_LUMINOSITYm = 0;
+  }
+  else{ return 0;} // format is not allowed
 #endif //REION_SM
 #endif //INHOMO_FEEDBACK
 #else //MINI_HALO
-      if (argc == (*arg_offset + min_argc+5)){
-        *F_STAR10 = atof(argv[*arg_offset + min_argc]);
-        *ALPHA_STAR = atof(argv[*arg_offset + min_argc+1]);
-        *F_ESC10 = atof(argv[*arg_offset + min_argc+2]);
-        *ALPHA_ESC = atof(argv[*arg_offset + min_argc+3]);
-        *M_TURN = atof(argv[*arg_offset + min_argc+4]); // Input value M_TURN
-        *T_AST = t_STAR;
-        *X_LUMINOSITY = 0;
-      }
-      else if (argc == (*arg_offset + min_argc)){ //These parameters give the result which is the same with the default model.
-        *F_STAR10 = STELLAR_BARYON_FRAC;        
-        *ALPHA_STAR = STELLAR_BARYON_PL;
-        *F_ESC10 = ESC_FRAC;
-        *ALPHA_ESC = ESC_PL;
-        *M_TURN = M_TURNOVER;
-        *T_AST = t_STAR;
-        *X_LUMINOSITY = 0;
-      }
-      else{ return 0;} // format is not allowed
+  if (argc == (*arg_offset + min_argc+5)){
+    *F_STAR10 = atof(argv[*arg_offset + min_argc]);
+    *ALPHA_STAR = atof(argv[*arg_offset + min_argc+1]);
+    *F_ESC10 = atof(argv[*arg_offset + min_argc+2]);
+    *ALPHA_ESC = atof(argv[*arg_offset + min_argc+3]);
+    *M_TURN = atof(argv[*arg_offset + min_argc+4]); // Input value M_TURN
+    *T_AST = t_STAR;
+    *X_LUMINOSITY = 0;
+  }
+  else if (argc == (*arg_offset + min_argc)){ //These parameters give the result which is the same with the default model.
+    *F_STAR10 = STELLAR_BARYON_FRAC;        
+    *ALPHA_STAR = STELLAR_BARYON_PL;
+    *F_ESC10 = ESC_FRAC;
+    *ALPHA_ESC = ESC_PL;
+    *M_TURN = M_TURNOVER;
+    *T_AST = t_STAR;
+    *X_LUMINOSITY = 0;
+  }
+  else{ return 0;} // format is not allowed
 #endif //MINI_HALO
-    }
-    *MFP = R_BUBBLE_MAX;
+#endif //USE_TS_IN_21CM
+  *MFP = R_BUBBLE_MAX;
 #endif // SHARP_CUTOFF 
 
   *REDSHIFT = atof(argv[*arg_offset+1]);
@@ -620,64 +619,63 @@ int main(int argc, char ** argv){
                   I will just declare everything to be neutral\n", mean_f_coll_st, 1./ION_EFF_FACTOR);
 #endif //MINI_HALO
 
-    if (USE_TS_IN_21CM){ // use the x_e box to set residuals
+#ifdef USE_TS_IN_21CM
 #ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-      sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN); 
-      fprintf(stderr, "filename: %s\n",filename);
+    sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN); 
+    fprintf(stderr, "filename: %s\n",filename);
 #else //INHOMO_FEEDBACK
 #ifdef REION_SM
-      sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Msm_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN); 
-      fprintf(stderr, "filename: %s\n",filename);
+    sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Msm_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN); 
+    fprintf(stderr, "filename: %s\n",filename);
 #else //REION_SM
-      sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN); 
-      fprintf(stderr, "filename: %s\n",filename);
+    sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN); 
+    fprintf(stderr, "filename: %s\n",filename);
 #endif //REION_SM
 #endif //INHOMO_FEEDBACK
 #else //MINI_HALO
-      sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_Pop%i_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, Pop, HII_DIM, BOX_LEN); 
-      fprintf(stderr, "filename: %s\n",filename);
+    sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_Pop%i_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, Pop, HII_DIM, BOX_LEN); 
+    fprintf(stderr, "filename: %s\n",filename);
 #endif //MINI_HALO
 #else //SHARP_CUTOFF
-      sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_Mmin%.1e_zetaIon%.2f_Pop%i_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, M_MIN, HII_EFF_FACTOR, Pop, HII_DIM, BOX_LEN); 
+    sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_Mmin%.1e_zetaIon%.2f_Pop%i_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, M_MIN, HII_EFF_FACTOR, Pop, HII_DIM, BOX_LEN); 
 #endif //SHARP_CUTOFF
-      if (!(F = fopen(filename, "rb"))){
-        fprintf(stderr, "find_HII_bubbles: Unable to open x_e file at %s\nAborting...\n", filename);
-        fprintf(LOG, "find_HII_bubbles: Unable to open x_e file at %s\nAborting...\n", filename);
-        fclose(LOG); fftwf_free(xH); fftwf_cleanup_threads();
-        free(Fcoll);
+    if (!(F = fopen(filename, "rb"))){
+      fprintf(stderr, "find_HII_bubbles: Unable to open x_e file at %s\nAborting...\n", filename);
+      fprintf(LOG, "find_HII_bubbles: Unable to open x_e file at %s\nAborting...\n", filename);
+      fclose(LOG); fftwf_free(xH); fftwf_cleanup_threads();
+      free(Fcoll);
 #ifdef MINI_HALO
-        free(Fcollm);
+      free(Fcollm);
 #endif
-        free_ps();  
+      free_ps();  
 #ifndef SHARP_CUTOFF
-        destroy_21cmMC_arrays();
+      destroy_21cmMC_arrays();
 #endif
-        return -1;
-      }
-      for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++){
-        if (fread(&xH[ct], sizeof(float), 1, F)!=1){
-          strcpy(error_message, "find_HII_bubbles.c: Read error occured while reading xe box.\nAborting...\n");
-          goto CLEANUP;
-        }
-        xH[ct] = 1-xH[ct]; // convert from x_e to xH
-        if (xH[ct]<0) xH[ct] = 0; //  should not happen....
-        global_xH += xH[ct];
-      }
-      fclose(F);
-      F = NULL;
-      global_xH /= (double)HII_TOT_NUM_PIXELS;
+      return -1;
     }
-    else{
-      // find the neutral fraction
-      init_heat();
-      global_xH = 1 - xion_RECFAST(REDSHIFT, 0);;
-      destruct_heat();
-      for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++){
-        xH[ct] = global_xH;
+    for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++){
+      if (fread(&xH[ct], sizeof(float), 1, F)!=1){
+        strcpy(error_message, "find_HII_bubbles.c: Read error occured while reading xe box.\nAborting...\n");
+        goto CLEANUP;
       }
+      xH[ct] = 1-xH[ct]; // convert from x_e to xH
+      if (xH[ct]<0) xH[ct] = 0; //  should not happen....
+      global_xH += xH[ct];
     }
+    fclose(F);
+    F = NULL;
+    global_xH /= (double)HII_TOT_NUM_PIXELS;
+#else //USE_TS_IN_21CM
+    // find the neutral fraction
+    init_heat();
+    global_xH = 1 - xion_RECFAST(REDSHIFT, 0);;
+    destruct_heat();
+    for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++){
+      xH[ct] = global_xH;
+    }
+#endif //USE_TS_IN_21CM
   
     // print out the xH box
     global_xH_m = global_xH;
@@ -780,51 +778,51 @@ int main(int argc, char ** argv){
   /*************   END CHECK TO SEE IF WE ARE STILL IN THE DARK AGES *************/
 
   // ARE WE INCLUDING PRE-IONIZATION FROM X-RAYS??
-  if (USE_TS_IN_21CM){
-    xe_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
-    xe_filtered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
-    if (!xe_filtered || !xe_unfiltered){
-      strcpy(error_message, "find_HII_bubbles.c: Error allocating memory for xe boxes\nAborting...\n");
-      goto CLEANUP;
-    }
+#ifdef USE_TS_IN_21CM
+  xe_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  xe_filtered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  if (!xe_filtered || !xe_unfiltered){
+    strcpy(error_message, "find_HII_bubbles.c: Error allocating memory for xe boxes\nAborting...\n");
+    goto CLEANUP;
+  }
 
-    // and read-in
+  // and read-in
 #ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-    sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_t_star%06.4f_f_star10m%.4f_f_esc10m%.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN);
+  sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_t_star%06.4f_f_star10m%.4f_f_esc10m%.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN);
 #else //INHOMO_FEEDBACK
 #ifdef REION_SM
-    sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Msm_t_star%06.4f_f_star10m%.4f_f_esc10m%.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN);
+  sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Msm_t_star%06.4f_f_star10m%.4f_f_esc10m%.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN);
 #else //REION_SM
-    sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%.4f_f_esc10m%.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN);
+  sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%.4f_f_esc10m%.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN);
 #endif //REION_SM
 #endif //INHOMO_FEEDBACK
 #else //MINI_HALO
-    sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_Pop%i_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, Pop, HII_DIM, BOX_LEN);
+  sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_f_star10_%06.4f_alpha_star%06.4f_f_esc10_%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_Pop%i_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, Pop, HII_DIM, BOX_LEN);
 #endif //MINI_HALO
 #else //SHARP_CUTOFF
-    sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_Mmin%.1e_zetaIon%.2f_Pop%i_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, M_MIN, HII_EFF_FACTOR, Pop, HII_DIM, BOX_LEN); 
+  sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_L_X%.1e_alphaX%.1f_Mmin%.1e_zetaIon%.2f_Pop%i_%i_%.0fMpc", REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, M_MIN, HII_EFF_FACTOR, Pop, HII_DIM, BOX_LEN); 
 #endif //SHARP_CUTOFF
-    if (!(F = fopen(filename, "rb"))){
-      strcpy(error_message, "find_HII_bubbles.c: Unable to open x_e file at ");
-      strcat(error_message, filename);
-      strcat(error_message, "\nAborting...\n");
-      goto CLEANUP;
-    }
-    for (i=0; i<HII_DIM; i++){
-      for (j=0; j<HII_DIM; j++){
-        for (k=0; k<HII_DIM; k++){
-          if (fread((float *)xe_unfiltered + HII_R_FFT_INDEX(i,j,k), sizeof(float), 1, F)!=1){
-            strcpy(error_message, "find_HII_bubbles.c: Read error occured while reading xe box.\nAborting...\n");
-            goto CLEANUP;
-          }
+  if (!(F = fopen(filename, "rb"))){
+    strcpy(error_message, "find_HII_bubbles.c: Unable to open x_e file at ");
+    strcat(error_message, filename);
+    strcat(error_message, "\nAborting...\n");
+    goto CLEANUP;
+  }
+  for (i=0; i<HII_DIM; i++){
+    for (j=0; j<HII_DIM; j++){
+      for (k=0; k<HII_DIM; k++){
+        if (fread((float *)xe_unfiltered + HII_R_FFT_INDEX(i,j,k), sizeof(float), 1, F)!=1){
+          strcpy(error_message, "find_HII_bubbles.c: Read error occured while reading xe box.\nAborting...\n");
+          goto CLEANUP;
         }
       }
     }
-    fclose(F);
-    F = NULL;
   }
+  fclose(F);
+  F = NULL;
+#endif //USE_TS_IN_21CM
 
 
   // ARE WE USING A DISCRETE HALO FIELD (identified in the ICs with find_halos.c and evolved  with update_halos.c)
@@ -1236,9 +1234,9 @@ int main(int argc, char ** argv){
 #endif //INHOMO_RECO
       
           // adjust the denominator of the collapse fraction for the residual electron fraction in the neutral medium
-          if (USE_TS_IN_21CM){
-            xHI_from_xrays =  1 - (*((float *)xe_filtered + HII_R_FFT_INDEX(x,y,z)));
-          }
+#ifdef USE_TS_IN_21CM
+          xHI_from_xrays =  1 - (*((float *)xe_filtered + HII_R_FFT_INDEX(x,y,z)));
+#endif //USE_TS_IN_21CM
 
           // check if fully ionized!
 #ifdef MINI_HALO

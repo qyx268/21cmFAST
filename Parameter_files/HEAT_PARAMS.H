@@ -9,7 +9,7 @@ NOTE:  We encourage the user to perform their own convergance tests if modifying
 /*
   Flag specifying whether one wants to calculate the spin temperature or just assume (Ts>>Tk)
 */
-#define USE_TS_IN_21CM (int) (1)
+#define USE_TS_IN_21CM 1
 
 
 /*
@@ -104,7 +104,7 @@ Filter choice used for smoothing the linear density field to obtain the collapse
   This would be useful if investigating redshift evolution, so Ts.c needs to be called only once
   at the low redshift, and then one has all of the higher redshift Ts boxes upon completion.
  */
-#define Ts_verbose (int) (1)
+#define Ts_verbose 1
 
 
 /*

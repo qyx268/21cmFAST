@@ -135,12 +135,12 @@ int main(int argc, char ** argv){
   for (i=0; i<HII_DIM; i++){
     for (j=0; j<HII_DIM; j++){
       for (k=0; k<HII_DIM; k++){
-	if (fread((float *)deltax + HII_R_FFT_INDEX(i,j,k), sizeof(float), 1, F)!=1){
-	  fprintf(stderr, "delta_T: Read error occured while reading deltax box.\n");
-	  fprintf(LOG, "delta_T: Read error occured while reading deltax box.\n");
-	  fclose(F); free(xH); free(deltax);
-	  fclose(LOG); fftwf_cleanup_threads(); return -1;
-	}
+    if (fread((float *)deltax + HII_R_FFT_INDEX(i,j,k), sizeof(float), 1, F)!=1){
+      fprintf(stderr, "delta_T: Read error occured while reading deltax box.\n");
+      fprintf(LOG, "delta_T: Read error occured while reading deltax box.\n");
+      fclose(F); free(xH); free(deltax);
+      fclose(LOG); fftwf_cleanup_threads(); return -1;
+    }
       }
     }
   }
@@ -193,28 +193,28 @@ int main(int argc, char ** argv){
   fclose(F);
 #endif //T_USE_VELOCITIES
 
-  if (USE_TS_IN_21CM){
-    // and allocate memory for the spin temperature box and read it in
-    if (!(Ts = (float *) malloc(sizeof(float)*HII_TOT_NUM_PIXELS))){
-      fprintf(stderr, "delta_T.c: Error in memory allocation for Ts box\nAborting...\n");
-      fprintf(LOG, "delta_T.c: Error in memory allocation for Ts box\nAborting...\n");
-      free(xH); free(deltax); free(delta_T); free(v);
-      fclose(LOG); fftwf_cleanup_threads(); return -1;
-    }
-    if (!(F = fopen(argv[3+arg_offset], "rb") )){
-      fprintf(stderr, "delta_T.c: Error openning Ts file %s to read from\nAborting...\n", argv[3+arg_offset]);
-      fprintf(LOG, "delta_T.c: Error openning Ts file %s to read from\nAborting...\n", argv[3+arg_offset]);
-      free(xH); free(deltax); free(delta_T); free(v); free(Ts);
-      fclose(LOG); fftwf_cleanup_threads(); return -1;
-    }
-    if (mod_fread(Ts, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
-      fprintf(stderr, "Ts.c: Write error occured while reading Tk box.\nAborting\n");
-      fprintf(LOG, "Ts.c: Write error occured while reading Tk box.\nAborting\n");
-      free(xH); free(deltax); free(delta_T); free(v); free(Ts); fclose(F);
-      fclose(LOG); fftwf_cleanup_threads(); return -1;
-    }
-    fclose(F);
+#ifdef USE_TS_IN_21CM
+  // and allocate memory for the spin temperature box and read it in
+  if (!(Ts = (float *) malloc(sizeof(float)*HII_TOT_NUM_PIXELS))){
+    fprintf(stderr, "delta_T.c: Error in memory allocation for Ts box\nAborting...\n");
+    fprintf(LOG, "delta_T.c: Error in memory allocation for Ts box\nAborting...\n");
+    free(xH); free(deltax); free(delta_T); free(v);
+    fclose(LOG); fftwf_cleanup_threads(); return -1;
   }
+  if (!(F = fopen(argv[3+arg_offset], "rb") )){
+    fprintf(stderr, "delta_T.c: Error openning Ts file %s to read from\nAborting...\n", argv[3+arg_offset]);
+    fprintf(LOG, "delta_T.c: Error openning Ts file %s to read from\nAborting...\n", argv[3+arg_offset]);
+    free(xH); free(deltax); free(delta_T); free(v); free(Ts);
+    fclose(LOG); fftwf_cleanup_threads(); return -1;
+  }
+  if (mod_fread(Ts, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
+    fprintf(stderr, "Ts.c: Write error occured while reading Tk box.\nAborting\n");
+    fprintf(LOG, "Ts.c: Write error occured while reading Tk box.\nAborting\n");
+    free(xH); free(deltax); free(delta_T); free(v); free(Ts); fclose(F);
+    fclose(LOG); fftwf_cleanup_threads(); return -1;
+  }
+  fclose(F);
+#endif //USE_TS_IN_21CM
 
   /************  END INITIALIZATION ****************************/
 
@@ -227,33 +227,33 @@ int main(int argc, char ** argv){
     for (j=0; j<HII_DIM; j++){
       for (k=0; k<HII_DIM; k++){
 
-	pixel_deltax = deltax[HII_R_FFT_INDEX(i,j,k)];
-	pixel_x_HI = xH[HII_R_INDEX(i,j,k)];
+    pixel_deltax = deltax[HII_R_FFT_INDEX(i,j,k)];
+    pixel_x_HI = xH[HII_R_INDEX(i,j,k)];
 
-	if (pixel_x_HI > TINY){
-	  temp = pixel_deltax;
-	  temp_ct++;
-	}
+    if (pixel_x_HI > TINY){
+      temp = pixel_deltax;
+      temp_ct++;
+    }
 
-	delta_T[HII_R_INDEX(i,j,k)] = const_factor*pixel_x_HI*(1+pixel_deltax);
+    delta_T[HII_R_INDEX(i,j,k)] = const_factor*pixel_x_HI*(1+pixel_deltax);
 
-	if (USE_TS_IN_21CM){
+#ifdef USE_TS_IN_21CM
 #ifdef SUBCELL_RSD
-        // Converting the prefactors into the optical depth, tau. Factor of 1000 is the conversion of spin temperature from K to mK
-        delta_T[HII_R_INDEX(i,j,k)] *= (1. + REDSHIFT)/(1000.*Ts[HII_R_INDEX(i,j,k)]);
+    // Converting the prefactors into the optical depth, tau. Factor of 1000 is the conversion of spin temperature from K to mK
+    delta_T[HII_R_INDEX(i,j,k)] *= (1. + REDSHIFT)/(1000.*Ts[HII_R_INDEX(i,j,k)]);
 #else //SUBCELL_RSD
-        pixel_Ts_factor = (1 - T_rad / Ts[HII_R_INDEX(i,j,k)]);
-        delta_T[HII_R_INDEX(i,j,k)] *= pixel_Ts_factor;
+    pixel_Ts_factor = (1 - T_rad / Ts[HII_R_INDEX(i,j,k)]);
+    delta_T[HII_R_INDEX(i,j,k)] *= pixel_Ts_factor;
 #endif //SUBCELL_RSD
-      
-      ave_Ts += Ts[HII_R_INDEX(i,j,k)];
-	  if (min_Ts > Ts[HII_R_INDEX(i,j,k)]) { min_Ts = Ts[HII_R_INDEX(i,j,k)];}
-	  if (max_Ts < Ts[HII_R_INDEX(i,j,k)]) { max_Ts = Ts[HII_R_INDEX(i,j,k)];}
-	}
+  
+    ave_Ts += Ts[HII_R_INDEX(i,j,k)];
+    if (min_Ts > Ts[HII_R_INDEX(i,j,k)]) { min_Ts = Ts[HII_R_INDEX(i,j,k)];}
+    if (max_Ts < Ts[HII_R_INDEX(i,j,k)]) { max_Ts = Ts[HII_R_INDEX(i,j,k)];}
+#endif //USE_TS_IN_21CM
 
-	if (max < delta_T[HII_R_INDEX(i,j,k)]){ max = delta_T[HII_R_INDEX(i,j,k)];}
-	if (min > delta_T[HII_R_INDEX(i,j,k)]){ min = delta_T[HII_R_INDEX(i,j,k)];}
-	ave += delta_T[HII_R_INDEX(i,j,k)];
+    if (max < delta_T[HII_R_INDEX(i,j,k)]){ max = delta_T[HII_R_INDEX(i,j,k)];}
+    if (min > delta_T[HII_R_INDEX(i,j,k)]){ min = delta_T[HII_R_INDEX(i,j,k)];}
+    ave += delta_T[HII_R_INDEX(i,j,k)];
       }
     }
   }
@@ -261,11 +261,11 @@ int main(int argc, char ** argv){
   fprintf(stderr, "Without velocities, max is %e, min is %e, ave is %e\n", max, min, ave);
   fprintf(LOG, "Without velocities, max is %e, min is %e, ave is %e\n", max, min, ave);
 
-  if (USE_TS_IN_21CM){
-    ave_Ts /= (double) HII_TOT_NUM_PIXELS;
-    fprintf(stderr, "Ts, min = %e, max = %e, ave = %e\n", min_Ts, max_Ts, ave_Ts);
-    fprintf(stderr, "corresponding to (1-trad/Ts of), min = %e, max = %e, ave = %e\n", 1-T_rad/min_Ts, 1-T_rad/max_Ts, 1-T_rad/ave_Ts);
-  }
+#ifdef USE_TS_IN_21CM
+  ave_Ts /= (double) HII_TOT_NUM_PIXELS;
+  fprintf(stderr, "Ts, min = %e, max = %e, ave = %e\n", min_Ts, max_Ts, ave_Ts);
+  fprintf(stderr, "corresponding to (1-trad/Ts of), min = %e, max = %e, ave = %e\n", 1-T_rad/min_Ts, 1-T_rad/max_Ts, 1-T_rad/ave_Ts);
+#endif //USE_TS_IN_21CM
 
   x_val1 = 0.;
   x_val2 = 1.;
@@ -280,7 +280,11 @@ int main(int argc, char ** argv){
 
     // check if we need to correct for velocities
 #ifndef T_USE_VELOCITIES //  we can stop here and print
-  sprintf(filename, "../Boxes/delta_T_z%06.2f_nf%f_useTs%i_%i_%.0fMpc", REDSHIFT, nf, USE_TS_IN_21CM, HII_DIM, BOX_LEN);
+#ifdef USE_TS_IN_21CM
+  sprintf(filename, "../Boxes/delta_T_z%06.2f_nf%f_useTs1_%i_%.0fMpc", REDSHIFT, nf, HII_DIM, BOX_LEN);
+#else //USE_TS_IN_21CM
+  sprintf(filename, "../Boxes/delta_T_z%06.2f_nf%f_useTs0_%i_%.0fMpc", REDSHIFT, nf, HII_DIM, BOX_LEN);
+#endif //USE_TS_IN_21CM
   F = fopen(filename, "wb");
   fprintf(stderr, "\nWritting output delta_T box: %s\n", filename);
   if (mod_fwrite(delta_T, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
@@ -306,24 +310,24 @@ int main(int argc, char ** argv){
 
     for (n_y=0; n_y<HII_DIM; n_y++){
       if (n_y>HII_MIDDLE)
-	k_y =(n_y-HII_DIM) * DELTA_K;
+    k_y =(n_y-HII_DIM) * DELTA_K;
       else
-	k_y = n_y * DELTA_K;
+    k_y = n_y * DELTA_K;
 
       for (n_z=0; n_z<=HII_MIDDLE; n_z++){ 
-	k_z = n_z * DELTA_K;
+    k_z = n_z * DELTA_K;
 
-	// take partial deriavative along the line of sight
-	switch(VELOCITY_COMPONENT){
-	case 1:
-	  *((fftwf_complex *) v + HII_C_INDEX(n_x,n_y,n_z)) *= k_x*I/(float)HII_TOT_NUM_PIXELS;
-	  break;
-	case 3:
-	  *((fftwf_complex *) v + HII_C_INDEX(n_x,n_y,n_z)) *= k_z*I/(float)HII_TOT_NUM_PIXELS;
-	  break;
-	default:
-	  *((fftwf_complex *) v + HII_C_INDEX(n_x,n_y,n_z)) *= k_y*I/(float)HII_TOT_NUM_PIXELS;
-	}
+    // take partial deriavative along the line of sight
+    switch(VELOCITY_COMPONENT){
+    case 1:
+      *((fftwf_complex *) v + HII_C_INDEX(n_x,n_y,n_z)) *= k_x*I/(float)HII_TOT_NUM_PIXELS;
+      break;
+    case 3:
+      *((fftwf_complex *) v + HII_C_INDEX(n_x,n_y,n_z)) *= k_z*I/(float)HII_TOT_NUM_PIXELS;
+      break;
+    default:
+      *((fftwf_complex *) v + HII_C_INDEX(n_x,n_y,n_z)) *= k_y*I/(float)HII_TOT_NUM_PIXELS;
+    }
       }
     }
   }
@@ -350,7 +354,7 @@ int main(int argc, char ** argv){
                  delta_T[HII_R_INDEX(i,j,k)] = 1000.*(Ts[HII_R_INDEX(i,j,k)] - T_rad)/(1. + REDSHIFT);
              }
              else {
- 			  delta_T[HII_R_INDEX(i,j,k)] = (1. - exp(- delta_T[HII_R_INDEX(i,j,k)]/gradient_component ))*1000.*(Ts[HII_R_INDEX(i,j,k)] - T_rad)/(1. + REDSHIFT);
+               delta_T[HII_R_INDEX(i,j,k)] = (1. - exp(- delta_T[HII_R_INDEX(i,j,k)]/gradient_component ))*1000.*(Ts[HII_R_INDEX(i,j,k)] - T_rad)/(1. + REDSHIFT);
              }
          }
      }
@@ -599,7 +603,11 @@ int main(int argc, char ** argv){
 
   
   // now write out the delta_T box with velocity correction
-  sprintf(filename, "../Boxes/delta_T_v%i_z%06.2f_nf%f_useTs%i_%i_%.0fMpc", VELOCITY_COMPONENT, REDSHIFT, nf, USE_TS_IN_21CM, HII_DIM, BOX_LEN);
+#ifdef USE_TS_IN_21CM
+  sprintf(filename, "../Boxes/delta_T_v%i_z%06.2f_nf%f_useTs1_%i_%.0fMpc", VELOCITY_COMPONENT, REDSHIFT, nf, HII_DIM, BOX_LEN);
+#else //USE_TS_IN_21CM
+  sprintf(filename, "../Boxes/delta_T_v%i_z%06.2f_nf%f_useTs0_%i_%.0fMpc", VELOCITY_COMPONENT, REDSHIFT, nf, HII_DIM, BOX_LEN);
+#endif //USE_TS_IN_21CM`
   F = fopen(filename, "wb");
   fprintf(stderr, "Writting output delta_T box: %s\n", filename);
   if (mod_fwrite(delta_T, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
@@ -609,7 +617,10 @@ int main(int argc, char ** argv){
 #endif //T_USE_VELOCITIES
 
 // deallocate what we aren't using anymore 
- free(xH); free(deltax); free(v); if (USE_TS_IN_21CM){ free(Ts);}
+ free(xH); free(deltax); free(v);
+#ifdef USE_TS_IN_21CM
+ free(Ts);
+#endif //USE_TS_IN_21CM
 
 
 
@@ -656,11 +667,11 @@ int main(int argc, char ** argv){
   for (i=0; i<HII_DIM; i++){
     for (j=0; j<HII_DIM; j++){
       for (k=0; k<HII_DIM; k++){
-	*((float *)deldel_T + HII_R_FFT_INDEX(i,j,k)) = (delta_T[HII_R_INDEX(i,j,k)]/ave - 1)*VOLUME/(HII_TOT_NUM_PIXELS+0.0);
+    *((float *)deldel_T + HII_R_FFT_INDEX(i,j,k)) = (delta_T[HII_R_INDEX(i,j,k)]/ave - 1)*VOLUME/(HII_TOT_NUM_PIXELS+0.0);
 #ifdef DIMENSIONAL_T_POWER_SPEC
     *((float *)deldel_T + HII_R_FFT_INDEX(i,j,k)) *= ave;
 #endif //DIMENSIONAL_T_POWER_SPEC
-	// Note: we include the V/N factor for the scaling after the fft
+    // Note: we include the V/N factor for the scaling after the fft
       }
     }
   }
@@ -680,34 +691,34 @@ int main(int argc, char ** argv){
 
     for (n_y=0; n_y<HII_DIM; n_y++){
       if (n_y>HII_MIDDLE)
-	k_y =(n_y-HII_DIM) * DELTA_K;
+    k_y =(n_y-HII_DIM) * DELTA_K;
       else
-	k_y = n_y * DELTA_K;
+    k_y = n_y * DELTA_K;
 
       for (n_z=0; n_z<=HII_MIDDLE; n_z++){ 
-	k_z = n_z * DELTA_K;
-	
-	k_mag = sqrt(k_x*k_x + k_y*k_y + k_z*k_z);
+    k_z = n_z * DELTA_K;
+    
+    k_mag = sqrt(k_x*k_x + k_y*k_y + k_z*k_z);
 
-	// now go through the k bins and update
-	ct = 0;
-	k_floor = 0;
-	k_ceil = k_first_bin_ceil;
-	while (k_ceil < k_max){
-	  // check if we fal in this bin
-	  if ((k_mag>=k_floor) && (k_mag < k_ceil)){
-	    in_bin_ct[ct]++;
-	    p_box[ct] += pow(k_mag,3)*pow(cabs(deldel_T[HII_C_INDEX(n_x, n_y, n_z)]), 2)/(2.0*PI*PI*VOLUME);
-	    // note the 1/VOLUME factor, which turns this into a power density in k-space
+    // now go through the k bins and update
+    ct = 0;
+    k_floor = 0;
+    k_ceil = k_first_bin_ceil;
+    while (k_ceil < k_max){
+      // check if we fal in this bin
+      if ((k_mag>=k_floor) && (k_mag < k_ceil)){
+        in_bin_ct[ct]++;
+        p_box[ct] += pow(k_mag,3)*pow(cabs(deldel_T[HII_C_INDEX(n_x, n_y, n_z)]), 2)/(2.0*PI*PI*VOLUME);
+        // note the 1/VOLUME factor, which turns this into a power density in k-space
 
-	    k_ave[ct] += k_mag;
-	    break;
-	  }
+        k_ave[ct] += k_mag;
+        break;
+      }
 
-	  ct++;
-	  k_floor=k_ceil;
-	  k_ceil*=k_factor;
-	}
+      ct++;
+      k_floor=k_ceil;
+      k_ceil*=k_factor;
+    }
       }
     }
   } // end looping through k box
@@ -723,9 +734,17 @@ int main(int argc, char ** argv){
 
   // now lets print out the k bins
 #ifdef T_USE_VELOCITIES
-  sprintf(filename, "%s/ps_z%06.2f_nf%f_useTs%i_aveTb%06.2f_%i_%.0fMpc_v%i", psoutputdir, REDSHIFT, nf, USE_TS_IN_21CM, ave, HII_DIM, BOX_LEN, VELOCITY_COMPONENT);
+#ifdef USE_TS_IN_21CM
+  sprintf(filename, "%s/ps_z%06.2f_nf%f_useTs1_aveTb%06.2f_%i_%.0fMpc_v%i", psoutputdir, REDSHIFT, nf, ave, HII_DIM, BOX_LEN, VELOCITY_COMPONENT);
+#else //USE_TS_IN_21CM
+  sprintf(filename, "%s/ps_z%06.2f_nf%f_useTs0_aveTb%06.2f_%i_%.0fMpc_v%i", psoutputdir, REDSHIFT, nf, ave, HII_DIM, BOX_LEN, VELOCITY_COMPONENT);
+#endif //USE_TS_IN_21CM
 #else // T_USE_VELOCITIES
-  sprintf(filename, "%s/ps_z%06.2f_nf%f_useTs%i_aveTb%06.2f_%i_%.0fMpc", psoutputdir, REDSHIFT, nf, USE_TS_IN_21CM, ave, HII_DIM, BOX_LEN);
+#ifdef USE_TS_IN_21CM
+  sprintf(filename, "%s/ps_z%06.2f_nf%f_useTs1_aveTb%06.2f_%i_%.0fMpc", psoutputdir, REDSHIFT, nf, ave, HII_DIM, BOX_LEN);
+#else //USE_TS_IN_21CM
+  sprintf(filename, "%s/ps_z%06.2f_nf%f_useTs0_aveTb%06.2f_%i_%.0fMpc", psoutputdir, REDSHIFT, nf, ave, HII_DIM, BOX_LEN);
+#endif //USE_TS_IN_21CM
 #endif //T_USE_VELOCITIES
   F = fopen(filename, "w");
   if (!F){
