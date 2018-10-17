@@ -125,12 +125,6 @@
   #define LW_WISE12_C (double) -0.02680
   #define LW_WISE12_D (double) 5.882e-4
   #define LW_WISE12_E (double) -5.056e-6
-  // --
-  #ifdef REION_SM   // otherwise use the free parameter M_TURNOVER for homogeneous reionization
-    #define REION_SM13_Z_RE (double) 9.3
-    #define REION_SM13_DELTA_Z_RE (double) 1.0
-    #define REION_SM13_DELTA_Z_SC (double) 2.0
-  #endif
 #endif
 
 #endif
