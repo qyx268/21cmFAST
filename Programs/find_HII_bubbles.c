@@ -426,9 +426,7 @@ int main(int argc, char ** argv){
     }
 #else //SHARP_CUTOFF
 #ifdef MINI_HALO
-    Mcrit_atom = atomic_cooling_threshold(REDSHIFT);
 #ifdef INHOMO_FEEDBACK
-    Mcrit_LW   = lyman_werner_threshold(REDSHIFT, 0); // no LW suppression, for checking Dark Age
     if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
                &ALPHA_ESC, &T_AST, &X_LUMINOSITY, &F_STAR10m, &F_ESC10m, &X_LUMINOSITYm, &MFP, &REDSHIFT, &PREV_REDSHIFT)){
         fprintf(stderr, "find_HII_bubbles <redshift> [<previous redshift>] \n \
@@ -437,8 +435,8 @@ int main(int argc, char ** argv){
      Also check that your inclusion (or not) of [<t_star>] is consistent with the USE_TS_IN_21CM flag in ../Parameter_files/HEAT_PARAMS.H\nAborting...\n");
         return -1;
     }
+    Mcrit_LW   = lyman_werner_threshold(REDSHIFT, 0); // no LW suppression, for checking Dark Age
 #else //INHOMO_FEEDBACK
-    Mcrit_LW   = lyman_werner_threshold(REDSHIFT);
 #ifdef REION_SM
     if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
                &ALPHA_ESC, &T_AST, &X_LUMINOSITY, &F_STAR10m, &F_ESC10m, &X_LUMINOSITYm, &MFP, &REDSHIFT, &PREV_REDSHIFT)){
@@ -460,7 +458,9 @@ int main(int argc, char ** argv){
     }
     Mcrit_RE   = M_TURN;
 #endif //REION_SM
+    Mcrit_LW   = lyman_werner_threshold(REDSHIFT);
 #endif //INHOMO_FEEDBACK
+    Mcrit_atom = atomic_cooling_threshold(REDSHIFT);
 #else //MINI_HALO
     if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
                &ALPHA_ESC, &M_TURN, &T_AST, &X_LUMINOSITY, &MFP, &REDSHIFT, &PREV_REDSHIFT)){

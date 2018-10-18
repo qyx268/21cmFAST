@@ -1190,7 +1190,7 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
     sum_lyn[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0, 2);
     sum_lynm[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0, 3);
 #else
-      sum_lyn[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0);
+    sum_lyn[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0);
 #endif
       }
     } // end loop over R_ct filter steps
