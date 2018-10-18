@@ -275,7 +275,7 @@ double lyman_werner_threshold(float z){
     return molecular_cooling_threshold(z) * (1. + 22.8685 * pow(J_21_LW_Wise12(z), 0.47));
 }
 #ifdef REION_SM
-double reionization_feedback(float z){
+double reionization_feedback(float z, double REION_SM13_Z_RE, double REION_SM13_DELTA_Z_RE, double REION_SM13_DELTA_Z_SC){
     // NOTE: ideally we want to solve REION_SM13_Z_RE and REION_SM13_DELTA_Z_RE self-consistently
     // But ifndef INHOMO_FEEDBACK the LW suppression is also from a fixed background (Wise+12), 
     // I see no point of doing a self-consistent reionization background.

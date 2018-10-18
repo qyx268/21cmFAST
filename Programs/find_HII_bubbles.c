@@ -416,60 +416,62 @@ int main(int argc, char ** argv){
 
   // PARSE COMMAND LINE ARGUMENTS
 #ifdef SHARP_CUTOFF
-    if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
-               &ALPHA_ESC, &M_TURN, &T_AST, &X_LUMINOSITY, &MFP, &REDSHIFT, &PREV_REDSHIFT))
-    {
-        fprintf(stderr, "find_HII_bubbles <redshift> [<previous redshift>] \n \
-            Aborting...\n                               \
-        Check that your inclusion (or not) of [<previous redshift>] is consistent with the INHOMO_RECO flag in ../Parameter_files/ANAL_PARAMS.H\nAborting...\n");
-        return -1;
-    }
+  if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
+             &ALPHA_ESC, &M_TURN, &T_AST, &X_LUMINOSITY, &MFP, &REDSHIFT, &PREV_REDSHIFT))
+  {
+      fprintf(stderr, "find_HII_bubbles <redshift> [<previous redshift>] \n \
+          Aborting...\n                               \
+      Check that your inclusion (or not) of [<previous redshift>] is consistent with the INHOMO_RECO flag in ../Parameter_files/ANAL_PARAMS.H\nAborting...\n");
+      return -1;
+  }
 #else //SHARP_CUTOFF
 #ifdef MINI_HALO
-    Mcrit_atom = atomic_cooling_threshold(REDSHIFT);
+  Mcrit_atom = atomic_cooling_threshold(REDSHIFT);
 #ifdef INHOMO_FEEDBACK
-    Mcrit_LW   = lyman_werner_threshold(REDSHIFT, 0); // no LW suppression, for checking Dark Age
-    if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
-               &ALPHA_ESC, &T_AST, &X_LUMINOSITY, &F_STAR10m, &F_ESC10m, &X_LUMINOSITYm, &MFP, &REDSHIFT, &PREV_REDSHIFT)){
-        fprintf(stderr, "find_HII_bubbles <redshift> [<previous redshift>] \n \
-        additional optional arguments: <f_star10> <alpha,star> <f_esc10> <alpha,esc> [<t_star>] [<f_star10,m> <f_esc10,m>]\n \
-        Check that your inclusion (or not) of [<previous redshift>] is consistent with the INHOMO_RECO flag in ../Parameter_files/ANAL_PARAMS.H\n \
-     Also check that your inclusion (or not) of [<t_star>] is consistent with the USE_TS_IN_21CM flag in ../Parameter_files/HEAT_PARAMS.H\nAborting...\n");
-        return -1;
-    }
+  Mcrit_LW   = lyman_werner_threshold(REDSHIFT, 0); // no LW suppression, for checking Dark Age
+  if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
+             &ALPHA_ESC, &T_AST, &X_LUMINOSITY, &F_STAR10m, &F_ESC10m, &X_LUMINOSITYm, &MFP, &REDSHIFT, &PREV_REDSHIFT)){
+      fprintf(stderr, "find_HII_bubbles <redshift> [<previous redshift>] \n \
+      additional optional arguments: <f_star10> <alpha,star> <f_esc10> <alpha,esc> [<t_star>] [<f_star10,m> <f_esc10,m>]\n \
+      Check that your inclusion (or not) of [<previous redshift>] is consistent with the INHOMO_RECO flag in ../Parameter_files/ANAL_PARAMS.H\n \
+   Also check that your inclusion (or not) of [<t_star>] is consistent with the USE_TS_IN_21CM flag in ../Parameter_files/HEAT_PARAMS.H\nAborting...\n");
+      return -1;
+  }
 #else //INHOMO_FEEDBACK
-    Mcrit_LW   = lyman_werner_threshold(REDSHIFT);
+  Mcrit_LW   = lyman_werner_threshold(REDSHIFT);
 #ifdef REION_SM
-    if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
-               &ALPHA_ESC, &T_AST, &X_LUMINOSITY, &F_STAR10m, &F_ESC10m, &X_LUMINOSITYm, &MFP, &REDSHIFT, &PREV_REDSHIFT)){
-        fprintf(stderr, "find_HII_bubbles <redshift> [<previous redshift>] \n \
-        additional optional arguments: <f_star10> <alpha,star> <f_esc10> <alpha,esc> [<t_star>] [<f_star10,m> <f_esc10,m>]\n \
-        Check that your inclusion (or not) of [<previous redshift>] is consistent with the INHOMO_RECO flag in ../Parameter_files/ANAL_PARAMS.H\n \
-     Also check that your inclusion (or not) of [<t_star>] is consistent with the USE_TS_IN_21CM flag in ../Parameter_files/HEAT_PARAMS.H\nAborting...\n");
-        return -1;
-    }
-    Mcrit_RE   = reionization_feedback(REDSHIFT);
+  if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
+             &ALPHA_ESC, &T_AST, &X_LUMINOSITY, &F_STAR10m, &F_ESC10m, &X_LUMINOSITYm, &MFP, &REDSHIFT, &PREV_REDSHIFT)){
+      fprintf(stderr, "find_HII_bubbles <redshift> [<previous redshift>] \n \
+      additional optional arguments: <f_star10> <alpha,star> <f_esc10> <alpha,esc> [<t_star>] [<f_star10,m> <f_esc10,m>]\n \
+      Check that your inclusion (or not) of [<previous redshift>] is consistent with the INHOMO_RECO flag in ../Parameter_files/ANAL_PARAMS.H\n \
+   Also check that your inclusion (or not) of [<t_star>] is consistent with the USE_TS_IN_21CM flag in ../Parameter_files/HEAT_PARAMS.H\nAborting...\n");
+      return -1;
+  }
+  double REION_SM13_Z_RE, REION_SM13_DELTA_Z_RE, REION_SM13_DELTA_Z_SC;
+  reading_reionization_SM13parameters(&REION_SM13_Z_RE, &REION_SM13_DELTA_Z_RE, &REION_SM13_DELTA_Z_SC);
+  Mcrit_RE   = reionization_feedback(REDSHIFT, REION_SM13_Z_RE, REION_SM13_DELTA_Z_RE, REION_SM13_DELTA_Z_SC);
 #else //REION_SM
-    if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
-               &ALPHA_ESC, &M_TURN, &T_AST, &X_LUMINOSITY, &F_STAR10m, &F_ESC10m, &X_LUMINOSITYm, &MFP, &REDSHIFT, &PREV_REDSHIFT)){
-        fprintf(stderr, "find_HII_bubbles <redshift> [<previous redshift>] \n \
-        additional optional arguments: <f_star10> <alpha,star> <f_esc10> <alpha,esc> <M_TURNOVER>] [<t_star>] [<f_star10,m> <f_esc10,m>]\n \
-        Check that your inclusion (or not) of [<previous redshift>] is consistent with the INHOMO_RECO flag in ../Parameter_files/ANAL_PARAMS.H\n \
-     Also check that your inclusion (or not) of [<t_star>] is consistent with the USE_TS_IN_21CM flag in ../Parameter_files/HEAT_PARAMS.H\nAborting...\n");
-        return -1;
-    }
-    Mcrit_RE   = M_TURN;
+  if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
+             &ALPHA_ESC, &M_TURN, &T_AST, &X_LUMINOSITY, &F_STAR10m, &F_ESC10m, &X_LUMINOSITYm, &MFP, &REDSHIFT, &PREV_REDSHIFT)){
+      fprintf(stderr, "find_HII_bubbles <redshift> [<previous redshift>] \n \
+      additional optional arguments: <f_star10> <alpha,star> <f_esc10> <alpha,esc> <M_TURNOVER>] [<t_star>] [<f_star10,m> <f_esc10,m>]\n \
+      Check that your inclusion (or not) of [<previous redshift>] is consistent with the INHOMO_RECO flag in ../Parameter_files/ANAL_PARAMS.H\n \
+   Also check that your inclusion (or not) of [<t_star>] is consistent with the USE_TS_IN_21CM flag in ../Parameter_files/HEAT_PARAMS.H\nAborting...\n");
+      return -1;
+  }
+  Mcrit_RE   = M_TURN;
 #endif //REION_SM
 #endif //INHOMO_FEEDBACK
 #else //MINI_HALO
-    if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
-               &ALPHA_ESC, &M_TURN, &T_AST, &X_LUMINOSITY, &MFP, &REDSHIFT, &PREV_REDSHIFT)){
-        fprintf(stderr, "find_HII_bubbles <redshift> [<previous redshift>] \n \
-        additional optional arguments: <f_star10> <alpha,star> <f_esc10> <alpha,esc> <M_TURNOVER>] [<t_star>]\n \
-        Check that your inclusion (or not) of [<previous redshift>] is consistent with the INHOMO_RECO flag in ../Parameter_files/ANAL_PARAMS.H\n \
-     Also check that your inclusion (or not) of [<t_star>] is consistent with the USE_TS_IN_21CM flag in ../Parameter_files/HEAT_PARAMS.H\nAborting...\n");
-        return -1;
-    }
+  if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
+             &ALPHA_ESC, &M_TURN, &T_AST, &X_LUMINOSITY, &MFP, &REDSHIFT, &PREV_REDSHIFT)){
+      fprintf(stderr, "find_HII_bubbles <redshift> [<previous redshift>] \n \
+      additional optional arguments: <f_star10> <alpha,star> <f_esc10> <alpha,esc> <M_TURNOVER>] [<t_star>]\n \
+      Check that your inclusion (or not) of [<previous redshift>] is consistent with the INHOMO_RECO flag in ../Parameter_files/ANAL_PARAMS.H\n \
+   Also check that your inclusion (or not) of [<t_star>] is consistent with the USE_TS_IN_21CM flag in ../Parameter_files/HEAT_PARAMS.H\nAborting...\n");
+      return -1;
+  }
 #endif //MINI_HALO
 #endif //SHARP_CUTOFF
 

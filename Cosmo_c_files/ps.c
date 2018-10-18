@@ -1668,7 +1668,6 @@ double Nion_ConditionalMm(double z, double M1, double M2, double delta1, double 
 #endif
 
 // Set up interpolation table for the number of IGM ionizing photons per baryon and initialise interploation.
-// Set up interpolation table for the number of IGM ionizing photons per baryon and initialise interploation.
 // This function includes conditional mass function over the density field at a given redshift.
 // Split density range into low and high density, since to increase accuray in high density region.
 // see eq. (17) in Park et al. 2018
@@ -1886,7 +1885,12 @@ void SFRD_ST_zm(float z, float *splined_value){
 #endif
 
 
-void initialise_SFRD_Conditional_table(int Nsteps_zp, int Nfilter, float z[], double R[], float Mmin, float MassTurnover, float Alpha_star, float Fstar10){
+#ifdef REION_SM
+void initialise_SFRD_Conditional_table(int Nsteps_zp, int Nfilter, float z[], double R[], float Mmin, float MassTurnover, float Alpha_star, float Fstar10, double REION_SM13_Z_RE, double REION_SM13_DELTA_Z_RE, double REION_SM13_DELTA_Z_SC)
+#else
+void initialise_SFRD_Conditional_table(int Nsteps_zp, int Nfilter, float z[], double R[], float Mmin, float MassTurnover, float Alpha_star, float Fstar10)
+#endif
+{
     double overdense_val;
     double overdense_large_high = Deltac, overdense_large_low = 1.5;
     double overdense_small_high = 1.5, overdense_small_low = -1. + 9e-8;
@@ -1919,7 +1923,7 @@ void initialise_SFRD_Conditional_table(int Nsteps_zp, int Nfilter, float z[], do
 #ifdef MINI_HALO
         Mcrit_atom = atomic_cooling_threshold(z[i_tot+j]);
 #ifdef REION_SM
-        Mcrit_RE   = reionization_feedback(z[i_tot+j]);
+        Mcrit_RE   = reionization_feedback(z[i_tot+j], REION_SM13_Z_RE, REION_SM13_DELTA_Z_RE, REION_SM13_DELTA_Z_SC);
 #else //REION_SM
         Mcrit_RE   = MassTurnover;
 #endif //REION_SM
@@ -1940,7 +1944,12 @@ void initialise_SFRD_Conditional_table(int Nsteps_zp, int Nfilter, float z[], do
     }
 }
 #ifdef MINI_HALO
-void initialise_SFRD_Conditional_tablem(int Nsteps_zp, int Nfilter, float z[], double R[], float Mmin, float MassTurnover, float Alpha_star, float Fstar10m){
+#ifdef REION_SM
+void initialise_SFRD_Conditional_tablem(int Nsteps_zp, int Nfilter, float z[], double R[], float Mmin, float MassTurnover, float Alpha_star, float Fstar10m, double REION_SM13_Z_RE, double REION_SM13_DELTA_Z_RE, double REION_SM13_DELTA_Z_SC)
+#else
+void initialise_SFRD_Conditional_tablem(int Nsteps_zp, int Nfilter, float z[], double R[], float Mmin, float MassTurnover, float Alpha_star, float Fstar10m)
+#endif
+{
 //    double overdense_val;
 //    double overdense_large_high = Deltac, overdense_large_low = 1.5;
 //    double overdense_small_high = 1.5, overdense_small_low = -1. + 9e-8;
@@ -1971,7 +1980,7 @@ void initialise_SFRD_Conditional_tablem(int Nsteps_zp, int Nfilter, float z[], d
         Mcrit_atom = atomic_cooling_threshold(z[i_tot+j]);
         Mcrit_LW   = atomic_cooling_threshold(z[i_tot+j]);
 #ifdef REION_SM
-        Mcrit_RE   = reionization_feedback(z[i_tot+j]);
+        Mcrit_RE   = reionization_feedback(z[i_tot+j], REION_SM13_Z_RE, REION_SM13_DELTA_Z_RE, REION_SM13_DELTA_Z_SC);
 #else //REION_SM
         Mcrit_RE   = MassTurnover;
 #endif //REION_SM

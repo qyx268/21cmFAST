@@ -854,14 +854,22 @@ int main(int argc, char ** argv){
       zpp = (zpp_edge[R_ct]+prev_zpp)*0.5; // average redshift value of shell: z'' + 0.5 * dz'' 
   }    
   determine_zpp_max = zpp*1.001;
+#ifdef MINI_HALO
+#ifndef INHOMO_FEEDBACK
+#ifdef REION_SM
+  double REION_SM13_Z_RE, REION_SM13_DELTA_Z_RE, REION_SM13_DELTA_Z_SC;
+  reading_reionization_SM13parameters(&REION_SM13_Z_RE, &REION_SM13_DELTA_Z_RE, &REION_SM13_DELTA_Z_SC);
+#endif
+#endif
+#endif
 
   for (i=0; i<zpp_interp_points;i++) {
     zpp_interp_table[i] = determine_zpp_min + (determine_zpp_max - determine_zpp_min)*(float)i/((float)zpp_interp_points-1.0);
 #ifdef MINI_HALO
 #ifndef INHOMO_FEEDBACK
     Mcrit_atom_interp_table[i] = atomic_cooling_threshold(zpp_interp_table[i]);
-#ifdef REION_SM    
-    Mcrit_RE_interp_table[i]   = reionization_feedback(zpp_interp_table[i]);
+#ifdef REION_SM
+    Mcrit_RE_interp_table[i]   = reionization_feedback(zpp_interp_table[i], REION_SM13_Z_RE, REION_SM13_DELTA_Z_RE, REION_SM13_DELTA_Z_SC);
 #else //REION_SM
     Mcrit_RE_interp_table[i]   = M_TURN;
 #endif //REION_SM
