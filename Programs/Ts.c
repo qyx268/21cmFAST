@@ -149,6 +149,9 @@ int main(int argc, char ** argv){
   double nuprime, fcoll_R, Ts_ave;
 #ifdef MINI_HALO
   double Mcrit_RE, fcoll_Rm;
+#ifdef REION_SM
+  double REION_SM13_Z_RE, REION_SM13_DELTA_Z_RE, REION_SM13_DELTA_Z_SC;
+#endif
 #endif
   float *delNL0[NUM_FILTER_STEPS_FOR_Ts], xHII_call, curr_xalpha;
   float z, Jalpha, TK, TS, xe, deltax;
@@ -185,8 +188,6 @@ int main(int argc, char ** argv){
     M_MIN = M_TURNOVER;
 #else //SHARP_CUTOFF
 #ifdef MINI_HALO
-    ION_EFF_FACTOR      = N_GAMMA_UV      * F_STAR10  * F_ESC10;
-    ION_EFF_FACTOR_MINI = N_GAMMA_UV_MINI * F_STAR10m * F_ESC10m;
 #ifdef INHOMO_FEEDBACK
     M_MIN = 1e5;
     if (argc  == 12) {
@@ -355,6 +356,8 @@ int main(int argc, char ** argv){
     }
 #endif //REION_SM
 #endif//INHOMO_FEEDBACK
+    ION_EFF_FACTOR      = N_GAMMA_UV      * F_STAR10  * F_ESC10;
+    ION_EFF_FACTOR_MINI = N_GAMMA_UV_MINI * F_STAR10m * F_ESC10m;
 #else //MINI_HALO
     if (argc  == 10) {
       RESTART = 1;
@@ -857,8 +860,11 @@ int main(int argc, char ** argv){
 #ifdef MINI_HALO
 #ifndef INHOMO_FEEDBACK
 #ifdef REION_SM
-  double REION_SM13_Z_RE, REION_SM13_DELTA_Z_RE, REION_SM13_DELTA_Z_SC;
-  reading_reionization_SM13parameters(&REION_SM13_Z_RE, &REION_SM13_DELTA_Z_RE, &REION_SM13_DELTA_Z_SC);
+  if(F = fopen("../Parameter_files/REION_SM.H", "r"))
+    reading_reionization_SM13parameters(&REION_SM13_Z_RE, &REION_SM13_DELTA_Z_RE, &REION_SM13_DELTA_Z_SC);
+  else
+    estimating_reionization(ION_EFF_FACTOR, ION_EFF_FACTOR_MINI, ALPHA_STAR, F_STAR10, ALPHA_ESC, F_ESC10, F_STAR10m,
+                              &REION_SM13_Z_RE, &REION_SM13_DELTA_Z_RE, &REION_SM13_DELTA_Z_SC);
 #endif
 #endif
 #endif

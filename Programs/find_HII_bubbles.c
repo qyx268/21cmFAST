@@ -398,6 +398,9 @@ int main(int argc, char ** argv){
 #ifdef MINI_HALO
   float F_STAR10m, F_ESC10m, Mlim_Fstarm, ION_EFF_FACTOR_MINI,M_MINm, M_MINa, Splined_Fcollm, dfcolldtm,Gamma_R_prefactorm,ST_over_PSm,f_collm, Mcrit_atom, Mcrit_LW, Mcrit_RE, mean_f_coll_stm; //New in v2.1
   double X_LUMINOSITYm;
+#ifdef REION_SM
+  double REION_SM13_Z_RE, REION_SM13_DELTA_Z_RE, REION_SM13_DELTA_Z_SC;
+#endif //REION_SM
 #else //MINI_HALO
   float M_MINa;
 #endif //MINI_HALO
@@ -424,6 +427,7 @@ int main(int argc, char ** argv){
       Check that your inclusion (or not) of [<previous redshift>] is consistent with the INHOMO_RECO flag in ../Parameter_files/ANAL_PARAMS.H\nAborting...\n");
       return -1;
   }
+  ION_EFF_FACTOR = N_GAMMA_UV * STELLAR_BARYON_FRAC * ESC_FRAC; // Constant ionizing efficiency parameter.
 #else //SHARP_CUTOFF
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
@@ -435,7 +439,11 @@ int main(int argc, char ** argv){
    Also check that your inclusion (or not) of [<t_star>] is consistent with the USE_TS_IN_21CM flag in ../Parameter_files/HEAT_PARAMS.H\nAborting...\n");
       return -1;
   }
-  Mcrit_LW   = lyman_werner_threshold(REDSHIFT, 0); // no LW suppression, for checking Dark Age
+  ION_EFF_FACTOR      = N_GAMMA_UV      * F_STAR10  * F_ESC10;
+  ION_EFF_FACTOR_MINI = N_GAMMA_UV_MINI * F_STAR10m * F_ESC10m;
+  Mcrit_atom          = atomic_cooling_threshold(REDSHIFT);
+  Mcrit_LW            = lyman_werner_threshold(REDSHIFT, 0); // no LW suppression, for checking Dark Age
+  Mcrit_RE            = 0;                                   // no RE suppression, for checking Dark Age
 #else //INHOMO_FEEDBACK
 #ifdef REION_SM
   if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
@@ -446,8 +454,15 @@ int main(int argc, char ** argv){
    Also check that your inclusion (or not) of [<t_star>] is consistent with the USE_TS_IN_21CM flag in ../Parameter_files/HEAT_PARAMS.H\nAborting...\n");
       return -1;
   }
-  double REION_SM13_Z_RE, REION_SM13_DELTA_Z_RE, REION_SM13_DELTA_Z_SC;
-  reading_reionization_SM13parameters(&REION_SM13_Z_RE, &REION_SM13_DELTA_Z_RE, &REION_SM13_DELTA_Z_SC);
+  ION_EFF_FACTOR      = N_GAMMA_UV      * F_STAR10  * F_ESC10;
+  ION_EFF_FACTOR_MINI = N_GAMMA_UV_MINI * F_STAR10m * F_ESC10m;
+  Mcrit_atom          = atomic_cooling_threshold(REDSHIFT);
+  Mcrit_LW            = lyman_werner_threshold(REDSHIFT);
+  if(F = fopen("../Parameter_files/REION_SM.H", "r"))
+    reading_reionization_SM13parameters(&REION_SM13_Z_RE, &REION_SM13_DELTA_Z_RE, &REION_SM13_DELTA_Z_SC);
+  else
+    estimating_reionization(ION_EFF_FACTOR, ION_EFF_FACTOR_MINI, ALPHA_STAR, F_STAR10, ALPHA_ESC, F_ESC10, F_STAR10m,
+                            &REION_SM13_Z_RE, &REION_SM13_DELTA_Z_RE, &REION_SM13_DELTA_Z_SC);
   Mcrit_RE   = reionization_feedback(REDSHIFT, REION_SM13_Z_RE, REION_SM13_DELTA_Z_RE, REION_SM13_DELTA_Z_SC);
 #else //REION_SM
   if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
@@ -458,11 +473,13 @@ int main(int argc, char ** argv){
    Also check that your inclusion (or not) of [<t_star>] is consistent with the USE_TS_IN_21CM flag in ../Parameter_files/HEAT_PARAMS.H\nAborting...\n");
       return -1;
   }
-  Mcrit_RE   = M_TURN;
+  ION_EFF_FACTOR      = N_GAMMA_UV      * F_STAR10  * F_ESC10;
+  ION_EFF_FACTOR_MINI = N_GAMMA_UV_MINI * F_STAR10m * F_ESC10m;
+  Mcrit_atom          = atomic_cooling_threshold(REDSHIFT);
+  Mcrit_LW            = lyman_werner_threshold(REDSHIFT);
+  Mcrit_RE            = M_TURN;
 #endif //REION_SM
-  Mcrit_LW   = lyman_werner_threshold(REDSHIFT);
 #endif //INHOMO_FEEDBACK
-  Mcrit_atom = atomic_cooling_threshold(REDSHIFT);
 #else //MINI_HALO
   if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
              &ALPHA_ESC, &M_TURN, &T_AST, &X_LUMINOSITY, &MFP, &REDSHIFT, &PREV_REDSHIFT)){
@@ -472,6 +489,7 @@ int main(int argc, char ** argv){
    Also check that your inclusion (or not) of [<t_star>] is consistent with the USE_TS_IN_21CM flag in ../Parameter_files/HEAT_PARAMS.H\nAborting...\n");
       return -1;
   }
+  ION_EFF_FACTOR = N_GAMMA_UV * F_STAR10  * F_ESC10;
 #endif //MINI_HALO
 #endif //SHARP_CUTOFF
 
@@ -519,17 +537,14 @@ int main(int argc, char ** argv){
   M_MIN /= 50;
 #endif //INHOMO_FEEDBACK
   Mlim_Fstarm         = Mass_limit_bisection(M_MIN, 1e16, ALPHA_STAR, F_STAR10m);
-  ION_EFF_FACTOR_MINI = N_GAMMA_UV_MINI * F_STAR10m * F_ESC10m;
 #else //MINI_HALO
   M_MINa = M_TURN;
   M_MIN  = M_TURN/50;
 #endif //MINI_HALO
   Mlim_Fstar     = Mass_limit_bisection(M_MIN, 1e16, ALPHA_STAR, F_STAR10);
   Mlim_Fesc      = Mass_limit_bisection(M_MIN, 1e16, ALPHA_ESC, F_ESC10);
-  ION_EFF_FACTOR = N_GAMMA_UV      * F_STAR10  * F_ESC10;
 #else //SHARP_CUTOFF
   M_MIN          = M_TURNOVER;
-  ION_EFF_FACTOR = N_GAMMA_UV * STELLAR_BARYON_FRAC * ESC_FRAC; // Constant ionizing efficiency parameter.
 #endif //SHARP_CUTOFF
 
   // check for WDM

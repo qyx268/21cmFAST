@@ -2061,7 +2061,7 @@ struct Param_REION_SM{
   double REION_SM13_DELTA_Z_SC;
 };
 
-void estimating_reionization(double ION_EFF_FACTOR, double ION_EFF_FACTOR_MINI, double ALPHA_STAR, double F_STAR10, double ALPHA_ESC, double F_ESC10, double F_STAR10m){
+void estimating_reionization(double ION_EFF_FACTOR, double ION_EFF_FACTOR_MINI, double ALPHA_STAR, double F_STAR10, double ALPHA_ESC, double F_ESC10, double F_STAR10m, double *REION_SM13_Z_RE, double *REION_SM13_DELTA_Z_RE, double *REION_SM13_DELTA_Z_SC){
   double zmax = 35.;
   double zmin = 0.;
   double Q0 = 0.;
@@ -2163,9 +2163,16 @@ void estimating_reionization(double ION_EFF_FACTOR, double ION_EFF_FACTOR_MINI, 
   gsl_spline_free (zQ_spline);
   gsl_interp_accel_free (zQ_spline_acc);
 
+  *REION_SM13_Z_RE       = params->REION_SM13_Z_RE;
+  *REION_SM13_DELTA_Z_RE = params->REION_SM13_DELTA_Z_RE;
+  *REION_SM13_DELTA_Z_SC = params->REION_SM13_DELTA_Z_SC;
+ 
+  // also save it so I don't need to do it again...
   if(F = fopen("../Parameter_files/REION_SM.H", "w")){
     if(fwrite(params, sizeof(struct Param_REION_SM), 1, F) !=1)
-      fprintf(stderr,  "reionization_helper_progs.c: Error writing reionization parameter file, ../Parameter_files/REION_SM.H");
+      fprintf(stderr,  "reionization_helper_progs.c: Error writing reionization parameter file, ../Parameter_files/REION_SM.H\n");
+    else
+      fclose(F);
   }
   else
     fprintf(stderr,  "reionization_helper_progs.c: Error creating reionization parameter file, ../Parameter_files/REION_SM.H");
@@ -2176,10 +2183,12 @@ void reading_reionization_SM13parameters(double *REION_SM13_Z_RE, double *REION_
   FILE *F;
   if(F = fopen("../Parameter_files/REION_SM.H", "r")){
     if(fread(params, sizeof(struct Param_REION_SM), 1, F) !=1)
-      fprintf(stderr,  "reionization_helper_progs.c: Error reading reionization parameter file, ../Parameter_files/REION_SM.H");
+      fprintf(stderr,  "reionization_helper_progs.c: Error reading reionization parameter file, ../Parameter_files/REION_SM.H\nAborting...\n");
+    else
+      fclose(F);
   }
   else
-      fprintf(stderr,  "reionization_helper_progs.c: Error openning reionization parameter file, ../Parameter_files/REION_SM.H");
+      fprintf(stderr,  "reionization_helper_progs.c: Error openning reionization parameter file, ../Parameter_files/REION_SM.H\nAborting...\n");
   *REION_SM13_Z_RE       = params->REION_SM13_Z_RE;
   *REION_SM13_DELTA_Z_RE = params->REION_SM13_DELTA_Z_RE;
   *REION_SM13_DELTA_Z_SC = params->REION_SM13_DELTA_Z_SC;
