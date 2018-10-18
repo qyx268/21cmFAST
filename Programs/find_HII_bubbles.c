@@ -679,7 +679,6 @@ int main(int argc, char ** argv){
 #endif //USE_TS_IN_21CM
   
     // print out the xH box
-    global_xH_m = global_xH;
     switch(FIND_BUBBLE_ALGORITHM){
       case 2:
 #ifndef SHARP_CUTOFF

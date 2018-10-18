@@ -944,10 +944,18 @@ int main(int argc, char ** argv){
      Note that at a given zp, zpp values depends on the filtering scale R. */
   // Note from YQ: due to the initial configuration left from v2, I will construct M_MINa_interp_table and M_MINm_interp_table inside these two
   // functions (which is fine because we are only going to use them once, although there are unnecessary duplicated calculations...)
+#ifdef REION_SM
+  initialise_SFRD_Conditional_table(Nsteps_zp,NUM_FILTER_STEPS_FOR_Ts,redshift_interp_table,R_values, M_MIN, M_TURN, ALPHA_STAR, F_STAR10, REION_SM13_Z_RE, REION_SM13_DELTA_Z_RE, REION_SM13_DELTA_Z_SC);
+#else
   initialise_SFRD_Conditional_table(Nsteps_zp,NUM_FILTER_STEPS_FOR_Ts,redshift_interp_table,R_values, M_MIN, M_TURN, ALPHA_STAR, F_STAR10);
+#endif
   fprintf(stderr, "\n Generated the table of SFRD using conditional mass function = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
 #ifdef MINI_HALO
+#ifdef REION_SM
+  initialise_SFRD_Conditional_tablem(Nsteps_zp,NUM_FILTER_STEPS_FOR_Ts,redshift_interp_table,R_values, M_MIN, M_TURN, ALPHA_STAR, F_STAR10m, REION_SM13_Z_RE, REION_SM13_DELTA_Z_RE, REION_SM13_DELTA_Z_SC);
+#else
   initialise_SFRD_Conditional_tablem(Nsteps_zp,NUM_FILTER_STEPS_FOR_Ts,redshift_interp_table,R_values, M_MIN, M_TURN, ALPHA_STAR, F_STAR10m);
+#endif
   fprintf(stderr, "\n Generated the table of SFRD using conditional mass function for mini halos = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
 #endif //MINI_HALO
 #endif //SHARP_CUTOFF

@@ -58,7 +58,7 @@ double anal_taudamp(float nuobs, float zstart, float zend); /* Lya damping wing 
 double mean_rho(float z); /* returns the proper mean baryonic density at z in g/cm^3 */
 double T_gas_adiabatic(float z); /* returns the adiabatically-cooled gas temperature at z */
 double tau_e(float zstart, float zend, float *zarry, float *xiarry, int len); /* returns the thompson scattering optical depth from zstart to zend.  The ionization history is specified by the last three arguements.  Set these to NULL or 0 if fully ionized IGM is assumed. */
-
+double soundcrossing_timescale_inredshift(double z); // return the sound crossing timescale in redshift
 
 /* dynamical time at z in seconds */
 float t_dynamical(float z){
@@ -719,9 +719,11 @@ double HI_ion_crosssec(double nu){
     * pow(E, 4-(4*atan(epsilon)/epsilon)) / (1-pow(E, -2*PI/epsilon));
 }
 
+double soundcrossing_timescale_inredshift(double z){
+  double t_sc, z_sc;
+  t_sc = 2e9 * SperYR / (1. + z) / cbrt(OMm * hlittle * hlittle / 0.15);
+  z_sc = ttoz(t_sc, z); 
+  return z - z_sc;
+}
+
 #endif  /* end _COSMO_PROGS_ */
-
-
-
-
-
