@@ -2056,38 +2056,36 @@ float mean_SFRD(double z){
 #define TOL_RE (double) 0.01
 
 struct Param_REION_SM{
-  double REION_SM13_Z_RE;
-  double REION_SM13_DELTA_Z_RE;
-  double REION_SM13_DELTA_Z_SC;
+  double Z_RE;
+  double DELTA_Z_RE;
+  double DELTA_Z_SC;
 };
 
 void estimating_reionization(double ION_EFF_FACTOR, double ION_EFF_FACTOR_MINI, double ALPHA_STAR, double F_STAR10, double ALPHA_ESC, double F_ESC10, double F_STAR10m, double *REION_SM13_Z_RE, double *REION_SM13_DELTA_Z_RE, double *REION_SM13_DELTA_Z_SC){
   double zmax = 35.;
-  double zmin = 0.;
-  double Q0 = 0.;
-  double Q1;
-  double tt = 0;
-  double dt = 1e6*SperYR;
+  double zmin = 4.5;
+  double Q0, tt, zz; 
+  //10Myr should be enough, the integration is slow, you don't want to use a too high cadence.
+  double dt = 1e7*SperYR; 
   double Mcrit_RE, Mcrit_LW, Mcrit_atom;
   double M_MINa, M_MINm, M_MIN;
   double Mlim_Fstar, Mlim_Fesc, Mlim_Fstarm;
-  struct Param_REION_SM *params;
-  params->REION_SM13_Z_RE = 9999.;
-  params->REION_SM13_DELTA_Z_RE = 9999.;
-  params->REION_SM13_DELTA_Z_SC = 9999.; 
+  double *ans, *redshifts, *redshifts_prev;
+  double *Nion0, *Nion1;
+  struct Param_REION_SM params = {
+      .Z_RE = 9999.,
+      .DELTA_Z_RE = 9999.,
+      .DELTA_Z_SC = 9999.
+  };
   double REION_SM13_Z_RE_updated = 9.3;
   double REION_SM13_DELTA_Z_RE_updated = 1.;
-  double zz; 
-  double *ans;
-  double *redshifts, *redshifts_prev;
-  double Nion0, Nion1;
   int Nzz, i;
   FILE *F;
   gsl_interp_accel *zQ_spline_acc;
   gsl_spline *zQ_spline;
 
-
   // first calculate the number of redshift that we will be scrolling
+  tt  = 0;
   Nzz = 0;
   zz  = zmax;
   while (zz > zmin){
@@ -2097,13 +2095,17 @@ void estimating_reionization(double ION_EFF_FACTOR, double ION_EFF_FACTOR_MINI, 
   }
 
   // allocate the memory
-  ans            = (double *) malloc(sizeof(double) * Nzz);
-  redshifts      = (double *) malloc(sizeof(double) * Nzz);
-  redshifts_prev = (double *) malloc(sizeof(double) * Nzz);
+  ans            = (double *)malloc(sizeof(double) * Nzz);
+  redshifts      = (double *)malloc(sizeof(double) * Nzz);
+  redshifts_prev = (double *)malloc(sizeof(double) * Nzz);
+  Nion0          = (double *)malloc(sizeof(double) * Nzz);
+  Nion1          = (double *)malloc(sizeof(double) * Nzz);
+  zQ_spline_acc  = gsl_interp_accel_alloc ();
+  zQ_spline      = gsl_spline_alloc (gsl_interp_cspline, Nzz);
 
   // let's record the redshifts and previous redshifts required for Nion1
   tt = 0.;
-  i  = 0;
+  i  = 0 ;
   zz = zmax;
   while (zz > zmin){
       redshifts[i] = zz;
@@ -2113,20 +2115,23 @@ void estimating_reionization(double ION_EFF_FACTOR, double ION_EFF_FACTOR_MINI, 
       i += 1;
   }
 
+  fprintf(stderr, "You choose to use Sobacchi & Mesinger 2013 uniform photonheating background,\n\
+I am trying to estimate the redshift and duration of reionization...\n");
+  int Ntry = 1;
   // let's find the results!
-  while ( (fabs(REION_SM13_Z_RE_updated - params->REION_SM13_Z_RE) > TOL_RE) ||
-          (fabs(REION_SM13_DELTA_Z_RE_updated - params->REION_SM13_DELTA_Z_RE) > TOL_RE) ){
-    params->REION_SM13_Z_RE       = REION_SM13_Z_RE_updated;
-    params->REION_SM13_DELTA_Z_RE = REION_SM13_DELTA_Z_RE_updated;
-    params->REION_SM13_DELTA_Z_SC = soundcrossing_timescale_inredshift(params->REION_SM13_Z_RE);
+  while ( (fabs(REION_SM13_Z_RE_updated - params.Z_RE) > TOL_RE) ||
+          (fabs(REION_SM13_DELTA_Z_RE_updated - params.DELTA_Z_RE) > TOL_RE) ){
+    params.Z_RE       = REION_SM13_Z_RE_updated;
+    params.DELTA_Z_RE = REION_SM13_DELTA_Z_RE_updated;
+    params.DELTA_Z_SC = soundcrossing_timescale_inredshift(params.Z_RE);
+    fprintf(stderr, "Guessing %03d...z_re = %g, Delta z_re = %g, Delta z_sc = %g\n", Ntry, params.Z_RE, params.DELTA_Z_RE, params.DELTA_Z_SC);
 
-    zQ_spline_acc = gsl_interp_accel_alloc ();
-    zQ_spline     = gsl_spline_alloc (gsl_interp_cspline, Nzz);
+//#pragma omp parallel shared(Nzz, Nion0, Nion1, redshifts, params, ALPHA_STAR, F_STAR10, ALPHA_ESC, F_ESC10, F_STAR10m, ION_EFF_FACTOR, ION_EFF_FACTOR_MINI) private(Mcrit_RE, Mcrit_LW, Mcrit_atom, M_MINa, M_MINm, M_MIN, Mlim_Fstar, Mlim_Fesc, Mlim_Fstarm, i)
+//    {
+//#pragma omp for
 
-    Q0  = 0.;
     for (i=0; i<Nzz; i++){
-
-      Mcrit_RE   = reionization_feedback(redshifts[i], params->REION_SM13_Z_RE, params->REION_SM13_DELTA_Z_RE, params->REION_SM13_DELTA_Z_SC);
+      Mcrit_RE   = reionization_feedback(redshifts[i], params.Z_RE, params.DELTA_Z_RE, params.DELTA_Z_SC);
       Mcrit_LW   = lyman_werner_threshold(redshifts[i]);
       Mcrit_atom = atomic_cooling_threshold(redshifts[i]);
   
@@ -2138,61 +2143,75 @@ void estimating_reionization(double ION_EFF_FACTOR, double ION_EFF_FACTOR_MINI, 
       Mlim_Fstar  = Mass_limit_bisection(M_MIN, 1e16, ALPHA_STAR, F_STAR10);
       Mlim_Fesc   = Mass_limit_bisection(M_MIN, 1e16, ALPHA_ESC, F_ESC10);
       Mlim_Fstarm = Mass_limit_bisection(M_MIN, 1e16, ALPHA_STAR, F_STAR10m);
+
+      Nion0[i]  = ION_EFF_FACTOR      * Nion_ST(redshifts[i], M_MIN, M_MINa, ALPHA_STAR, ALPHA_ESC, F_STAR10, F_ESC10, Mlim_Fstar, Mlim_Fesc);
+      Nion0[i] += ION_EFF_FACTOR_MINI * Nion_STm(redshifts[i], M_MIN, M_MINm, Mcrit_atom, ALPHA_STAR, F_STAR10m, Mlim_Fstarm);
   
-      Nion0  = ION_EFF_FACTOR      * Nion_ST(redshifts[i], M_MIN, M_MINa, ALPHA_STAR, ALPHA_ESC, F_STAR10, F_ESC10, Mlim_Fstar, Mlim_Fesc);
-      Nion0 += ION_EFF_FACTOR_MINI * Nion_STm(redshifts[i], M_MIN, M_MINm, Mcrit_atom, ALPHA_STAR, F_STAR10m, Mlim_Fstarm);
-  
-      Nion1  = ION_EFF_FACTOR      * Nion_ST(redshifts_prev[i], M_MIN, M_MINa, ALPHA_STAR, ALPHA_ESC, F_STAR10, F_ESC10, Mlim_Fstar, Mlim_Fesc);
-      Nion1 += ION_EFF_FACTOR_MINI * Nion_STm(redshifts_prev[i], M_MIN, M_MINm, Mcrit_atom, ALPHA_STAR, F_STAR10m, Mlim_Fstarm);
-  
+      Nion1[i]  = ION_EFF_FACTOR      * Nion_ST(redshifts_prev[i], M_MIN, M_MINa, ALPHA_STAR, ALPHA_ESC, F_STAR10, F_ESC10, Mlim_Fstar, Mlim_Fesc);
+      Nion1[i] += ION_EFF_FACTOR_MINI * Nion_STm(redshifts_prev[i], M_MIN, M_MINm, Mcrit_atom, ALPHA_STAR, F_STAR10m, Mlim_Fstarm);
+    }
+ //   } 
+
+	Q0 = 0;
+    for (i=0; i<Nzz;i++){
       //Trec0 = 0.93 * 1e9 * SperYR * pow(C_HII/3.,-1) * pow(T_0/2e4,0.7) * pow((1.+redshifts[i])/7.,-3);
       //Q1    = Q0 + Nion1 - Nion0 - Q0 / Trec0 * dt;
       //assuming C_HII = 3, T_0 = 2e4
-      Q1     = Q0 + Nion1 - Nion0 - Q0 / 9.3e8 / SperYR * pow((1.+redshifts[i])/7., 3.) * dt;
-      ans[i] = Q1 > 1 ? 1 : Q1;
-      Q0     = ans[i];
-    } 
+      Q0    += Nion1[i] - Nion0[i] - Q0 / 9.3e8 / SperYR * pow((1.+redshifts[i])/7., 3.) * dt;
+      ans[i] = Q0;
+    }
+    
+    // in case we cannot find the result
+    if (ans[Nzz-1] < 0.62)
+      ans[Nzz-1] = 1.0;
 
     // interpolate z vs ans
     gsl_spline_init(zQ_spline, ans, redshifts, Nzz);
     
     // find Z_RE and DELTA_Z_RE
-    REION_SM13_Z_RE_updated       = gsl_spline_eval(zQ_spline, 1.0, zQ_spline_acc);
+    REION_SM13_Z_RE_updated       = gsl_spline_eval(zQ_spline, 0.5, zQ_spline_acc);
     REION_SM13_DELTA_Z_RE_updated = gsl_spline_eval(zQ_spline, 0.4, zQ_spline_acc) - gsl_spline_eval(zQ_spline, 0.6, zQ_spline_acc);
+    Ntry += 1;
   }
-  gsl_spline_free (zQ_spline);
-  gsl_interp_accel_free (zQ_spline_acc);
+  fprintf(stderr, "converged!");
 
-  *REION_SM13_Z_RE       = params->REION_SM13_Z_RE;
-  *REION_SM13_DELTA_Z_RE = params->REION_SM13_DELTA_Z_RE;
-  *REION_SM13_DELTA_Z_SC = params->REION_SM13_DELTA_Z_SC;
+  *REION_SM13_Z_RE       = params.Z_RE;
+  *REION_SM13_DELTA_Z_RE = params.DELTA_Z_RE;
+  *REION_SM13_DELTA_Z_SC = params.DELTA_Z_SC;
  
   // also save it so I don't need to do it again...
   if(F = fopen("../Parameter_files/REION_SM.H", "w")){
-    if(fwrite(params, sizeof(struct Param_REION_SM), 1, F) !=1)
+    if(fwrite(&params, sizeof(struct Param_REION_SM), 1, F) !=1)
       fprintf(stderr,  "reionization_helper_progs.c: Error writing reionization parameter file, ../Parameter_files/REION_SM.H\n");
     else
       fclose(F);
   }
   else
     fprintf(stderr,  "reionization_helper_progs.c: Error creating reionization parameter file, ../Parameter_files/REION_SM.H");
+
+  free(ans);
+  free(redshifts);
+  free(redshifts_prev);
+  free(Nion0);
+  free(Nion1);
+  gsl_spline_free (zQ_spline);
+  gsl_interp_accel_free (zQ_spline_acc);
 }
 
 void reading_reionization_SM13parameters(double *REION_SM13_Z_RE, double *REION_SM13_DELTA_Z_RE, double *REION_SM13_DELTA_Z_SC){
-  struct Param_REION_SM *params;
+  struct Param_REION_SM params;
   FILE *F;
   if(F = fopen("../Parameter_files/REION_SM.H", "r")){
-    if(fread(params, sizeof(struct Param_REION_SM), 1, F) !=1)
+    if(fread(&params, sizeof(struct Param_REION_SM), 1, F) !=1)
       fprintf(stderr,  "reionization_helper_progs.c: Error reading reionization parameter file, ../Parameter_files/REION_SM.H\nAborting...\n");
     else
       fclose(F);
   }
   else
       fprintf(stderr,  "reionization_helper_progs.c: Error openning reionization parameter file, ../Parameter_files/REION_SM.H\nAborting...\n");
-  *REION_SM13_Z_RE       = params->REION_SM13_Z_RE;
-  *REION_SM13_DELTA_Z_RE = params->REION_SM13_DELTA_Z_RE;
-  *REION_SM13_DELTA_Z_SC = params->REION_SM13_DELTA_Z_SC;
+  *REION_SM13_Z_RE       = params.Z_RE;
+  *REION_SM13_DELTA_Z_RE = params.DELTA_Z_RE;
+  *REION_SM13_DELTA_Z_SC = params.DELTA_Z_SC;
 }
 #endif //REION_SM
-
 #endif
