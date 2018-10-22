@@ -2152,7 +2152,7 @@ I am trying to estimate the redshift and duration of reionization...\n");
     }
  //   } 
 
-	Q0 = 0;
+    Q0 = 0;
     for (i=0; i<Nzz;i++){
       //Trec0 = 0.93 * 1e9 * SperYR * pow(C_HII/3.,-1) * pow(T_0/2e4,0.7) * pow((1.+redshifts[i])/7.,-3);
       //Q1    = Q0 + Nion1 - Nion0 - Q0 / Trec0 * dt;
@@ -2173,7 +2173,7 @@ I am trying to estimate the redshift and duration of reionization...\n");
     REION_SM13_DELTA_Z_RE_updated = gsl_spline_eval(zQ_spline, 0.4, zQ_spline_acc) - gsl_spline_eval(zQ_spline, 0.6, zQ_spline_acc);
     Ntry += 1;
   }
-  fprintf(stderr, "converged!");
+  fprintf(stderr, "converged!\n");
 
   *REION_SM13_Z_RE       = params.Z_RE;
   *REION_SM13_DELTA_Z_RE = params.DELTA_Z_RE;
@@ -2212,6 +2212,7 @@ void reading_reionization_SM13parameters(double *REION_SM13_Z_RE, double *REION_
   *REION_SM13_Z_RE       = params.Z_RE;
   *REION_SM13_DELTA_Z_RE = params.DELTA_Z_RE;
   *REION_SM13_DELTA_Z_SC = params.DELTA_Z_SC;
+  fprintf(stderr, "Reading from ../Parameter_files/REION_SM.H...z_re = %g, Delta z_re = %g, Delta z_sc = %g\n", params.Z_RE, params.DELTA_Z_RE, params.DELTA_Z_SC);
 }
 #endif //REION_SM
 #endif
