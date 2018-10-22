@@ -113,6 +113,7 @@
   // LW suppression follows ?
   // --
   // use Sobacchi & Mesinger 2013a; 2014 prescription for reionization
+  #define HALO_BIAS     (double) 2.0
   #define REION_SM13_M0 (double) 3e9
   #define REION_SM13_A  (double) 0.17
   #define REION_SM13_B  (double) -2.1

@@ -35,6 +35,16 @@
 #define ESC_PL (double) (-0.5) //power law index w/ halo mass
 #define M_TURNOVER (double) (5e8) // Halo mass threshold for efficient star formation (in Msun). 
 
+/**********************************************
+  RECOMBINATION PARAMETERS
+***********************************************/
+/*
+  INHOMO_RECO = 1 compute inhomogeneous recombinations, ala Sobacchi & Mesinger (2014).
+  This *requires* stepping down in redshift, e.g. using drive_logZscroll_Ts.c or  drive_zscroll_noTs.c
+  use as a flag. comment it if dont want
+*/
+#define INHOMO_RECO 1
+
 /***********************************************
   MINI HALO PARAMETERS
   NEW in v2.1:
@@ -129,22 +139,15 @@
     #define STELLAR_BARYON_FRAC_MINI (double) (0.01) // defined for 10^10 Msun mini halos
     #define ESC_FRAC_MINI (double) (0.5)    // ionizing escape fraction for mini halos
   
-    //#define INHOMO_FEEDBACK 1 // operate as a flag, comment this line if homogeneous feedback is adopted
+    #ifdef INHOMO_RECO // need INHOMO_RECO if you want INHOMO_FEEDBACK
+      #define INHOMO_FEEDBACK 1 // operate as a flag, comment this line if homogeneous feedback is adopted
+    #endif // end of ifdef INHOMO_RECO
+
     #ifndef INHOMO_FEEDBACK
       #define REION_SM 1 // operate as a flag, ifdef use Sobacchi & Mesinger 2013b for homogeneous reionization 
     #endif  // end of ifdef INHOMO_FEEDBACK
   #endif  // end of ifdef MINI_HALO
 #endif // end of ifdef SHARP_CUTOFF
-
-/**********************************************
-  RECOMBINATION PARAMETERS
-***********************************************/
-/*
-  INHOMO_RECO = 1 compute inhomogeneous recombinations, ala Sobacchi & Mesinger (2014).
-  This *requires* stepping down in redshift, e.g. using drive_logZscroll_Ts.c or  drive_zscroll_noTs.c
-  use as a flag. comment it if dont want
-*/
-#define INHOMO_RECO 1
 
 /*
   Typical star-formation timescale, in units of the Hubble time.  This is used to compute the UVB if inhomo_reco is on.

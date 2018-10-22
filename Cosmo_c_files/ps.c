@@ -2216,3 +2216,31 @@ void reading_reionization_SM13parameters(double *REION_SM13_Z_RE, double *REION_
 }
 #endif //REION_SM
 #endif
+
+#ifdef INHOMO_FEEDBACK
+void Nion_density(float Overdensity, float z, float Mmax, float Mmin, float MassTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc, float *returned_value){
+  if (Overdensity<-1.)
+    *returned_value = 0.;
+  else if (Overdensity>=0.99*Deltac)
+    *returned_value = 1.;
+  else if (Overdensity<1.5)
+    *returned_value = GaussLegendreQuad_Nion(NGL_SFR, z, log(Mmax), Deltac, Overdensity, MassTurnover, Alpha_star, Alpha_esc, Fstar10, Fesc10, Mlim_Fstar, Mlim_Fesc);
+  else
+    *returned_value = Nion_ConditionalM(z,log(Mmin),log(Mmax),Deltac, Overdensity, MassTurnover, Alpha_star, Alpha_esc, Fstar10, Fesc10, Mlim_Fstar, Mlim_Fesc);
+  if (*returned_value > 1.)
+    *returned_value = 1.;
+}
+
+void Nion_densitym(float Overdensity, float z, float Mmax, float Mmin, float Alpha_star, float MassTurnoverm, float Mcrit_atom, floatFstar10m, float Mlim_Fstarm, float *returned_value){
+  if (Overdensity<-1.)
+    *returned_value = 0.;
+  else if (Overdensity>=0.99*Deltac)
+    *returned_value = 1.;
+  else if (Overdensity<1.5)
+    *returned_value = GaussLegendreQuad_Nionm(NGL_SFR, z, log(Mmax), Deltac, Overdensity, Alpha_star,MassTurnoverm,Mcrit_atom,Fstar10m,Mlim_Fstarm);
+  else
+    *returned_value = Nion_ConditionalMm(z,log(Mmin),log(Mmax),Deltac, Overdensity, Alpha_star, MassTurnoverm, Mcrit_atom, Fstar10m, Mlim_Fstarm);
+  if (*returned_value > 1.)
+    *returned_value = 1.;
+}
+#endif

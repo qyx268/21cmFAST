@@ -253,12 +253,6 @@ double molecular_cooling_threshold(float z){
     return 3.314e7 * pow( 1.+z, -1.5);
 }
 
-#ifndef INHOMO_FEEDBACK
-double J_21_LW_Wise12(float z){
-    return pow(10, LW_WISE12_A + LW_WISE12_B*z +LW_WISE12_C*z*z + LW_WISE12_D*z*z*z +LW_WISE12_E*z*z*z*z);
-}
-#endif
-
 #ifndef SHARP_CUTOFF
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
@@ -267,10 +261,13 @@ double lyman_werner_threshold(float z, float J_21_LW){
 }
 
 double reionization_feedback(float z, float Gamma_halo_HII, float z_IN){
-    return REION_SM13_M0 * pow(Gamma_halo_HII / 1e-12, REION_SM13_A) * pow((1.+z)/10, REION_SM13_B) *
+    return REION_SM13_M0 * pow(HALO_BIAS * Gamma_halo_HII, REION_SM13_A) * pow((1.+z)/10, REION_SM13_B) *
            pow(1 - pow((1.+z)/(1.+z_IN), REION_SM13_C), REION_SM13_D);
 }
 #else
+double J_21_LW_Wise12(float z){
+    return pow(10, LW_WISE12_A + LW_WISE12_B*z +LW_WISE12_C*z*z + LW_WISE12_D*z*z*z +LW_WISE12_E*z*z*z*z);
+}
 double lyman_werner_threshold(float z){
     return molecular_cooling_threshold(z) * (1. + 22.8685 * pow(J_21_LW_Wise12(z), 0.47));
 }
