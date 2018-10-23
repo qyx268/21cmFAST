@@ -41,10 +41,11 @@ float *redshift_interp_table;
 int Nsteps_zp; //New in v2 
 static double zpp_interp_table[zpp_interp_points], M_MINa_interp_table[zpp_interp_points]; //New in v2
 #ifdef MINI_HALO
+double Mcrit_atom_interp_table[zpp_interp_points], Mcrit_RE_interp_table[zpp_interp_points];
 #ifdef INHOMO_FEEDBACK
-double Mcrit_atom, Mcrit_RE, Mcrit_LW, M_MINa, M_MINm;
+double Mcrit_LW, M_MINm_ave, Mcrit_atom;
 #else
-double Mcrit_atom_interp_table[zpp_interp_points], Mcrit_RE_interp_table[zpp_interp_points], Mcrit_LW_interp_table[zpp_interp_points], M_MINm_interp_table[zpp_interp_points];//New in v2.1
+double Mcrit_LW_interp_table[zpp_interp_points], M_MINm_interp_table[zpp_interp_points];//New in v2.1
 #endif
 #endif
 gsl_interp_accel *SFRDLow_zpp_spline_acc[NUM_FILTER_STEPS_FOR_Ts];
@@ -843,16 +844,20 @@ double tauX_integrand(double zhat, void *params){
   n = N_b0 * pow(1+zhat, 3);
   nuhat = p->nu_0 * (1+zhat);
   // New in v2
-#ifndef SHARP_CUTOFF
+#ifdef SHARP_CUTOFF
+  fcoll = FgtrM(zhat, M_MIN);
+#else
   //fcoll = FgtrM(zhat, M_MIN); // TEST
   Nion_ST_z(zhat,&(Splined_ans));
   fcoll = Splined_ans;
 #ifdef MINI_HALO
+#ifdef INHOMO_FEEDBACK
+  fcollm = Nion_STm(zhat, M_MIN, M_MINm_ave, Mcrit_atom, ALPHA_STAR, F_STAR10m, Mlim_Fstarm);
+#else
   Nion_ST_zm(zhat,&(Splined_ansm));
   fcollm = Splined_ansm;
 #endif
-#else
-  fcoll = FgtrM(zhat, M_MIN);
+#endif
 #endif
 
 #ifdef MINI_HALO
