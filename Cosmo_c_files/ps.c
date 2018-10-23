@@ -105,7 +105,10 @@ void initialise_SFRD_Conditional_table(int Nsteps_zp, int Nfilter, float z[], do
 void initialise_SFRD_Conditional_table(int Nsteps_zp, int Nfilter, float z[], double R[], float Mmin, float MassTurnover, float Alpha_star, float Fstar10);
 #endif
 void initialise_Xray_Fcollz_SFR_Conditional(int R_ct, int zp_int1, int zp_int2);
-void free_interpolation();
+#ifdef INHOMO_FEEDBACK
+void Nion_density(float Overdensity, float z, float Mmax, float Mmin, float MassTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc, float *returned_value);
+void Nion_densitym(float Overdensity, float z, float Mmax, float Mmin, float Alpha_star, float MassTurnoverm, float Mcrit_atom, float Fstar10m, float Mlim_Fstarm, float *returned_value);
+#endif
 
 
 struct parameters_gsl_SFR_int_{
@@ -1816,7 +1819,6 @@ void initialise_Nion_ST_spline(int Nbin, double z_val[], float Mmin, double M_MI
     gsl_spline_init(Nion_z_spline, z_val, Nion_z_val, Nbin);
 }
 #ifdef MINI_HALO
-#ifndef INHOMO_FEEDBACK
 void initialise_Nion_ST_splinem(int Nbin, double z_val[], float Mmin, double M_MINm_interp_table[], double Mcrit_atom_interp_table[], float Alpha_star, float Fstar10m){
     int i;
 
@@ -1828,7 +1830,6 @@ void initialise_Nion_ST_splinem(int Nbin, double z_val[], float Mmin, double M_M
         Nion_z_valm[i] = Nion_STm(z_val[i], Mmin, M_MINm_interp_table[i], Mcrit_atom_interp_table[i], Alpha_star, Fstar10m, Mlim_Fstarm);
     gsl_spline_init(Nion_z_splinem, z_val, Nion_z_valm, Nbin);
 }
-#endif
 #endif
 
 void Nion_ST_z(float z, float *splined_value){
@@ -1858,7 +1859,6 @@ void initialise_SFRD_ST_spline(int Nbin, double z_val[], float Mmin, double M_MI
     gsl_spline_init(SFRD_ST_z_spline, z_val, SFRD_val, Nbin);
 }
 #ifdef MINI_HALO
-#ifndef INHOMO_FEEDBACK
 void initialise_SFRD_ST_splinem(int Nbin, double z_val[], float Mmin, double M_MINm_interp_table[], double Mcrit_atom_interp_table[], float Alpha_star, float Fstar10m){
     int i;
 
@@ -1870,7 +1870,6 @@ void initialise_SFRD_ST_splinem(int Nbin, double z_val[], float Mmin, double M_M
         SFRD_valm[i] = Nion_STm(z_val[i], Mmin, M_MINm_interp_table[i], Mcrit_atom_interp_table[i], Alpha_star, Fstar10m, Mlim_Fstarm);
     gsl_spline_init(SFRD_ST_z_splinem, z_val, SFRD_valm, Nbin);
 }
-#endif
 #endif
 
 void SFRD_ST_z(float z, float *splined_value){
@@ -2002,22 +2001,6 @@ void initialise_SFRD_Conditional_tablem(int Nsteps_zp, int Nfilter, float z[], d
     }
 }
 #endif
-
-void free_interpolation() {
-    gsl_spline_free (SFRD_ST_z_spline);
-    gsl_interp_accel_free (SFRD_ST_z_spline_acc);
-    gsl_spline_free (Nion_z_spline);
-    gsl_interp_accel_free (Nion_z_spline_acc);
-#ifdef MINI_HALO
-    gsl_spline_free (SFRD_ST_z_splinem);
-    gsl_interp_accel_free (SFRD_ST_z_spline_accm);
-    gsl_spline_free (Nion_z_splinem);
-    gsl_interp_accel_free (Nion_z_spline_accm);
-#endif
-}
-/* New in v2: end */
-
-
 
 /* returns the mean star formation rate density at z in M_sun yr^-1 Mpc^-3 */
 double mean_SFRD_dlnMhalo(double lnM, void *params){
@@ -2215,7 +2198,6 @@ void reading_reionization_SM13parameters(double *REION_SM13_Z_RE, double *REION_
   fprintf(stderr, "Reading from ../Parameter_files/REION_SM.H...z_re = %g, Delta z_re = %g, Delta z_sc = %g\n", params.Z_RE, params.DELTA_Z_RE, params.DELTA_Z_SC);
 }
 #endif //REION_SM
-#endif
 
 #ifdef INHOMO_FEEDBACK
 void Nion_density(float Overdensity, float z, float Mmax, float Mmin, float MassTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc, float *returned_value){
@@ -2231,7 +2213,7 @@ void Nion_density(float Overdensity, float z, float Mmax, float Mmin, float Mass
     *returned_value = 1.;
 }
 
-void Nion_densitym(float Overdensity, float z, float Mmax, float Mmin, float Alpha_star, float MassTurnoverm, float Mcrit_atom, floatFstar10m, float Mlim_Fstarm, float *returned_value){
+void Nion_densitym(float Overdensity, float z, float Mmax, float Mmin, float Alpha_star, float MassTurnoverm, float Mcrit_atom, float Fstar10m, float Mlim_Fstarm, float *returned_value){
   if (Overdensity<-1.)
     *returned_value = 0.;
   else if (Overdensity>=0.99*Deltac)
@@ -2243,4 +2225,5 @@ void Nion_densitym(float Overdensity, float z, float Mmax, float Mmin, float Alp
   if (*returned_value > 1.)
     *returned_value = 1.;
 }
+#endif
 #endif

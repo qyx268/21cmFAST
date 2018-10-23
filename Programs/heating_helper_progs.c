@@ -41,7 +41,11 @@ float *redshift_interp_table;
 int Nsteps_zp; //New in v2 
 static double zpp_interp_table[zpp_interp_points], M_MINa_interp_table[zpp_interp_points]; //New in v2
 #ifdef MINI_HALO
+#ifdef INHOMO_FEEDBACK
+double Mcrit_atom, Mcrit_RE, Mcrit_LW, M_MINa, M_MINm;
+#else
 double Mcrit_atom_interp_table[zpp_interp_points], Mcrit_RE_interp_table[zpp_interp_points], Mcrit_LW_interp_table[zpp_interp_points], M_MINm_interp_table[zpp_interp_points];//New in v2.1
+#endif
 #endif
 gsl_interp_accel *SFRDLow_zpp_spline_acc[NUM_FILTER_STEPS_FOR_Ts];
 gsl_spline *SFRDLow_zpp_spline[NUM_FILTER_STEPS_FOR_Ts];

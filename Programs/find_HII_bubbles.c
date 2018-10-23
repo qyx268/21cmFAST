@@ -957,7 +957,7 @@ int main(int argc, char ** argv){
   }
 #ifdef INHOMO_FEEDBACK
   // Gamma12 box
-  sprintf(filename, "../Boxes/Gamma12aveHII_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+  sprintf(filename, "../Boxes/Gamma12aveHII_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", PREV_REDSHIFT, HII_FILTER, MFP, HII_DIM, BOX_LEN);
   if (F=fopen(filename, "rb")){  // this is the first call for this run, i.e. at the highest redshift
     //check if some read error occurs
     if (mod_fread(Gamma12, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
@@ -971,7 +971,7 @@ int main(int argc, char ** argv){
   }
   // J_21_LW box
   J_21_LW = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);  // stores the lyman werner backgroud
-  sprintf(filename, "../Boxes/J_21_LW_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+  sprintf(filename, "../Boxes/J_21_LW_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", PREV_REDSHIFT, HII_FILTER, MFP, HII_DIM, BOX_LEN);
   if (F=fopen(filename, "rb")){  // this is the first call for this run, i.e. at the highest redshift
     //check if some read error occurs
     if (mod_fread(J_21_LW, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
@@ -1209,8 +1209,8 @@ int main(int argc, char ** argv){
 #ifdef INHOMO_FEEDBACK
             Mcrit_RE = reionization_feedback(REDSHIFT, Gamma12[HII_R_INDEX(x, y, z)], z_re[HII_R_INDEX(x, y, z)]); 
             Mcrit_LW = lyman_werner_threshold(REDSHIFT, J_21_LW[HII_R_INDEX(x, y, z)]);
-              M_MINa = Mcrit_RE > Mcrit_atom ? Mcrit_RE : Mcrit_atom;
-              M_MINm = Mcrit_RE > Mcrit_LW   ? Mcrit_RE : Mcrit_LW;
+            M_MINa = Mcrit_RE > Mcrit_atom ? Mcrit_RE : Mcrit_atom;
+            M_MINm = Mcrit_RE > Mcrit_LW   ? Mcrit_RE : Mcrit_LW;
             // it's not Splined value anymore, I'm not using interpolation table for INHOMO_FEEDBACK in this verison
             Nion_density(density_over_mean-1, REDSHIFT, massofscaleR, M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc, &Splined_Fcoll);
             Nion_densitym(density_over_mean-1, REDSHIFT, massofscaleR, M_MIN,ALPHA_STAR,M_MINm,Mcrit_atom,F_STAR10m,Mlim_Fstarm, &Splined_Fcollm);
