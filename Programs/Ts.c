@@ -154,7 +154,7 @@ int main(int argc, char ** argv){
   double nuprime, fcoll_R, Ts_ave;
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-  double Mcrit_RE, Mcrit_LW, Mcrit_atom, massofscaleR;
+  float *Mcrit_RE, *Mcrit_LW, Mcrit_atom, massofscaleR, Mcrit_RE_ave, Mcrit_LW_ave;
   float *Gamma12=NULL, *z_re=NULL, *J_21_LW=NULL;
   char cmnd[1000];
   float nf;
@@ -862,10 +862,12 @@ int main(int argc, char ** argv){
   Mlim_Fstarm = Mass_limit_bisection(M_MIN, 1e16, ALPHA_STAR, F_STAR10m);
   
   // but need the boxes
-  z_re = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);
-  Gamma12 = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);
-  J_21_LW = (float *) fftwf_malloc(sizeof(fftwf_complex)*HII_TOT_NUM_PIXELS);
-  if (!z_re || !Gamma12 || !J_21_LW){
+  Mcrit_RE = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);
+  Mcrit_LW = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);
+  z_re     = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);
+  Gamma12  = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);
+  J_21_LW  = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);
+  if (!Mcrit_RE || !Mcrit_LW || !z_re || !Gamma12 || !J_21_LW){
     fprintf(stderr, "Ts.c: Error allocating memory for feedback boxes\nAborting...\n");
     return -1;
   }
@@ -1031,6 +1033,18 @@ int main(int argc, char ** argv){
       for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
         J_21_LW[ct] = 0.0;
     }
+    Mcrit_LW_ave = 0;
+    Mcrit_RE_ave = 0;
+    for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++){
+      Mcrit_LW[ct]  = lyman_werner_threshold(REDSHIFT, J_21_LW[ct]);
+      Mcrit_RE[ct]  = reionization_feedback(REDSHIFT, Gamma12[ct], z_re[ct]);
+      Mcrit_LW_ave += log10(Mcrit_LW[ct]);
+      Mcrit_RE_ave += log10(Mcrit_RE[ct]);
+    }
+    Mcrit_LW_ave   /= HII_TOT_NUM_PIXELS;
+    Mcrit_RE_ave   /= HII_TOT_NUM_PIXELS;
+    Mcrit_LW_ave    = pow(10, Mcrit_LW_ave);
+    Mcrit_RE_ave    = pow(10, Mcrit_RE_ave);
 #else
     // New in v2: initialise interpolation of SFRD over zpp and overdensity.
     arr_num = NUM_FILTER_STEPS_FOR_Ts*counter; // New
@@ -1060,10 +1074,11 @@ int main(int argc, char ** argv){
 #else //SHARP_CUTOFF
 #ifdef INHOMO_FEEDBACK
     Mcrit_atom = atomic_cooling_threshold(zp);
-    M_MINa     = Mcrit_atom; // Reionization is ignored
-    M_MINm     = lyman_werner_threshold(zp, 0);
+    // use the averaged feedback to get the mean...
+    M_MINa     = Mcrit_RE_ave > Mcrit_atom   ? Mcrit_RE_ave : Mcrit_atom;
+    M_MINm     = Mcrit_RE_ave > Mcrit_LW_ave ? Mcrit_RE_ave : Mcrit_LW_ave;
     // this is not interpolated value
-    Splined_Nion_ST_zp  = Nion_ST(zp, M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
+    Splined_Nion_ST_zp  = Nion_ST(zp, M_MIN, M_MINa, ALPHA_STAR, ALPHA_ESC, F_STAR10, F_ESC10, Mlim_Fstar, Mlim_Fesc);
     Splined_Nion_ST_zpm = Nion_STm(zp, M_MIN, M_MINm, Mcrit_atom, ALPHA_STAR, F_STAR10m, Mlim_Fstarm);
     if ( Splined_Nion_ST_zp + Splined_Nion_ST_zpm < 1e-15 )
       NO_LIGHT = 1;
@@ -1093,7 +1108,6 @@ int main(int argc, char ** argv){
     filling_factor_of_HI_zp = 1 - ION_EFF_FACTOR * Splined_Nion_ST_zp / (1.0 - x_e_ave); // fcoll including f_esc
 #endif
 #endif
-
     if (filling_factor_of_HI_zp > 1) filling_factor_of_HI_zp=1;
     if (filling_factor_of_HI_zp < 0) filling_factor_of_HI_zp=0;
 
@@ -1119,9 +1133,7 @@ int main(int argc, char ** argv){
     
       zpp_edge[R_ct] = prev_zpp - (R_values[R_ct] - prev_R)*CMperMPC / drdz(prev_zpp); // cell size
       zpp = (zpp_edge[R_ct]+prev_zpp)*0.5; // average redshift value of shell: z'' + 0.5 * dz''
-#ifdef INHOMO_FEEDBACK
-      Mcrit_atom = atomic_cooling_threshold(zpp);
-#else
+#ifndef INHOMO_FEEDBACK
       if (zpp - redshift_interp_table[arr_num+R_ct] > 1e-3) fprintf(stderr, "zpp = %.4f, zpp_array = %.4f\n", zpp, redshift_interp_table[arr_num+R_ct]);
 #endif
 #ifdef SHARP_CUTOFF 
@@ -1139,79 +1151,71 @@ int main(int argc, char ** argv){
         sample_ct++;
         // New in v2
 #ifdef SHARP_CUTOFF
-          fcoll_R += sigmaparam_FgtrM_bias(zpp, sigma_Tmin[R_ct], 
-                         delNL0[R_ct][box_ct], sigma_atR[R_ct]);
+        fcoll_R += sigmaparam_FgtrM_bias(zpp, sigma_Tmin[R_ct], delNL0[R_ct][box_ct], sigma_atR[R_ct]);
 #else //SHARP_CUTOFF
 #ifdef INHOMO_FEEDBACK
-          growth_zpp   = dicke(zpp);
-          delNL_zpp    = delNL0[R_ct][box_ct]*growth_zpp;
-          massofscaleR = log(RtoM(R_values[R_ct]));
+        massofscaleR = log(RtoM(R_values[R_ct]));
 #endif
-          //---------- interpolation for fcoll starts ----------
-          // Here 'fcoll' is not the collpased fraction, but leave this name as is to simplify the variable name.
-          if (delNL_zpp < 1.5){
-            if (delNL_zpp < -1.) {
-              fcoll = 0;
+
+        delNL_zpp    = delNL0[R_ct][box_ct]*dicke(zpp);
+        //---------- interpolation for fcoll starts ----------
+        // Here 'fcoll' is not the collpased fraction, but leave this name as is to simplify the variable name.
+        if (delNL_zpp < 1.5){
+          if (delNL_zpp < -1.) {
+            fcoll = 0;
 #ifdef MINI_HALO
-              fcollm = 0;
+            fcollm = 0;
 #endif
-            }    
-            else {
-#ifdef INHOMO_FEEDBACK
-              Mcrit_RE = reionization_feedback(zpp, Gamma12[box_ct], z_re[box_ct]);
-              Mcrit_LW = lyman_werner_threshold(zpp, J_21_LW[box_ct]);
-              M_MINa = Mcrit_RE > Mcrit_atom ? Mcrit_RE : Mcrit_atom;
-              M_MINm = Mcrit_RE > Mcrit_LW   ? Mcrit_RE : Mcrit_LW;
-              fcoll  = GaussLegendreQuad_Nion(NGL_SFR, zpp, massofscaleR, Deltac, delNL_zpp, M_MINa, ALPHA_STAR, 0, F_STAR10, 1., Mlim_Fstar, 0.);
-              fcollm = GaussLegendreQuad_Nionm(NGL_SFR,zpp, massofscaleR, Deltac, delNL_zpp, ALPHA_STAR, M_MINm, Mcrit_atom, F_STAR10m, Mlim_Fstarm);
-              if (fcoll > 1.)
-                fcoll = 1.;
-              if (fcollm > 1.)
-                fcollm = 1.;
-#else //INHOMO_FEEDBACK
-              fcoll = gsl_spline_eval(SFRDLow_zpp_spline[R_ct], delNL_zpp, SFRDLow_zpp_spline_acc[R_ct]);
-              fcoll = pow(10., fcoll);
-#ifdef MINI_HALO
-              fcollm = gsl_spline_eval(SFRDLow_zpp_splinem[R_ct], delNL_zpp, SFRDLow_zpp_spline_accm[R_ct]);
-              fcollm = pow(10., fcollm);
-#endif //MINI_HALO
-#endif //INHOMO_FEEDBACK
-            }    
           }    
           else {
-            if (delNL_zpp < 0.99*Deltac) {
-              // Usage of 0.99*Deltac arises due to the fact that close to the critical density, the collapsed fraction becomes a little unstable
-              // However, such densities should always be collapsed, so just set f_coll to unity. 
-              // Additionally, the fraction of points in this regime relative to the entire simulation volume is extremely small.
 #ifdef INHOMO_FEEDBACK
-              Mcrit_RE = reionization_feedback(zpp, Gamma12[box_ct], z_re[box_ct]);
-              Mcrit_LW = lyman_werner_threshold(zpp, J_21_LW[box_ct]);
-              M_MINa = Mcrit_RE > Mcrit_atom ? Mcrit_RE : Mcrit_atom;
-              M_MINm = Mcrit_RE > Mcrit_LW   ? Mcrit_RE : Mcrit_LW;
-              fcoll  = Nion_ConditionalM(zpp, log(M_MIN), massofscaleR, Deltac, delNL_zpp, M_MINa, ALPHA_STAR, 0., F_STAR10, 1., Mlim_Fstar, 0.);
-              fcollm = Nion_ConditionalMm(zpp, log(M_MIN), massofscaleR, Deltac, delNL_zpp, ALPHA_STAR, M_MINm, Mcrit_atom, F_STAR10m, Mlim_Fstarm);
+			// TODO: here we assume Mcrit_RE, Mcrit_LW, Mcrit_atom do not vary significantly between prev_zp and zpp
+            M_MINa = Mcrit_RE[box_ct] > Mcrit_atom         ? Mcrit_RE[box_ct] : Mcrit_atom;
+            M_MINm = Mcrit_RE[box_ct] > Mcrit_LW[box_ct]   ? Mcrit_RE[box_ct] : Mcrit_LW[box_ct];
+            fcoll  = GaussLegendreQuad_Nion(NGL_SFR, zpp, massofscaleR, Deltac, delNL_zpp, M_MINa, ALPHA_STAR, 0, F_STAR10, 1., Mlim_Fstar, 0.);
+            fcollm = GaussLegendreQuad_Nionm(NGL_SFR,zpp, massofscaleR, Deltac, delNL_zpp, ALPHA_STAR, M_MINm, Mcrit_atom, F_STAR10m, Mlim_Fstarm);
 #else //INHOMO_FEEDBACK
-              splint(Overdense_high_table-1,SFRD_z_high_table[R_ct]-1,second_derivs_Nion_zpp[R_ct]-1,NSFR_high,delNL_zpp,&(fcoll));
+            fcoll = gsl_spline_eval(SFRDLow_zpp_spline[R_ct], delNL_zpp, SFRDLow_zpp_spline_acc[R_ct]);
+            fcoll = pow(10., fcoll);
 #ifdef MINI_HALO
-              splint(Overdense_high_table-1,SFRD_z_high_tablem[R_ct]-1,second_derivs_Nion_zppm[R_ct]-1,NSFR_high,delNL_zpp,&(fcollm));
+            fcollm = gsl_spline_eval(SFRDLow_zpp_splinem[R_ct], delNL_zpp, SFRDLow_zpp_spline_accm[R_ct]);
+            fcollm = pow(10., fcollm);
+#endif //MINI_HALO
+#endif //INHOMO_FEEDBACK
+          }    
+        }
+        else {
+          if (delNL_zpp < 0.99*Deltac) {
+            // Usage of 0.99*Deltac arises due to the fact that close to the critical density, the collapsed fraction becomes a little unstable
+            // However, such densities should always be collapsed, so just set f_coll to unity. 
+            // Additionally, the fraction of points in this regime relative to the entire simulation volume is extremely small.
+#ifdef INHOMO_FEEDBACK
+            M_MINa = Mcrit_RE[box_ct] > Mcrit_atom         ? Mcrit_RE[box_ct] : Mcrit_atom;
+            M_MINm = Mcrit_RE[box_ct] > Mcrit_LW[box_ct]   ? Mcrit_RE[box_ct] : Mcrit_LW[box_ct];
+            fcoll  = Nion_ConditionalM(zpp, log(M_MIN), massofscaleR, Deltac, delNL_zpp, M_MINa, ALPHA_STAR, 0., F_STAR10, 1., Mlim_Fstar, 0.);
+            fcollm = Nion_ConditionalMm(zpp, log(M_MIN), massofscaleR, Deltac, delNL_zpp, ALPHA_STAR, M_MINm, Mcrit_atom, F_STAR10m, Mlim_Fstarm);
+#else //INHOMO_FEEDBACK
+            splint(Overdense_high_table-1,SFRD_z_high_table[R_ct]-1,second_derivs_Nion_zpp[R_ct]-1,NSFR_high,delNL_zpp,&(fcoll));
+#ifdef MINI_HALO
+            splint(Overdense_high_table-1,SFRD_z_high_tablem[R_ct]-1,second_derivs_Nion_zppm[R_ct]-1,NSFR_high,delNL_zpp,&(fcollm));
 #endif
 #endif //INHOMO_FEEDBACK
-            }
-            else {
-              fcoll = 1.;
+          }
+          else {
+            fcoll = 1.;
 #ifdef MINI_HALO
-              fcollm = 1.;
+            fcollm = 1.;
 #endif
-            }    
           }    
-          Splined_Fcoll = fcoll;
+        }
+        Splined_Fcoll = fcoll;
 #ifdef MINI_HALO
-          Splined_Fcollm = fcollm;
+        Splined_Fcollm = fcollm;
 #endif
-          //---------- interpolation for fcoll is done ----------
-          fcoll_R += Splined_Fcoll;
+        //---------- interpolation for fcoll is done ----------
+        fcoll_R += Splined_Fcoll;
 #ifdef MINI_HALO
-          fcoll_Rm += Splined_Fcollm;
+        fcoll_Rm += Splined_Fcollm;
 #endif
 #endif //SHARP_CUTOFF
       }
@@ -1225,11 +1229,12 @@ int main(int argc, char ** argv){
       ST_over_PS[R_ct] = FgtrM_st(zpp, M_MIN) / fcoll_R;
 #else
 #ifdef INHOMO_FEEDBACK
-      // TODO: now the ST/PS normalization factor is the mean of ST when feedback from RE and LW is ignored to the mean of PS when feedback 
-      // is considered. This means that it might not be as good as in previous versions, because now the fluctuation in fcoll is also 
-      // due to feedbacks in M_MINa and M_MINm. Let's keep doing it for now, but need to discuss with Andrei later...
-      M_MINa     = Mcrit_atom; // Reionization is ignored
-      M_MINm     = lyman_werner_threshold(zpp, 0);
+      // TODO: now the ST/PS normalization factor is the mean of ST when feedback from RE and LW is considered homogeneous
+      // (averaging Mcrit_RE amd Mcrit_LW over cells) to the mean of PS when inhomogeneous feedback is considered.
+      // This means that it might not be as good as in previous versions, because now the fluctuation in fcoll is also 
+      // due to feedbacks in M_MINa and M_MINm. e.g. if the distribution of Mcrit_LW or Mcrit_RE is too large
+      M_MINa = Mcrit_RE_ave > Mcrit_atom   ? Mcrit_RE_ave : Mcrit_atom;
+      M_MINm = Mcrit_RE_ave > Mcrit_LW_ave ? Mcrit_RE_ave : Mcrit_LW_ave;
       // this is not interpolated value
       Splined_SFRD_ST_zpp  = Nion_ST(zpp, M_MIN, M_MINa, ALPHA_STAR, ALPHA_ESC, F_STAR10, F_ESC10, Mlim_Fstar, Mlim_Fesc);
       Splined_SFRD_ST_zppm = Nion_STm(zpp, M_MIN, M_MINm, Mcrit_atom, ALPHA_STAR, F_STAR10m, Mlim_Fstarm);
@@ -1651,9 +1656,9 @@ fflush(NULL);
 status = system(cmnd);
 nf = WEXITSTATUS(status) / 100.0;
 if (nf < 0){
-	fprintf(stderr, "find_HII_bubbles exited...\nAborting run...\n");
-	fprintf(LOG,  "find_HII_bubbles exited...\nAborting run...\n");
-	return -1;
+    fprintf(stderr, "find_HII_bubbles exited...\nAborting run...\n");
+    fprintf(LOG,  "find_HII_bubbles exited...\nAborting run...\n");
+    return -1;
 }
 #endif
 

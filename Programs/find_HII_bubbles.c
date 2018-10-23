@@ -399,7 +399,7 @@ int main(int argc, char ** argv){
   float nua, dnua, temparg, Gamma_R, z_eff;
   float F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, Mlim_Fstar, Mlim_Fesc; //New in v2
 #ifdef MINI_HALO
-  float F_STAR10m, F_ESC10m, Mlim_Fstarm, ION_EFF_FACTOR_MINI,M_MINm, M_MINa, Splined_Fcollm, dfcolldtm,Gamma_R_prefactorm,ST_over_PSm,f_collm, Mcrit_atom, Mcrit_LW, Mcrit_RE, mean_f_coll_stm; //New in v2.1
+  float F_STAR10m, F_ESC10m, Mlim_Fstarm, ION_EFF_FACTOR_MINI,M_MINm, M_MINa, Splined_Fcollm, dfcolldtm,Gamma_R_prefactorm,ST_over_PSm,f_collm, Mcrit_atom, Mcrit_LW=0., Mcrit_RE=0., mean_f_coll_stm; //New in v2.1
   double X_LUMINOSITYm;
 #ifdef REION_SM
   double REION_SM13_Z_RE, REION_SM13_DELTA_Z_RE, REION_SM13_DELTA_Z_SC;
@@ -430,7 +430,6 @@ int main(int argc, char ** argv){
       Check that your inclusion (or not) of [<previous redshift>] is consistent with the INHOMO_RECO flag in ../Parameter_files/ANAL_PARAMS.H\nAborting...\n");
       return -1;
   }
-  ION_EFF_FACTOR = N_GAMMA_UV * STELLAR_BARYON_FRAC * ESC_FRAC; // Constant ionizing efficiency parameter.
 #else //SHARP_CUTOFF
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
@@ -442,11 +441,6 @@ int main(int argc, char ** argv){
    Also check that your inclusion (or not) of [<t_star>] is consistent with the USE_TS_IN_21CM flag in ../Parameter_files/HEAT_PARAMS.H\nAborting...\n");
       return -1;
   }
-  ION_EFF_FACTOR      = N_GAMMA_UV      * F_STAR10  * F_ESC10;
-  ION_EFF_FACTOR_MINI = N_GAMMA_UV_MINI * F_STAR10m * F_ESC10m;
-  Mcrit_atom          = atomic_cooling_threshold(REDSHIFT);
-  Mcrit_LW            = lyman_werner_threshold(REDSHIFT, 0); // no LW suppression, for checking Dark Age
-  Mcrit_RE            = 0;                                   // no RE suppression, for checking Dark Age
 #else //INHOMO_FEEDBACK
 #ifdef REION_SM
   if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
@@ -457,16 +451,6 @@ int main(int argc, char ** argv){
    Also check that your inclusion (or not) of [<t_star>] is consistent with the USE_TS_IN_21CM flag in ../Parameter_files/HEAT_PARAMS.H\nAborting...\n");
       return -1;
   }
-  ION_EFF_FACTOR      = N_GAMMA_UV      * F_STAR10  * F_ESC10;
-  ION_EFF_FACTOR_MINI = N_GAMMA_UV_MINI * F_STAR10m * F_ESC10m;
-  Mcrit_atom          = atomic_cooling_threshold(REDSHIFT);
-  Mcrit_LW            = lyman_werner_threshold(REDSHIFT);
-  if(F = fopen("../Parameter_files/REION_SM.H", "r"))
-    reading_reionization_SM13parameters(&REION_SM13_Z_RE, &REION_SM13_DELTA_Z_RE, &REION_SM13_DELTA_Z_SC);
-  else
-    estimating_reionization(ION_EFF_FACTOR, ION_EFF_FACTOR_MINI, ALPHA_STAR, F_STAR10, ALPHA_ESC, F_ESC10, F_STAR10m,
-                            &REION_SM13_Z_RE, &REION_SM13_DELTA_Z_RE, &REION_SM13_DELTA_Z_SC);
-  Mcrit_RE   = reionization_feedback(REDSHIFT, REION_SM13_Z_RE, REION_SM13_DELTA_Z_RE, REION_SM13_DELTA_Z_SC);
 #else //REION_SM
   if( !parse_arguments(argc, argv, &num_th, &arg_offset, &F_STAR10, &ALPHA_STAR, &F_ESC10,
              &ALPHA_ESC, &M_TURN, &T_AST, &X_LUMINOSITY, &F_STAR10m, &F_ESC10m, &X_LUMINOSITYm, &MFP, &REDSHIFT, &PREV_REDSHIFT)){
@@ -476,11 +460,6 @@ int main(int argc, char ** argv){
    Also check that your inclusion (or not) of [<t_star>] is consistent with the USE_TS_IN_21CM flag in ../Parameter_files/HEAT_PARAMS.H\nAborting...\n");
       return -1;
   }
-  ION_EFF_FACTOR      = N_GAMMA_UV      * F_STAR10  * F_ESC10;
-  ION_EFF_FACTOR_MINI = N_GAMMA_UV_MINI * F_STAR10m * F_ESC10m;
-  Mcrit_atom          = atomic_cooling_threshold(REDSHIFT);
-  Mcrit_LW            = lyman_werner_threshold(REDSHIFT);
-  Mcrit_RE            = M_TURN;
 #endif //REION_SM
 #endif //INHOMO_FEEDBACK
 #else //MINI_HALO
@@ -492,7 +471,6 @@ int main(int argc, char ** argv){
    Also check that your inclusion (or not) of [<t_star>] is consistent with the USE_TS_IN_21CM flag in ../Parameter_files/HEAT_PARAMS.H\nAborting...\n");
       return -1;
   }
-  ION_EFF_FACTOR = N_GAMMA_UV * F_STAR10  * F_ESC10;
 #endif //MINI_HALO
 #endif //SHARP_CUTOFF
 
@@ -515,10 +493,89 @@ int main(int argc, char ** argv){
 #ifdef MINI_HALO
   Fcollm = (float *) malloc(sizeof(float)*HII_TOT_FFT_NUM_PIXELS);
 #endif //MINI_HALO
+
 #ifdef INHOMO_RECO 
   init_MHR();
-#endif //INHOMO_RECO 
+  // ALLOCATE AND INITIALIZE ADDITIONAL BOXES NEEDED TO KEEP TRACK OF RECOMBINATIONS (Sobacchi & Mesinger 2014; NEW IN v1.3)
+  z_re             = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS); // the redshift at which the cell is ionized
+  Gamma12          = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);  // stores the ionizing backgroud
+  N_rec_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS); // cumulative number of recombinations
+  N_rec_filtered   = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  if (!z_re || !N_rec_filtered || !N_rec_unfiltered || !Gamma12){
+    strcpy(error_message, "find_HII_bubbles.c: Error allocating memory for recombination boxes boxes\nAborting...\n");
+    goto CLEANUP;
+  }
+  sprintf(filename, "../Boxes/z_first_ionization_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc",  PREV_REDSHIFT, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+  if (F=fopen(filename, "rb")){  // this is the first call for this run, i.e. at the highest redshift
+    //check if some read error occurs
+    if (mod_fread(z_re, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
+    strcpy(error_message, "find_HII_bubbles.c: Read error occured while reading z_re box!\n");
+    goto CLEANUP;
+    }
+  }
+  else{ // this is the first call (highest redshift)
+    for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
+      z_re[ct] = -1.0;
+  }
+  sprintf(filename, "../Boxes/Nrec_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", PREV_REDSHIFT, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+  if (F=fopen(filename, "rb")){ // we had prvious boxes
+    //check if some read error occurs
+    for (i=0; i<HII_DIM; i++){
+      for (j=0; j<HII_DIM; j++){
+        for (k=0; k<HII_DIM; k++){
+          if (fread((float *)N_rec_unfiltered + HII_R_FFT_INDEX(i,j,k), sizeof(float), 1, F)!=1){
+            strcpy(error_message, "find_HII_bubbles.c: Read error occured while reading N_rec box!\n");
+            goto CLEANUP;
+          }
+        }
+      }
+    }
+  }
+  else{
+    fprintf(stderr, "Earliest redshift call, initializing Nrec to zeros\n");
+    // initialize N_rec
+    for (i=0; i<HII_DIM; i++){
+      for (j=0; j<HII_DIM; j++){
+        for (k=0; k<HII_DIM; k++){
+          *((float *)N_rec_unfiltered + HII_R_FFT_INDEX(i,j,k)) = 0.0;
+        }
+      }
+    }
+  }
+#ifdef INHOMO_FEEDBACK
+  // Gamma12 box
+  sprintf(filename, "../Boxes/Gamma12aveHII_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", PREV_REDSHIFT, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+  if (F=fopen(filename, "rb")){  // this is the first call for this run, i.e. at the highest redshift
+    //check if some read error occurs
+    if (mod_fread(Gamma12, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
+    strcpy(error_message, "find_HII_bubbles.c: Read error occured while reading Gamma12 box!\n");
+    goto CLEANUP;
+    }
+  }
+  else{ // this is the first call (highest redshift)
+    for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
+      Gamma12[ct] = 0.0;
+  }
+
+  // J_21_LW box
+  J_21_LW = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);  // stores the lyman werner backgroud
+  sprintf(filename, "../Boxes/J_21_LW_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", PREV_REDSHIFT, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+  if (F=fopen(filename, "rb")){  // this is the first call for this run, i.e. at the highest redshift
+    //check if some read error occurs
+    if (mod_fread(J_21_LW, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
+    strcpy(error_message, "find_HII_bubbles.c: Read error occured while reading J_21_LW box!\n");
+    goto CLEANUP;
+    }
+  }
+  else{ // this is the first call (highest redshift)
+    for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
+      J_21_LW[ct] = 0.0;
+  }
+#endif //INHOMO_FEEDBACK
+#endif //INHOMO_RECO
+
 #ifdef SHARP_CUTOFF
+  ION_EFF_FACTOR = N_GAMMA_UV * STELLAR_BARYON_FRAC * ESC_FRAC; // Constant ionizing efficiency parameter.
   M_MIN          = M_TURNOVER;
 #else //SHARP_CUTOFF
     // Set the minimum halo mass hosting ionizing source mass.
@@ -528,12 +585,34 @@ int main(int argc, char ** argv){
     // In this case, we define M_MIN = M_TURN/50.
     // v2.1 split halos in to atomic and molecular populations, with different fduty see ANAL_PARAMS.H
   init_21cmMC_arrays();
+  ION_EFF_FACTOR      = N_GAMMA_UV      * F_STAR10  * F_ESC10;
 #ifdef MINI_HALO
+  ION_EFF_FACTOR_MINI = N_GAMMA_UV_MINI * F_STAR10m * F_ESC10m;
+  Mcrit_atom          = atomic_cooling_threshold(REDSHIFT);
 #ifdef INHOMO_FEEDBACK
-  M_MINa = Mcrit_atom;
-  M_MINm = Mcrit_LW; // basically it's molecular cooling threshold
-  M_MIN  = 1e5;
+  // use the average for check dark ages and do the ST/PS renormalization
+  for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
+    Mcrit_LW += log10(lyman_werner_threshold(REDSHIFT, J_21_LW[ct]));
+    Mcrit_RE += log10(reionization_feedback(REDSHIFT, Gamma12[ct], z_re[ct]));
+  Mcrit_LW   /= HII_TOT_NUM_PIXELS;
+  Mcrit_RE   /= HII_TOT_NUM_PIXELS;
+  Mcrit_LW    = pow(10, Mcrit_LW);
+  Mcrit_RE    = pow(10, Mcrit_RE);
+  M_MINa      = Mcrit_RE > Mcrit_atom ? Mcrit_RE : Mcrit_atom;
+  M_MINm      = Mcrit_RE > Mcrit_LW   ? Mcrit_RE : Mcrit_LW;
+  M_MIN       = 1e5;
 #else //INHOMO_FEEDBACK
+  Mcrit_LW            = lyman_werner_threshold(REDSHIFT);
+#ifdef REION_SM
+  if(F = fopen("../Parameter_files/REION_SM.H", "r"))
+    reading_reionization_SM13parameters(&REION_SM13_Z_RE, &REION_SM13_DELTA_Z_RE, &REION_SM13_DELTA_Z_SC);
+  else
+    estimating_reionization(ION_EFF_FACTOR, ION_EFF_FACTOR_MINI, ALPHA_STAR, F_STAR10, ALPHA_ESC, F_ESC10, F_STAR10m,
+                            &REION_SM13_Z_RE, &REION_SM13_DELTA_Z_RE, &REION_SM13_DELTA_Z_SC);
+  Mcrit_RE = reionization_feedback(REDSHIFT, REION_SM13_Z_RE, REION_SM13_DELTA_Z_RE, REION_SM13_DELTA_Z_SC);
+#else //REION_SM
+  Mcrit_RE = M_TURN;
+#endif //REION_SM
   //TODO: here is inconsistent with the M_MIN set in Ts, which is the minimum of all scrolled redshifts.
   //Shouldn't matter too much, but better change it later.
   M_MINa = Mcrit_RE > Mcrit_atom ? Mcrit_RE : Mcrit_atom;
@@ -907,85 +986,6 @@ int main(int argc, char ** argv){
   }
   fclose(F);
   F = NULL;
-
-  // ALLOCATE AND INITIALIZE ADDITIONAL BOXES NEEDED TO KEEP TRACK OF RECOMBINATIONS (Sobacchi & Mesinger 2014; NEW IN v1.3)
-#ifdef INHOMO_RECO //  flag in ANAL_PARAMS.H to determine whether to compute recombinations or not
-  z_re = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS); // the redshift at which the cell is ionized
-  Gamma12 = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);  // stores the ionizing backgroud
-  N_rec_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS); // cumulative number of recombinations
-  N_rec_filtered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
-  if (!z_re || !N_rec_filtered || !N_rec_unfiltered || !Gamma12){
-    strcpy(error_message, "find_HII_bubbles.c: Error allocating memory for recombination boxes boxes\nAborting...\n");
-    goto CLEANUP;
-  }
-  sprintf(filename, "../Boxes/z_first_ionization_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc",  PREV_REDSHIFT, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-  if (F=fopen(filename, "rb")){  // this is the first call for this run, i.e. at the highest redshift
-    //check if some read error occurs
-    if (mod_fread(z_re, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
-    strcpy(error_message, "find_HII_bubbles.c: Read error occured while reading z_re box!\n");
-    goto CLEANUP;
-    }
-  }
-  else{ // this is the first call (highest redshift)
-    for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
-      z_re[ct] = -1.0;
-  }
-  sprintf(filename, "../Boxes/Nrec_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", PREV_REDSHIFT, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-  if (F=fopen(filename, "rb")){ // we had prvious boxes
-    //check if some read error occurs
-    for (i=0; i<HII_DIM; i++){
-      for (j=0; j<HII_DIM; j++){
-        for (k=0; k<HII_DIM; k++){
-          if (fread((float *)N_rec_unfiltered + HII_R_FFT_INDEX(i,j,k), sizeof(float), 1, F)!=1){
-            strcpy(error_message, "find_HII_bubbles.c: Read error occured while reading N_rec box!\n");
-            goto CLEANUP;
-          }
-        }
-      }
-    }
-  }
-  else{
-    fprintf(stderr, "Earliest redshift call, initializing Nrec to zeros\n");
-    // initialize N_rec
-    for (i=0; i<HII_DIM; i++){
-      for (j=0; j<HII_DIM; j++){
-        for (k=0; k<HII_DIM; k++){
-          *((float *)N_rec_unfiltered + HII_R_FFT_INDEX(i,j,k)) = 0.0;
-        }
-      }
-    }
-  }
-#ifdef INHOMO_FEEDBACK
-  // Gamma12 box
-  sprintf(filename, "../Boxes/Gamma12aveHII_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", PREV_REDSHIFT, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-  if (F=fopen(filename, "rb")){  // this is the first call for this run, i.e. at the highest redshift
-    //check if some read error occurs
-    if (mod_fread(Gamma12, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
-    strcpy(error_message, "find_HII_bubbles.c: Read error occured while reading Gamma12 box!\n");
-    goto CLEANUP;
-    }
-  }
-  else{ // this is the first call (highest redshift)
-    for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
-      Gamma12[ct] = 0.0;
-  }
-  // J_21_LW box
-  J_21_LW = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);  // stores the lyman werner backgroud
-  sprintf(filename, "../Boxes/J_21_LW_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", PREV_REDSHIFT, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-  if (F=fopen(filename, "rb")){  // this is the first call for this run, i.e. at the highest redshift
-    //check if some read error occurs
-    if (mod_fread(J_21_LW, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
-    strcpy(error_message, "find_HII_bubbles.c: Read error occured while reading J_21_LW box!\n");
-    goto CLEANUP;
-    }
-  }
-  else{ // this is the first call (highest redshift)
-    for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
-      J_21_LW[ct] = 0.0;
-  }
-
-#endif //INHOMO_FEEDBACK
-#endif //INHOMO_RECO
 
   // do the fft to get the k-space M_coll field and deltax field
   fprintf(LOG, "begin initial ffts, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
