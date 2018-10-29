@@ -166,8 +166,12 @@ int main(int argc, char ** argv){
   FILE *F, *GLOBAL_EVOL, *OUT;
   char filename[500];
   float dz, zeta_ion_eff, Tk_BC, xe_BC, nu, zprev, zcurr, curr_delNL0[NUM_FILTER_STEPS_FOR_Ts];
-  double *evolve_ans, ans[2], dansdz[5], Tk_ave, J_alpha_ave, xalpha_ave, J_alpha_tot, Xheat_ave,
-    Xion_ave;
+  double *evolve_ans, ans[2], Tk_ave, J_alpha_ave, xalpha_ave, J_alpha_tot, Xheat_ave,Xion_ave;
+#ifdef INHOMO_FEEDBACK
+  double dansdz[6], J_LW_ave, J_LW_tot, nu_nplus1;
+#else
+  double dansdz[5];
+#endif
   double freq_int_heat_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_lya_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts];
 #ifdef MINI_HALO
   double freq_int_heat_tblm[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tblm[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_lya_tblm[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts];
@@ -193,6 +197,9 @@ int main(int argc, char ** argv){
   time_t start_time, curr_time;
   double J_alpha_threads[NUMCORES], xalpha_threads[NUMCORES], Xheat_threads[NUMCORES],
    Xion_threads[NUMCORES], lower_int_limit;
+#ifdef INHOMO_FEEDBACK
+  double J_LW_threads[NUMCORES];
+#endif
   float Splined_Nion_ST_zp, Splined_SFRD_ST_zpp,ION_EFF_FACTOR,fcoll; // New in v2
 #ifdef MINI_HALO
   float Splined_Nion_ST_zpm, Splined_SFRD_ST_zppm,ION_EFF_FACTOR_MINI,fcollm; // New in v2.1
@@ -896,7 +903,7 @@ int main(int argc, char ** argv){
 #ifdef MINI_HALO
     Mcrit_atom_interp_table[i] = atomic_cooling_threshold(zpp_interp_table[i]);
 #ifdef INHOMO_FEEDBACK
-	Mcrit_RE_interp_table[i]   = 0.;
+    Mcrit_RE_interp_table[i]   = 0.;
     M_MINa_interp_table[i] = Mcrit_atom_interp_table[i];
 #else //INHOMO_FEEDBACK
 #ifdef REION_SM
@@ -920,7 +927,7 @@ int main(int argc, char ** argv){
       M_MIN = M_MINm_interp_table[i];
     fprintf(stderr, "zpp=%f, Mcrit_RE=%g, Mcrit_atom=%g, Mcrit_LW=%g, Mmin_a=%g, Mmin_m=%g\n",
             zpp_interp_table[i], Mcrit_RE_interp_table[i], Mcrit_atom_interp_table[i],
-			Mcrit_LW_interp_table[i] ,M_MINa_interp_table[i],M_MINm_interp_table[i]);
+            Mcrit_LW_interp_table[i] ,M_MINa_interp_table[i],M_MINm_interp_table[i]);
 #endif // INHOMO_FEEDBACK
 #else //MINI_HALO
     M_MINa_interp_table[i]     = M_TURN;
@@ -1059,7 +1066,7 @@ int main(int argc, char ** argv){
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
     // no interpolation for Mcrit_LW or M_MINm, use the mean
-    sprintf(filename, "../Boxes/J_21_LW_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc",  prev_zp, HII_FILTER, R_BUBBLE_MAX, HII_DIM, BOX_LEN);
+    sprintf(filename, "../Boxes/J_21_LW_z%06.2f_L_X%.1e_alphaX%.1f_f_star%06.4f_alpha_star%06.4f_f_esc%06.4f_alpha_esc%06.4f_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", prev_zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN); 
     if (F=fopen(filename, "rb")){
       if (mod_fread(J_21_LW, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
         fprintf(stderr, "Ts.c: Read error occured while reading J_21_LW box!\n");
@@ -1078,7 +1085,7 @@ int main(int argc, char ** argv){
     M_MINm_ave   /= HII_TOT_NUM_PIXELS;
     M_MINm_ave    = pow(10, M_MINm_ave);
     Mcrit_atom    = atomic_cooling_threshold(zp);
-	Splined_Nion_ST_zpm = Nion_STm(zp, M_MIN, M_MINm_ave, Mcrit_atom, ALPHA_STAR, F_STAR10m, Mlim_Fstarm);
+    Splined_Nion_ST_zpm = Nion_STm(zp, M_MIN, M_MINm_ave, Mcrit_atom, ALPHA_STAR, F_STAR10m, Mlim_Fstarm);
 #else //INHOMO_FEEDBACK
     Nion_ST_zm(zp,&(Splined_Nion_ST_zpm));
 #endif //INHOMO_FEEDBACK
@@ -1159,7 +1166,7 @@ int main(int argc, char ** argv){
             fcoll = pow(10., fcoll);
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-			// TODO: here we assume Mcrit_LW does not vary significantly between prev_zp and zpp
+            // TODO: here we assume Mcrit_LW does not vary significantly between prev_zp and zpp
             fcollm = GaussLegendreQuad_Nionm(NGL_SFR,zpp, log(RtoM(R_values[R_ct])), Deltac, delNL_zpp, ALPHA_STAR, Mcrit_LW[box_ct], Mcrit_atom, F_STAR10m, Mlim_Fstarm);
 #else 
             fcollm = gsl_spline_eval(SFRDLow_zpp_splinem[R_ct], delNL_zpp, SFRDLow_zpp_spline_accm[R_ct]);
@@ -1214,7 +1221,7 @@ int main(int argc, char ** argv){
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
       // TODO: now for mini halos the ST/PS normalization factor is the mean of ST when feedback from RE is ignored
-	  // and LW is considered homogeneous (averaging Mcrit_LW over cells) to the mean of PS when inhomogeneous LW feedback is considered.
+      // and LW is considered homogeneous (averaging Mcrit_LW over cells) to the mean of PS when inhomogeneous LW feedback is considered.
       // This means that it might not be as good as in previous versions, because now the fluctuation in fcoll is also 
       // due to feedbacks in M_MINm. e.g. if the distribution of Mcrit_LW is too large
       // this is not interpolated value
@@ -1295,21 +1302,32 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
 } // end omp declaration
 /***************  END PARALLELIZED LOOP ******************************************************************/
 
-      // and create the sum over Lya transitions from direct Lyn flux
+  // and create the sum over Lya transitions from direct Lyn flux
       sum_lyn[R_ct] = 0;
 #ifdef MINI_HALO
       sum_lynm[R_ct] = 0;
+#ifdef INHOMO_FEEDBACK
+      sum_lyLWn[R_ct] = 0;
+      sum_lyLWnm[R_ct] = 0;
+#endif
 #endif
       for (n_ct=NSPEC_MAX; n_ct>=2; n_ct--){
-    if (zpp > zmax(zp, n_ct))
-      continue;
+        if (zpp > zmax(zp, n_ct))
+          continue;
 
-    nuprime = nu_n(n_ct)*(1+zpp)/(1.0+zp);
+        nuprime = nu_n(n_ct)*(1+zpp)/(1.0+zp);
 #ifdef MINI_HALO
-    sum_lyn[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0, 2);
-    sum_lynm[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0, 3);
+        sum_lyn[R_ct]  += frecycle(n_ct) * spectral_emissivity(nuprime, 0, 2);
+        sum_lynm[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0, 3);
+#ifdef INHOMO_FEEDBACK
+        nu_nplus1 = nu_n(n_ct + 1);
+        if (nuprime < NU_LW_THRESH)
+          nuprime = NU_LW_THRESH;
+        sum_lyLWn[R_ct]  += spectral_emissivity(nuprime, 3, 2);
+        sum_lyLWnm[R_ct] += spectral_emissivity(nuprime, 3, 2);
+#endif
 #else
-    sum_lyn[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0);
+        sum_lyn[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0);
 #endif
       }
     } // end loop over R_ct filter steps
@@ -1327,13 +1345,13 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
     // Conversion of the input bolometric luminosity to a ZETA_X, as used to be used in Ts.c
     // Conversion here means the code otherwise remains the same as the original Ts.c
     if(fabs(X_RAY_SPEC_INDEX - 1.0) < 0.000001) {
-        Luminosity_conversion_factor = NU_X_THRESH * log( NU_X_BAND_MAX/NU_X_THRESH );
-        Luminosity_conversion_factor = 1./Luminosity_conversion_factor;
+      Luminosity_conversion_factor = NU_X_THRESH * log( NU_X_BAND_MAX/NU_X_THRESH );
+      Luminosity_conversion_factor = 1./Luminosity_conversion_factor;
     }    
     else {
-        Luminosity_conversion_factor = pow( NU_X_BAND_MAX , 1. - X_RAY_SPEC_INDEX ) - pow( NU_X_THRESH , 1. - X_RAY_SPEC_INDEX ) ;
-        Luminosity_conversion_factor = 1./Luminosity_conversion_factor;
-        Luminosity_conversion_factor *= pow( NU_X_THRESH, - X_RAY_SPEC_INDEX )*(1 - X_RAY_SPEC_INDEX);
+      Luminosity_conversion_factor = pow( NU_X_BAND_MAX , 1. - X_RAY_SPEC_INDEX ) - pow( NU_X_THRESH , 1. - X_RAY_SPEC_INDEX ) ;
+      Luminosity_conversion_factor = 1./Luminosity_conversion_factor;
+      Luminosity_conversion_factor *= pow( NU_X_THRESH, - X_RAY_SPEC_INDEX )*(1 - X_RAY_SPEC_INDEX);
     }    
     // Finally, convert to the correct units. NU_over_EV*hplank as only want to divide by eV -> erg (owing to the definition of Luminosity)
     Luminosity_conversion_factor *= (3.1556226e7)/(hplank);
@@ -1341,13 +1359,13 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
              * F_STAR10 * OMb * RHOcrit * pow(CMperMPC, -3) * pow(1+zp, X_RAY_SPEC_INDEX+3);
 #ifdef MINI_HALO
     if(fabs(X_RAY_SPEC_INDEX_MINI - 1.0) < 0.000001) {
-        Luminosity_conversion_factorm = NU_X_THRESH * log( NU_X_BAND_MAX/NU_X_THRESH );
-        Luminosity_conversion_factorm = 1./Luminosity_conversion_factorm;
+      Luminosity_conversion_factorm = NU_X_THRESH * log( NU_X_BAND_MAX/NU_X_THRESH );
+      Luminosity_conversion_factorm = 1./Luminosity_conversion_factorm;
     }    
     else {
-        Luminosity_conversion_factorm = pow( NU_X_BAND_MAX , 1. - X_RAY_SPEC_INDEX_MINI ) - pow( NU_X_THRESH , 1. - X_RAY_SPEC_INDEX_MINI ) ;
-        Luminosity_conversion_factorm = 1./Luminosity_conversion_factorm;
-        Luminosity_conversion_factorm *= pow( NU_X_THRESH, - X_RAY_SPEC_INDEX_MINI )*(1 - X_RAY_SPEC_INDEX_MINI);
+      Luminosity_conversion_factorm = pow( NU_X_BAND_MAX , 1. - X_RAY_SPEC_INDEX_MINI ) - pow( NU_X_THRESH , 1. - X_RAY_SPEC_INDEX_MINI ) ;
+      Luminosity_conversion_factorm = 1./Luminosity_conversion_factorm;
+      Luminosity_conversion_factorm *= pow( NU_X_THRESH, - X_RAY_SPEC_INDEX_MINI )*(1 - X_RAY_SPEC_INDEX_MINI);
     }
     // Finally, convert to the correct units. NU_over_EV*hplank as only want to divide by eV -> erg (owing to the definition of Luminosity)
     Luminosity_conversion_factorm *= (3.1556226e7)/(hplank);
@@ -1366,7 +1384,7 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
     /***************  PARALLELIZED LOOP ******************************************************************/
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-#pragma omp parallel shared(COMPUTE_Ts, Tk_box, x_e_box, x_e_ave, delNL0, freq_int_heat_tbl, freq_int_ion_tbl, freq_int_lya_tbl,freq_int_heat_tblm, freq_int_ion_tblm, freq_int_lya_tblm, zp, dzp, Ts, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, growth_factor_zp, dgrowth_factor_dzp, NO_LIGHT, zpp_edge, sigma_atR, sigma_Tmin, ST_over_PS, ST_over_PSm, sum_lyn,sum_lynm, const_zp_prefactor, const_zp_prefactorm, M_MIN_at_z, M_MIN_at_zp, dt_dzp, J_alpha_threads, xalpha_threads, Xheat_threads, Xion_threads, M_MIN, R_values, M_MINm_ave, Mcrit_atom) private(box_ct, ans, xHII_call, R_ct, curr_delNL0, m_xHII_low, m_xHII_high, freq_int_heat, freq_int_ion, freq_int_lya, freq_int_heatm, freq_int_ionm, freq_int_lyam, dansdz, J_alpha_tot, curr_xalpha)
+#pragma omp parallel shared(COMPUTE_Ts, Tk_box, x_e_box, x_e_ave, delNL0, freq_int_heat_tbl, freq_int_ion_tbl, freq_int_lya_tbl,freq_int_heat_tblm, freq_int_ion_tblm, freq_int_lya_tblm, zp, dzp, Ts, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, growth_factor_zp, dgrowth_factor_dzp, NO_LIGHT, zpp_edge, sigma_atR, sigma_Tmin, ST_over_PS, ST_over_PSm, sum_lyn,sum_lynm,sum_lyLWn, sum_lyLWnm, const_zp_prefactor, const_zp_prefactorm, M_MIN_at_z, M_MIN_at_zp, dt_dzp, J_alpha_threads, J_LW_threads, xalpha_threads, Xheat_threads, Xion_threads, M_MIN, R_values, M_MINm_ave, Mcrit_atom) private(box_ct, ans, xHII_call, R_ct, curr_delNL0, m_xHII_low, m_xHII_high, freq_int_heat, freq_int_ion, freq_int_lya, freq_int_heatm, freq_int_ionm, freq_int_lyam, dansdz, J_alpha_tot, J_LW_tot, curr_xalpha)
 #else
 #pragma omp parallel shared(COMPUTE_Ts, Tk_box, x_e_box, x_e_ave, delNL0, freq_int_heat_tbl, freq_int_ion_tbl, freq_int_lya_tbl,freq_int_heat_tblm, freq_int_ion_tblm, freq_int_lya_tblm, zp, dzp, Ts, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, growth_factor_zp, dgrowth_factor_dzp, NO_LIGHT, zpp_edge, sigma_atR, sigma_Tmin, ST_over_PS, ST_over_PSm, sum_lyn,sum_lynm, const_zp_prefactor, const_zp_prefactorm, M_MIN_at_z, M_MIN_at_zp, dt_dzp, J_alpha_threads, xalpha_threads, Xheat_threads, Xion_threads) private(box_ct, ans, xHII_call, R_ct, curr_delNL0, m_xHII_low, m_xHII_high, freq_int_heat, freq_int_ion, freq_int_lya, freq_int_heatm, freq_int_ionm, freq_int_lyam, dansdz, J_alpha_tot, curr_xalpha)
 #endif
@@ -1376,119 +1394,120 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
     {
 #pragma omp for
       
-    for (box_ct=0; box_ct<HII_TOT_NUM_PIXELS; box_ct++){
-      if (!COMPUTE_Ts && (Tk_box[box_ct] > MAX_TK)) //just leave it alone and go to next value
-    continue;
+      for (box_ct=0; box_ct<HII_TOT_NUM_PIXELS; box_ct++){
+        if (!COMPUTE_Ts && (Tk_box[box_ct] > MAX_TK)) //just leave it alone and go to next value
+        continue;
 
-      // set to current values before updating
-      ans[0] = x_e_box[box_ct];
-      ans[1] = Tk_box[box_ct];
+        // set to current values before updating
+        ans[0] = x_e_box[box_ct];
+        ans[1] = Tk_box[box_ct];
 
-      /*
-      if (DEBUG_ON){
-    if (isnan(ans[0]))
-      fprintf(stderr, "Problem at cell %llu, x_e=%e\n", box_ct, ans[0]);
-    if (isnan(ans[1]))
-      fprintf(stderr, "Problem at cell %llu, Tk=%e\n", box_ct, ans[1]);
-      }
-      */
+        /*
+        if (DEBUG_ON){
+          if (isnan(ans[0]))
+            fprintf(stderr, "Problem at cell %llu, x_e=%e\n", box_ct, ans[0]);
+          if (isnan(ans[1]))
+            fprintf(stderr, "Problem at cell %llu, Tk=%e\n", box_ct, ans[1]);
+        }
+        */
 
-      xHII_call = x_e_box[box_ct];
+        xHII_call = x_e_box[box_ct];
 
-      // Check if ionized fraction is within boundaries; if not, adjust to be within
-      if (xHII_call > x_int_XHII[x_int_NXHII-1]*0.999) {
-        xHII_call = x_int_XHII[x_int_NXHII-1]*0.999;
-      } 
-      else if (xHII_call < x_int_XHII[0]) {
-        xHII_call = 1.001*x_int_XHII[0];
-      }
-      //interpolate to correct nu integral value based on the cell's ionization state
-      for (R_ct=0; R_ct<NUM_FILTER_STEPS_FOR_Ts; R_ct++){
-    curr_delNL0[R_ct] = delNL0[R_ct][box_ct];
-    m_xHII_low = locate_xHII_index(xHII_call);
-    m_xHII_high = m_xHII_low + 1;
+        // Check if ionized fraction is within boundaries; if not, adjust to be within
+        if (xHII_call > x_int_XHII[x_int_NXHII-1]*0.999) 
+          xHII_call = x_int_XHII[x_int_NXHII-1]*0.999;
+        else if (xHII_call < x_int_XHII[0])
+          xHII_call = 1.001*x_int_XHII[0];
+ 
+        //interpolate to correct nu integral value based on the cell's ionization state
+        for (R_ct=0; R_ct<NUM_FILTER_STEPS_FOR_Ts; R_ct++){
+          curr_delNL0[R_ct] = delNL0[R_ct][box_ct];
+          m_xHII_low = locate_xHII_index(xHII_call);
+          m_xHII_high = m_xHII_low + 1;
 
-    // heat
-    freq_int_heat[R_ct] = (freq_int_heat_tbl[m_xHII_high][R_ct] - 
-                   freq_int_heat_tbl[m_xHII_low][R_ct]) / 
-                      (x_int_XHII[m_xHII_high] - x_int_XHII[m_xHII_low]);
-    freq_int_heat[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
-    freq_int_heat[R_ct] += freq_int_heat_tbl[m_xHII_low][R_ct];
+          // heat
+          freq_int_heat[R_ct] = (freq_int_heat_tbl[m_xHII_high][R_ct] - 
+                                freq_int_heat_tbl[m_xHII_low][R_ct]) / 
+                                (x_int_XHII[m_xHII_high] - x_int_XHII[m_xHII_low]);
+          freq_int_heat[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
+          freq_int_heat[R_ct] += freq_int_heat_tbl[m_xHII_low][R_ct];
 
-    // ionization
-    freq_int_ion[R_ct] = (freq_int_ion_tbl[m_xHII_high][R_ct] - 
-                   freq_int_ion_tbl[m_xHII_low][R_ct]) / 
-                      (x_int_XHII[m_xHII_high] - x_int_XHII[m_xHII_low]);
-    freq_int_ion[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
-    freq_int_ion[R_ct] += freq_int_ion_tbl[m_xHII_low][R_ct];
+          // ionization
+          freq_int_ion[R_ct] = (freq_int_ion_tbl[m_xHII_high][R_ct] - 
+                               freq_int_ion_tbl[m_xHII_low][R_ct]) / 
+                               (x_int_XHII[m_xHII_high] - x_int_XHII[m_xHII_low]);
+          freq_int_ion[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
+          freq_int_ion[R_ct] += freq_int_ion_tbl[m_xHII_low][R_ct];
 
-    // lya
-    if (COMPUTE_Ts){
-      freq_int_lya[R_ct] = (freq_int_lya_tbl[m_xHII_high][R_ct] - 
-                 freq_int_lya_tbl[m_xHII_low][R_ct]) / 
-        (x_int_XHII[m_xHII_high] - x_int_XHII[m_xHII_low]);
-      freq_int_lya[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
-      freq_int_lya[R_ct] += freq_int_lya_tbl[m_xHII_low][R_ct];
-    }
 #ifdef MINI_HALO
-    // heat
-    freq_int_heatm[R_ct] = (freq_int_heat_tblm[m_xHII_high][R_ct] - 
-                   freq_int_heat_tblm[m_xHII_low][R_ct]) / 
-                      (x_int_XHII[m_xHII_high] - x_int_XHII[m_xHII_low]);
-    freq_int_heatm[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
-    freq_int_heatm[R_ct] += freq_int_heat_tblm[m_xHII_low][R_ct];
+          // heat
+          freq_int_heatm[R_ct] = (freq_int_heat_tblm[m_xHII_high][R_ct] - 
+                                 freq_int_heat_tblm[m_xHII_low][R_ct]) / 
+                                 (x_int_XHII[m_xHII_high] - x_int_XHII[m_xHII_low]);
+          freq_int_heatm[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
+          freq_int_heatm[R_ct] += freq_int_heat_tblm[m_xHII_low][R_ct];
 
-    // ionization
-    freq_int_ionm[R_ct] = (freq_int_ion_tblm[m_xHII_high][R_ct] - 
-                   freq_int_ion_tblm[m_xHII_low][R_ct]) / 
-                      (x_int_XHII[m_xHII_high] - x_int_XHII[m_xHII_low]);
-    freq_int_ionm[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
-    freq_int_ionm[R_ct] += freq_int_ion_tblm[m_xHII_low][R_ct];
-
-    // lya
-    if (COMPUTE_Ts){
-      freq_int_lyam[R_ct] = (freq_int_lya_tblm[m_xHII_high][R_ct] - 
-                 freq_int_lya_tblm[m_xHII_low][R_ct]) / 
-        (x_int_XHII[m_xHII_high] - x_int_XHII[m_xHII_low]);
-      freq_int_lyam[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
-      freq_int_lyam[R_ct] += freq_int_lya_tblm[m_xHII_low][R_ct];
-    }
+          // ionization
+          freq_int_ionm[R_ct] = (freq_int_ion_tblm[m_xHII_high][R_ct] - 
+                                freq_int_ion_tblm[m_xHII_low][R_ct]) / 
+                                (x_int_XHII[m_xHII_high] - x_int_XHII[m_xHII_low]);
+          freq_int_ionm[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
+          freq_int_ionm[R_ct] += freq_int_ion_tblm[m_xHII_low][R_ct];
 #endif
-      }
-
-      /********  finally compute the redshift derivatives *************/
+    
+          // lya
+          if (COMPUTE_Ts){
+            freq_int_lya[R_ct] = (freq_int_lya_tbl[m_xHII_high][R_ct] - 
+                                 freq_int_lya_tbl[m_xHII_low][R_ct]) / 
+                                 (x_int_XHII[m_xHII_high] - x_int_XHII[m_xHII_low]);
+            freq_int_lya[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
+            freq_int_lya[R_ct] += freq_int_lya_tbl[m_xHII_low][R_ct];
 #ifdef MINI_HALO
-      evolveInt(zp, curr_delNL0, freq_int_heat, freq_int_ion, freq_int_lya,
-          freq_int_heatm, freq_int_ionm, freq_int_lyam,
-          COMPUTE_Ts, ans, dansdz);//, M_TURN,ALPHA_STAR,F_STAR10,T_AST);
+            freq_int_lyam[R_ct] = (freq_int_lya_tblm[m_xHII_high][R_ct] - 
+                                  freq_int_lya_tblm[m_xHII_low][R_ct]) / 
+                                  (x_int_XHII[m_xHII_high] - x_int_XHII[m_xHII_low]);
+            freq_int_lyam[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
+            freq_int_lyam[R_ct] += freq_int_lya_tblm[m_xHII_low][R_ct];
+          }
+#endif
+        }
+
+        /********  finally compute the redshift derivatives *************/
+#ifdef MINI_HALO
+        evolveInt(zp, curr_delNL0, freq_int_heat, freq_int_ion, freq_int_lya,
+                  freq_int_heatm, freq_int_ionm, freq_int_lyam,
+                  COMPUTE_Ts, ans, dansdz);//, M_TURN,ALPHA_STAR,F_STAR10,T_AST);
 #else
-      evolveInt(zp, curr_delNL0, freq_int_heat, freq_int_ion, freq_int_lya,
-          COMPUTE_Ts, ans, dansdz);//, M_TURN,ALPHA_STAR,F_STAR10,T_AST);
+        evolveInt(zp, curr_delNL0, freq_int_heat, freq_int_ion, freq_int_lya,
+                  COMPUTE_Ts, ans, dansdz);//, M_TURN,ALPHA_STAR,F_STAR10,T_AST);
 #endif
  
-      //update quantities
-      x_e_box[box_ct] += dansdz[0] * dzp; // remember dzp is negative
-      if (x_e_box[box_ct] > 1) // can do this late in evolution if dzp is too large
-    x_e_box[box_ct] = 1 - FRACT_FLOAT_ERR;
-      else if (x_e_box[box_ct] < 0)
-    x_e_box[box_ct] = 0;
-      if (Tk_box[box_ct] < MAX_TK)
-    Tk_box[box_ct] += dansdz[1] * dzp;
-
-
-      if (Tk_box[box_ct]<0){ // spurious bahaviour of the trapazoidalintegrator. generally overcooling in underdensities
-    Tk_box[box_ct] = T_cmb*(1+zp);
+        //update quantities
+        x_e_box[box_ct] += dansdz[0] * dzp; // remember dzp is negative
+        if (x_e_box[box_ct] > 1) // can do this late in evolution if dzp is too large
+          x_e_box[box_ct] = 1 - FRACT_FLOAT_ERR;
+        else if (x_e_box[box_ct] < 0)
+          x_e_box[box_ct] = 0;
+        if (Tk_box[box_ct] < MAX_TK)
+          Tk_box[box_ct] += dansdz[1] * dzp;
+        if (Tk_box[box_ct]<0) // spurious bahaviour of the trapazoidalintegrator. generally overcooling in underdensities
+          Tk_box[box_ct] = T_cmb*(1+zp);
+       
+        if (COMPUTE_Ts){
+          J_alpha_tot = dansdz[2]; //not really d/dz, but the lya flux
+          Ts[box_ct] = get_Ts(zp, curr_delNL0[0]*growth_factor_zp,
+                       Tk_box[box_ct], x_e_box[box_ct], J_alpha_tot, &curr_xalpha);
+          J_alpha_threads[omp_get_thread_num()] += J_alpha_tot;
+          xalpha_threads[omp_get_thread_num()] += curr_xalpha;
+          Xheat_threads[omp_get_thread_num()] += dansdz[3];
+          Xion_threads[omp_get_thread_num()] += dansdz[4];
+#ifdef INHOMO_FEEDBACK
+          J_LW_tot = dansdz[5]; 
+          J_21_LW[box_ct] = J_LW_tot / 1e-21;
+          J_LW_threads[omp_get_thread_num()] += J_LW_tot;
+#endif
+        }
       }
-      if (COMPUTE_Ts){
-    J_alpha_tot = dansdz[2]; //not really d/dz, but the lya flux
-    Ts[box_ct] = get_Ts(zp, curr_delNL0[0]*growth_factor_zp,
-                Tk_box[box_ct], x_e_box[box_ct], J_alpha_tot, &curr_xalpha);
-    J_alpha_threads[omp_get_thread_num()] += J_alpha_tot;
-    xalpha_threads[omp_get_thread_num()] += curr_xalpha;
-    Xheat_threads[omp_get_thread_num()] += dansdz[3];
-    Xion_threads[omp_get_thread_num()] += dansdz[4];
-      }
-    }
     } // end parallelization pragma
 
 /***************  END PARALLELIZED LOOP ******************************************************************/
@@ -1499,6 +1518,9 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
 
     // compute new average values
     x_e_ave = 0; Tk_ave = 0; Ts_ave = 0; J_alpha_ave = 0; xalpha_ave = 0; Xheat_ave=0; Xion_ave=0;
+#ifdef INHOMO_FEEDBACK
+    J_LW_ave = 0;
+#endif
     for (box_ct=0; box_ct<HII_TOT_NUM_PIXELS; box_ct++){
       x_e_ave += x_e_box[box_ct];
       Tk_ave += Tk_box[box_ct];
@@ -1510,6 +1532,9 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
       xalpha_ave += xalpha_threads[ct];
       Xheat_ave += Xheat_threads[ct];
       Xion_ave += Xion_threads[ct];
+#ifdef INHOMO_FEEDBACK
+      J_LW_ave += J_LW_threads[ct];
+#endif
     }
     Ts_ave /= (double)HII_TOT_NUM_PIXELS;
     x_e_ave /= (double)HII_TOT_NUM_PIXELS;
@@ -1518,8 +1543,15 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
     xalpha_ave /= (double)HII_TOT_NUM_PIXELS;
     Xheat_ave /= (double)HII_TOT_NUM_PIXELS;
     Xion_ave /= (double)HII_TOT_NUM_PIXELS;
+#ifdef INHOMO_FEEDBACK
+    J_LW_ave /= (double)HII_TOT_NUM_PIXELS;
+#endif
     // write to global evolution file
+#ifdef INHOMO_FEEDBACK
+    fprintf(GLOBAL_EVOL, "%f\t%f\t%f\t%e\t%f\t%f\t%e\t%e\t%e\t%e\t%e\n", zp, filling_factor_of_HI_zp, Tk_ave, x_e_ave, Ts_ave, T_cmb*(1+zp), J_alpha_ave, xalpha_ave, Xheat_ave, Xion_ave, J_LW_ave);
+#else
     fprintf(GLOBAL_EVOL, "%f\t%f\t%f\t%e\t%f\t%f\t%e\t%e\t%e\t%e\n", zp, filling_factor_of_HI_zp, Tk_ave, x_e_ave, Ts_ave, T_cmb*(1+zp), J_alpha_ave, xalpha_ave, Xheat_ave, Xion_ave);
+#endif
     fflush(NULL);
 
     // output these intermediate boxes
@@ -1552,15 +1584,15 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
 #endif //MINI_HALO
 #endif //SHARP_CUTOFF
       if (!(F=fopen(filename, "wb"))){
-    fprintf(stderr, "Ts.c: WARNING: Unable to open output file %s\n", filename);
-    fprintf(LOG, "Ts.c: WARNING: Unable to open output file %s\n", filename);
+        fprintf(stderr, "Ts.c: WARNING: Unable to open output file %s\n", filename);
+        fprintf(LOG, "Ts.c: WARNING: Unable to open output file %s\n", filename);
       }
       else{
-    if (mod_fwrite(Tk_box, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
-      fprintf(stderr, "Ts.c: Write error occured while writting Tk box.\n");
-      fprintf(LOG, "Ts.c: Write error occured while writting Tk box.\n");
-    }
-    fclose(F);
+        if (mod_fwrite(Tk_box, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
+          fprintf(stderr, "Ts.c: Write error occured while writting Tk box.\n");
+          fprintf(LOG, "Ts.c: Write error occured while writting Tk box.\n");
+        }
+        fclose(F);
       }
       // then xe_neutral
         // New in v2
@@ -1582,49 +1614,63 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
 #endif //MINI_HALO
 #endif //SHARP_CUTOFF
       if (!(F=fopen(filename, "wb"))){
-    fprintf(stderr, "Ts.c: WARNING: Unable to open output file %s\n", filename);
-    fprintf(LOG, "Ts.c: WARNING: Unable to open output file %s\n", filename);
+        fprintf(stderr, "Ts.c: WARNING: Unable to open output file %s\n", filename);
+        fprintf(LOG, "Ts.c: WARNING: Unable to open output file %s\n", filename);
       }
       else{
-    if (mod_fwrite(x_e_box, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
-      fprintf(stderr, "Ts.c: Write error occured while writting Tk box.\n");
-      fprintf(LOG, "Ts.c: Write error occured while writting Tk box.\n");
-    }
-    fclose(F);
+        if (mod_fwrite(x_e_box, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
+          fprintf(stderr, "Ts.c: Write error occured while writting Tk box.\n");
+          fprintf(LOG, "Ts.c: Write error occured while writting Tk box.\n");
+        }
+        fclose(F);
       }
-  }
+    }
 
     // and the spin temperature if desired
-  if ( COMPUTE_Ts ){
-    // New in v2
+    if ( COMPUTE_Ts ){
+      // New in v2
 #ifdef SHARP_CUTOFF
-    sprintf(filename, "../Boxes/Ts_z%06.2f_L_X%.1e_alphaX%.1f_TvirminX%.1e_zetaIon%.2f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, M_TURN, HII_EFF_FACTOR, Pop, HII_DIM, BOX_LEN); 
+      sprintf(filename, "../Boxes/Ts_z%06.2f_L_X%.1e_alphaX%.1f_TvirminX%.1e_zetaIon%.2f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, M_TURN, HII_EFF_FACTOR, Pop, HII_DIM, BOX_LEN); 
 #else //SHARP_CUTOFF
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-    sprintf(filename, "../Boxes/Ts_z%06.2f_L_X%.1e_alphaX%.1f_f_star%06.4f_alpha_star%06.4f_f_esc%06.4f_alpha_esc%06.4f_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN); 
+      sprintf(filename, "../Boxes/Ts_z%06.2f_L_X%.1e_alphaX%.1f_f_star%06.4f_alpha_star%06.4f_f_esc%06.4f_alpha_esc%06.4f_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN); 
 #else //INHOMO_FEEDBACK
 #ifdef REION_SM
-    sprintf(filename, "../Boxes/Ts_z%06.2f_L_X%.1e_alphaX%.1f_f_star%06.4f_alpha_star%06.4f_f_esc%06.4f_alpha_esc%06.4f_Msm_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN); 
+      sprintf(filename, "../Boxes/Ts_z%06.2f_L_X%.1e_alphaX%.1f_f_star%06.4f_alpha_star%06.4f_f_esc%06.4f_alpha_esc%06.4f_Msm_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN); 
 #else //REION_SM
-    sprintf(filename, "../Boxes/Ts_z%06.2f_L_X%.1e_alphaX%.1f_f_star%06.4f_alpha_star%06.4f_f_esc%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN); 
+      sprintf(filename, "../Boxes/Ts_z%06.2f_L_X%.1e_alphaX%.1f_f_star%06.4f_alpha_star%06.4f_f_esc%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN); 
 #endif //REION_SM
 #endif //INHOMO_FEEDBACK
 #else //MINI_HALO
-    sprintf(filename, "../Boxes/Ts_z%06.2f_L_X%.1e_alphaX%.1f_f_star%06.4f_alpha_star%06.4f_f_esc%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, Pop, HII_DIM, BOX_LEN); 
+      sprintf(filename, "../Boxes/Ts_z%06.2f_L_X%.1e_alphaX%.1f_f_star%06.4f_alpha_star%06.4f_f_esc%06.4f_alpha_esc%06.4f_Mturn%.1e_t_star%06.4f_Pop%i_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, T_AST, Pop, HII_DIM, BOX_LEN); 
 #endif //MINI_HALO
 #endif //SHARP_CUTOFF
       if (!(F=fopen(filename, "wb"))){
-    fprintf(stderr, "Ts.c: WARNING: Unable to open output file %s\n", filename);
-    fprintf(LOG, "Ts.c: WARNING: Unable to open output file %s\n", filename);
+        fprintf(stderr, "Ts.c: WARNING: Unable to open output file %s\n", filename);
+        fprintf(LOG, "Ts.c: WARNING: Unable to open output file %s\n", filename);
       }
       else{
-    if (mod_fwrite(Ts, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
-      fprintf(stderr, "Ts.c: Write error occured while writting Tk box.\n");
-      fprintf(LOG, "Ts.c: Write error occured while writting Tk box.\n");
-    }
-    fclose(F);
+        if (mod_fwrite(Ts, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
+          fprintf(stderr, "Ts.c: Write error occured while writting Tk box.\n");
+          fprintf(LOG, "Ts.c: Write error occured while writting Tk box.\n");
+        }
+        fclose(F);
       }
+#ifdef INHOMO_FEEDBACK
+      sprintf(filename, "../Boxes/J_21_LW_z%06.2f_L_X%.1e_alphaX%.1f_f_star%06.4f_alpha_star%06.4f_f_esc%06.4f_alpha_esc%06.4f_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN); 
+      if (!(F=fopen(filename, "wb"))){
+        fprintf(stderr, "Ts.c: WARNING: Unable to open output file %s\n", filename);
+        fprintf(LOG, "Ts.c: WARNING: Unable to open output file %s\n", filename);
+      }
+      else{
+        if (mod_fwrite(J_21_LW, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
+          fprintf(stderr, "Ts.c: Write error occured while writting Tk box.\n");
+          fprintf(LOG, "Ts.c: Write error occured while writting Tk box.\n");
+        }
+        fclose(F);
+      }
+#endif
     }
 
     prev_zp = zp;

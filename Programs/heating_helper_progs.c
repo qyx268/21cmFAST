@@ -14,6 +14,9 @@
 double zpp_edge[NUM_FILTER_STEPS_FOR_Ts], sigma_atR[NUM_FILTER_STEPS_FOR_Ts], sigma_Tmin[NUM_FILTER_STEPS_FOR_Ts], ST_over_PS[NUM_FILTER_STEPS_FOR_Ts], sum_lyn[NUM_FILTER_STEPS_FOR_Ts], R_values[NUM_FILTER_STEPS_FOR_Ts];
 #ifdef MINI_HALO
 double ST_over_PSm[NUM_FILTER_STEPS_FOR_Ts], sum_lynm[NUM_FILTER_STEPS_FOR_Ts];
+#ifdef INHOMO_FEEDBACK
+double sum_lyLWn[NUM_FILTER_STEPS_FOR_Ts], sum_lyLWnm[NUM_FILTER_STEPS_FOR_Ts];
+#endif
 #endif
 unsigned long long box_ct;
 double const_zp_prefactor, dt_dzp, x_e_ave;
@@ -298,14 +301,30 @@ double spectral_emissivity(double nu_norm, int flag)
 #endif
 {
   static int n[NSPEC_MAX];
-  static float nu_n[NSPEC_MAX], alpha_S_2[NSPEC_MAX];
-  static float alpha_S_3[NSPEC_MAX], N0_2[NSPEC_MAX], N0_3[NSPEC_MAX];
+  static float nu_n[NSPEC_MAX], alpha_S_2[NSPEC_MAX], alpha_S_3[NSPEC_MAX], N0_2[NSPEC_MAX], N0_3[NSPEC_MAX];
   double n0_fac;
-  double ans, tot, lya;
   int i;
   FILE *F;
 
-  if (flag == 1) {
+  switch (flag){
+  case 3:
+    // For LW calculateion. New in v2.2, see...
+    for (i=1;i<(NSPEC_MAX-1);i++) {
+      if ((nu_norm >= nu_n[i]) && (nu_norm < nu_n[i+1])) {
+        // We are in the correct spectral region
+        if (Population == 2)
+          return N0_2[i] * alpha_S_2[i] / (alpha_S_2[i] + 1) * hplank * ( pow(nu_n[i+1], alpha_S_2[i]+1) - pow(nu_norm, alpha_S_2[i]+1) );
+        else
+          return N0_3[i] * alpha_S_3[i] / (alpha_S_3[i] + 1) * hplank * ( pow(nu_n[i+1], alpha_S_3[i]+1) - pow(nu_norm, alpha_S_3[i]+1) );
+      }
+    }
+    return 0;
+
+  case 2:
+    // used for destruct_heat
+    return 0.0;
+
+  case 1:
     /* Read in the data */
     if (!(F = fopen(STELLAR_SPECTRA_FILENAME, "r"))){
       fprintf(stderr, "spectral_emissivity: Unable to open file: stellar_spectra.dat for reading\nAborting\n");
@@ -331,36 +350,34 @@ double spectral_emissivity(double nu_norm, int flag)
     }
 
     return 0.0;
-  }
 
-  ans = 0.0;
-  for (i=1;i<(NSPEC_MAX-1);i++) {
-    //    printf("checking between %e and %e\n", nu_n[i], nu_n[i+1]);
-    if ((nu_norm >= nu_n[i]) && (nu_norm < nu_n[i+1])) {
-      // We are in the correct spectral region
+  default :
+    for (i=1;i<(NSPEC_MAX-1);i++) {
+      //    printf("checking between %e and %e\n", nu_n[i], nu_n[i+1]);
+      if ((nu_norm >= nu_n[i]) && (nu_norm < nu_n[i+1])) {
+        // We are in the correct spectral region
 #ifdef MINI_HALO
-      if (Population == 2)
+        if (Population == 2)
 #else
-      if (Pop == 2)
+        if (Pop == 2)
 #endif
-    ans = N0_2[i]*pow(nu_norm,alpha_S_2[i]);
-      else
-    ans = N0_3[i]*pow(nu_norm,alpha_S_3[i]);
-      //           printf("nu_norm=%e i=%i ans=%e\n", nu_norm, i, ans);
-      return ans/Ly_alpha_HZ;
+          return N0_2[i]*pow(nu_norm,alpha_S_2[i])/Ly_alpha_HZ;
+        else
+          return N0_3[i]*pow(nu_norm,alpha_S_3[i])/Ly_alpha_HZ;
+      }
     }
-  }
 
-  i= NSPEC_MAX-1;
+    i= NSPEC_MAX-1;
 #ifdef MINI_HALO
-  if (Population == 2)
+    if (Population == 2)
 #else
-  if (Pop == 2)
+    if (Pop == 2)
 #endif
-    return  N0_2[i]*pow(nu_norm,alpha_S_2[i])/Ly_alpha_HZ;
-  else
-    return N0_3[i]*pow(nu_norm,alpha_S_3[i])/Ly_alpha_HZ;
-  //  return 0;
+      return N0_2[i]*pow(nu_norm,alpha_S_2[i])/Ly_alpha_HZ;
+    else
+      return N0_3[i]*pow(nu_norm,alpha_S_3[i])/Ly_alpha_HZ;
+    //  return 0;
+  }
 }
 
 /********************************************************************
@@ -388,6 +405,9 @@ void evolveInt(float zp, float curr_delNL0[], double freq_int_heat[],
 #ifdef MINI_HALO
   double dfcollm, zpp_integrandm, dxheat_dtm, dxion_source_dtm, dxlya_dtm, dstarlya_dtm;
   float fcollm;
+#ifdef INHOMO_FEEDBACK
+  double dstarlyLW_dt, dstarlyLW_dtm;
+#endif
 #endif
 
   x_e = y[0];
@@ -407,6 +427,10 @@ void evolveInt(float zp, float curr_delNL0[], double freq_int_heat[],
   dxion_source_dtm = 0;
   dxlya_dtm = 0;
   dstarlya_dtm = 0;
+#ifdef INHOMO_FEEDBACK
+  dstarlyLW_dt = 0;
+  dstarlyLW_dtm = 0;
+#endif
 #endif
   if (!NO_LIGHT){
   for (zpp_ct = 0; zpp_ct < NUM_FILTER_STEPS_FOR_Ts; zpp_ct++){
@@ -483,34 +507,40 @@ void evolveInt(float zp, float curr_delNL0[], double freq_int_heat[],
     dfcollm = ST_over_PSm[zpp_ct]*(double)fcollm*hubble(zpp)/T_AST*fabs(dtdz(zpp))*fabs(dzpp);
 #endif
 #endif
-    zpp_integrand = dfcoll * (1+curr_delNL0[zpp_ct]*dicke(zpp)) * pow(1+zpp, -X_RAY_SPEC_INDEX);
-
-    dxheat_dt += zpp_integrand * freq_int_heat[zpp_ct];
+    zpp_integrand    = dfcoll * (1+delNL_zpp) * pow(1+zpp, -X_RAY_SPEC_INDEX);
+    dxheat_dt       += zpp_integrand * freq_int_heat[zpp_ct];
     dxion_source_dt += zpp_integrand * freq_int_ion[zpp_ct];
     if (COMPUTE_Ts){
-      dxlya_dt += zpp_integrand * freq_int_lya[zpp_ct];
-      dstarlya_dt += dfcoll * (1+curr_delNL0[zpp_ct]*dicke(zpp)) * pow(1+zp,2)*(1+zpp)
-                     * sum_lyn[zpp_ct];
+      dxlya_dt      += zpp_integrand * freq_int_lya[zpp_ct];
+      zpp_integrand  = dfcoll * (1+delNL_zpp) * pow(1+zp,2)*(1+zpp);
+      dstarlya_dt   += zpp_integrand * sum_lyn[zpp_ct];
     }
 #ifdef MINI_HALO
-    zpp_integrandm = dfcollm * (1+curr_delNL0[zpp_ct]*dicke(zpp)) * pow(1+zpp, -X_RAY_SPEC_INDEX_MINI);
-
-    dxheat_dtm += zpp_integrandm * freq_int_heatm[zpp_ct];
+    zpp_integrandm    = dfcollm * (1+delNL_zpp) * pow(1+zpp, -X_RAY_SPEC_INDEX_MINI);
+    dxheat_dtm       += zpp_integrandm * freq_int_heatm[zpp_ct];
     dxion_source_dtm += zpp_integrandm * freq_int_ionm[zpp_ct];
     if (COMPUTE_Ts){
-      dxlya_dtm += zpp_integrandm * freq_int_lyam[zpp_ct];
-      dstarlya_dtm += dfcollm * (1+curr_delNL0[zpp_ct]*dicke(zpp)) * pow(1+zp,2)*(1+zpp)
-                     * sum_lynm[zpp_ct];
+      dxlya_dtm      += zpp_integrandm * freq_int_lyam[zpp_ct];
+      zpp_integrandm  = dfcollm * (1+delNL_zpp) * pow(1+zp,2)*(1+zpp);
+      dstarlya_dtm   += zpp_integrandm * sum_lynm[zpp_ct];
+#ifdef INHOMO_FEEDBACK
+      dstarlyLW_dt   += zpp_integrand  * sum_lyLWn[zpp_ct];
+      dstarlyLW_dtm  += zpp_integrandm * sum_lyLWnm[zpp_ct];
+#endif
     }
 #endif
   }
 
   // add prefactors
-  dxheat_dt *= const_zp_prefactor;
+  dxheat_dt       *= const_zp_prefactor;
   dxion_source_dt *= const_zp_prefactor;
   if (COMPUTE_Ts){
-    dxlya_dt *= const_zp_prefactor*n_b;
-    dstarlya_dt *= F_STAR10 * C * N_b0 / FOURPI;
+    dxlya_dt      *= const_zp_prefactor*n_b;
+    dstarlya_dt   *= F_STAR10 * C * N_b0 / FOURPI;
+#ifdef INHOMO_FEEDBACK
+    dstarlyLW_dt  *= F_STAR10 * C * N_b0 / FOURPI;
+    dstarlyLW_dtm *= F_STAR10 * C * N_b0 / FOURPI;
+#endif
 
     /*
     if ((dxlya_dt < 0) || (dstarlya_dt<0)){
@@ -591,6 +621,10 @@ void evolveInt(float zp, float curr_delNL0[], double freq_int_heat[],
   deriv[4] = dt_dzp*dxion_source_dt;
 #ifdef MINI_HALO
   deriv[4] += dt_dzp*dxion_source_dtm;
+#endif
+
+#ifdef INHOMO_FEEDBACK
+  deriv[5] = dstarlyLW_dt + dstarlyLW_dtm;
 #endif
 }
 
