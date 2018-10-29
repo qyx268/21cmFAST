@@ -181,7 +181,7 @@ int main(int argc, char ** argv){
   double nuprime, fcoll_R, Ts_ave;
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-  float *Mcrit_LW=NULL, *J_21_LW=NULL, massofscaleR, Mcrit_atom;
+  float *Mcrit_LW=NULL, *J_21_LW=NULL, Mcrit_atom;
 #endif
   double fcoll_Rm;
 #ifdef REION_SM
@@ -1160,8 +1160,7 @@ int main(int argc, char ** argv){
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
 			// TODO: here we assume Mcrit_LW does not vary significantly between prev_zp and zpp
-            massofscaleR = log(RtoM(R_values[R_ct]));
-            fcollm = GaussLegendreQuad_Nionm(NGL_SFR,zpp, massofscaleR, Deltac, delNL_zpp, ALPHA_STAR, Mcrit_LW[box_ct], Mcrit_atom, F_STAR10m, Mlim_Fstarm);
+            fcollm = GaussLegendreQuad_Nionm(NGL_SFR,zpp, log(RtoM(R_values[R_ct])), Deltac, delNL_zpp, ALPHA_STAR, Mcrit_LW[box_ct], Mcrit_atom, F_STAR10m, Mlim_Fstarm);
 #else 
             fcollm = gsl_spline_eval(SFRDLow_zpp_splinem[R_ct], delNL_zpp, SFRDLow_zpp_spline_accm[R_ct]);
             fcollm = pow(10., fcollm);
@@ -1177,7 +1176,7 @@ int main(int argc, char ** argv){
             splint(Overdense_high_table-1,SFRD_z_high_table[R_ct]-1,second_derivs_Nion_zpp[R_ct]-1,NSFR_high,delNL_zpp,&(fcoll));
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-            fcollm = Nion_ConditionalMm(zpp, log(M_MIN), massofscaleR, Deltac, delNL_zpp, ALPHA_STAR, Mcrit_LW[box_ct], Mcrit_atom, F_STAR10m, Mlim_Fstarm);
+            fcollm = Nion_ConditionalMm(zpp, log(M_MIN), log(RtoM(R_values[R_ct])), Deltac, delNL_zpp, ALPHA_STAR, Mcrit_LW[box_ct], Mcrit_atom, F_STAR10m, Mlim_Fstarm);
 #else //INHOMO_FEEDBACK
             splint(Overdense_high_table-1,SFRD_z_high_tablem[R_ct]-1,second_derivs_Nion_zppm[R_ct]-1,NSFR_high,delNL_zpp,&(fcollm));
 #endif //INHOMO_FEEDBACK
@@ -1366,7 +1365,11 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
       J_alpha_threads[ct] = xalpha_threads[ct] = Xheat_threads[ct] = Xion_threads[ct] = 0;
     /***************  PARALLELIZED LOOP ******************************************************************/
 #ifdef MINI_HALO
+#ifdef INHOMO_FEEDBACK
+#pragma omp parallel shared(COMPUTE_Ts, Tk_box, x_e_box, x_e_ave, delNL0, freq_int_heat_tbl, freq_int_ion_tbl, freq_int_lya_tbl,freq_int_heat_tblm, freq_int_ion_tblm, freq_int_lya_tblm, zp, dzp, Ts, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, growth_factor_zp, dgrowth_factor_dzp, NO_LIGHT, zpp_edge, sigma_atR, sigma_Tmin, ST_over_PS, ST_over_PSm, sum_lyn,sum_lynm, const_zp_prefactor, const_zp_prefactorm, M_MIN_at_z, M_MIN_at_zp, dt_dzp, J_alpha_threads, xalpha_threads, Xheat_threads, Xion_threads, M_MIN, R_values, M_MINm_ave, Mcrit_atom) private(box_ct, ans, xHII_call, R_ct, curr_delNL0, m_xHII_low, m_xHII_high, freq_int_heat, freq_int_ion, freq_int_lya, freq_int_heatm, freq_int_ionm, freq_int_lyam, dansdz, J_alpha_tot, curr_xalpha)
+#else
 #pragma omp parallel shared(COMPUTE_Ts, Tk_box, x_e_box, x_e_ave, delNL0, freq_int_heat_tbl, freq_int_ion_tbl, freq_int_lya_tbl,freq_int_heat_tblm, freq_int_ion_tblm, freq_int_lya_tblm, zp, dzp, Ts, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, growth_factor_zp, dgrowth_factor_dzp, NO_LIGHT, zpp_edge, sigma_atR, sigma_Tmin, ST_over_PS, ST_over_PSm, sum_lyn,sum_lynm, const_zp_prefactor, const_zp_prefactorm, M_MIN_at_z, M_MIN_at_zp, dt_dzp, J_alpha_threads, xalpha_threads, Xheat_threads, Xion_threads) private(box_ct, ans, xHII_call, R_ct, curr_delNL0, m_xHII_low, m_xHII_high, freq_int_heat, freq_int_ion, freq_int_lya, freq_int_heatm, freq_int_ionm, freq_int_lyam, dansdz, J_alpha_tot, curr_xalpha)
+#endif
 #else
 #pragma omp parallel shared(COMPUTE_Ts, Tk_box, x_e_box, x_e_ave, delNL0, freq_int_heat_tbl, freq_int_ion_tbl, freq_int_lya_tbl, zp, dzp, Ts, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, growth_factor_zp, dgrowth_factor_dzp, NO_LIGHT, zpp_edge, sigma_atR, sigma_Tmin, ST_over_PS, sum_lyn, const_zp_prefactor, M_MIN_at_z, M_MIN_at_zp, dt_dzp, J_alpha_threads, xalpha_threads, Xheat_threads, Xion_threads) private(box_ct, ans, xHII_call, R_ct, curr_delNL0, m_xHII_low, m_xHII_high, freq_int_heat, freq_int_ion, freq_int_lya, dansdz, J_alpha_tot, curr_xalpha)
 #endif

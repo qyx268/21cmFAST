@@ -31,7 +31,6 @@ double X_LUMINOSITY;
 #ifdef MINI_HALO
 double X_LUMINOSITYm;
 #endif
-float growth_zpp; // New in v2
 static float determine_zpp_max, determine_zpp_min; // new in v2
 float *second_derivs_Nion_zpp[NUM_FILTER_STEPS_FOR_Ts]; // New
 #ifdef MINI_HALO
@@ -51,8 +50,10 @@ double Mcrit_LW_interp_table[zpp_interp_points], M_MINm_interp_table[zpp_interp_
 gsl_interp_accel *SFRDLow_zpp_spline_acc[NUM_FILTER_STEPS_FOR_Ts];
 gsl_spline *SFRDLow_zpp_spline[NUM_FILTER_STEPS_FOR_Ts];
 #ifdef MINI_HALO
+#ifndef INHOMO_FEEDBACK
 gsl_interp_accel *SFRDLow_zpp_spline_accm[NUM_FILTER_STEPS_FOR_Ts];
 gsl_spline *SFRDLow_zpp_splinem[NUM_FILTER_STEPS_FOR_Ts];
+#endif
 #endif
 
 FILE *LOG;
@@ -383,7 +384,7 @@ void evolveInt(float zp, float curr_delNL0[], double freq_int_heat[],
   double T, x_e, dTdzp, dx_edzp, dfcoll, zpp_integrand;
   double dxe_dzp, n_b, dspec_dzp, dxheat_dzp, dxlya_dt, dstarlya_dt;
   // New in v2
-  float growth_zpp,fcoll;
+  float delNL_zpp,fcoll;
 #ifdef MINI_HALO
   double dfcollm, zpp_integrandm, dxheat_dtm, dxion_source_dtm, dxlya_dtm, dstarlya_dtm;
   float fcollm;
@@ -419,60 +420,68 @@ void evolveInt(float zp, float curr_delNL0[], double freq_int_heat[],
       dzpp = zpp_edge[zpp_ct-1] - zpp_edge[zpp_ct];
     }
     //New in v2
-#ifndef SHARP_CUTOFF
-      growth_zpp = dicke(zpp);
-      // Interpolate Fcoll -------------------------------------------------------------------------------------
-      if (curr_delNL0[zpp_ct]*growth_zpp < 1.5){
-        if (curr_delNL0[zpp_ct]*growth_zpp < -1.) {
-          fcoll = 0;
+#ifdef SHARP_CUTOFF
+    dfcoll = dfcoll_dz(zpp, sigma_Tmin[zpp_ct], curr_delNL0[zpp_ct], sigma_atR[zpp_ct]);
+    dfcoll *= ST_over_PS[zpp_ct] * dzpp; // this is now a positive quantity
+#else
+    delNL_zpp = curr_delNL0[zpp_ct]*dicke(zpp);
+    // Interpolate Fcoll -------------------------------------------------------------------------------------
+    if (delNL_zpp < 1.5){
+      if (delNL_zpp < -1.) {
+        fcoll = 0;
 #ifdef MINI_HALO
-          fcollm = 0;
+        fcollm = 0;
 #endif
-        }
-        else {
-          fcoll = gsl_spline_eval(SFRDLow_zpp_spline[zpp_ct], log10(curr_delNL0[zpp_ct]*growth_zpp+1.), SFRDLow_zpp_spline_acc[zpp_ct]);
-          fcoll = pow(10., fcoll);
-#ifdef MINI_HALO
-          fcollm = gsl_spline_eval(SFRDLow_zpp_splinem[zpp_ct], log10(curr_delNL0[zpp_ct]*growth_zpp+1.), SFRDLow_zpp_spline_accm[zpp_ct]);
-          fcollm = pow(10., fcollm);
-#endif
-        }
       }
       else {
-        if (curr_delNL0[zpp_ct]*growth_zpp < 0.99*Deltac) {
-          // Usage of 0.99*Deltac arises due to the fact that close to the critical density, the collapsed fraction becomes a little unstable
-          // However, such densities should always be collapsed, so just set f_coll to unity. 
-          // Additionally, the fraction of points in this regime relative to the entire simulation volume is extremely small.
-          splint(Overdense_high_table-1,SFRD_z_high_table[zpp_ct]-1,second_derivs_Nion_zpp[zpp_ct]-1,NSFR_high,curr_delNL0[zpp_ct]*growth_zpp,&(fcoll));
+        fcoll = gsl_spline_eval(SFRDLow_zpp_spline[zpp_ct], log10(delNL_zpp+1.), SFRDLow_zpp_spline_acc[zpp_ct]);
+        fcoll = pow(10., fcoll);
 #ifdef MINI_HALO
-          splint(Overdense_high_table-1,SFRD_z_high_tablem[zpp_ct]-1,second_derivs_Nion_zppm[zpp_ct]-1,NSFR_high,curr_delNL0[zpp_ct]*growth_zpp,&(fcollm));
-#endif
-        }
-        else {
-          fcoll = 1.;
-#ifdef MINI_HALO
-          fcollm = 1;
-#endif
-        }
-      }
-      if (fcoll > 1.) fcoll = 1.;
-#ifdef MINI_HALO
-      if (fcollm > 1.) fcollm = 1.;
-#endif
-      // Find Fcoll end ----------------------------------------------------------------------------------
-
-      /* Instead of dfcoll/dz we compute fcoll/(T_AST*H(z)^-1)*(dt/dz), 
-        where T_AST is the typical star-formation timescale, in units of the Hubble time.
-        This is the same parameter with 't_STAR' (defined in ANAL_PARAMS.H).
-        If turn the new parametrization on, this is a free parameter.
-        */
-      dfcoll = ST_over_PS[zpp_ct]*(double)fcoll*hubble(zpp)/T_AST*fabs(dtdz(zpp))*fabs(dzpp);
-#ifdef MINI_HALO
-      dfcollm = ST_over_PSm[zpp_ct]*(double)fcollm*hubble(zpp)/T_AST*fabs(dtdz(zpp))*fabs(dzpp);
-#endif
+#ifdef INHOMO_FEEDBACK
+        fcollm = GaussLegendreQuad_Nionm(NGL_SFR, zpp, log(RtoM(R_values[zpp_ct])), Deltac, delNL_zpp, ALPHA_STAR, M_MINm_ave, Mcrit_atom, F_STAR10m, Mlim_Fstarm);
 #else
-      dfcoll = dfcoll_dz(zpp, sigma_Tmin[zpp_ct], curr_delNL0[zpp_ct], sigma_atR[zpp_ct]);
-      dfcoll *= ST_over_PS[zpp_ct] * dzpp; // this is now a positive quantity
+        fcollm = gsl_spline_eval(SFRDLow_zpp_splinem[zpp_ct], log10(delNL_zpp+1.), SFRDLow_zpp_spline_accm[zpp_ct]);
+        fcollm = pow(10., fcollm);
+#endif
+#endif
+      }
+    }
+    else {
+      if (delNL_zpp < 0.99*Deltac) {
+        // Usage of 0.99*Deltac arises due to the fact that close to the critical density, the collapsed fraction becomes a little unstable
+        // However, such densities should always be collapsed, so just set f_coll to unity. 
+        // Additionally, the fraction of points in this regime relative to the entire simulation volume is extremely small.
+        splint(Overdense_high_table-1,SFRD_z_high_table[zpp_ct]-1,second_derivs_Nion_zpp[zpp_ct]-1,NSFR_high,delNL_zpp,&(fcoll));
+#ifdef MINI_HALO
+#ifdef INHOMO_FEEDBACK
+        fcollm = Nion_ConditionalMm(zpp, log(M_MIN), log(RtoM(R_values[zpp_ct])), Deltac, delNL_zpp, ALPHA_STAR, M_MINm_ave, Mcrit_atom, F_STAR10m, Mlim_Fstarm);
+#else
+        splint(Overdense_high_table-1,SFRD_z_high_tablem[zpp_ct]-1,second_derivs_Nion_zppm[zpp_ct]-1,NSFR_high,delNL_zpp,&(fcollm));
+#endif
+#endif
+      }
+      else {
+        fcoll = 1.;
+#ifdef MINI_HALO
+        fcollm = 1;
+#endif
+      }
+    }
+    if (fcoll > 1.) fcoll = 1.;
+#ifdef MINI_HALO
+    if (fcollm > 1.) fcollm = 1.;
+#endif
+    // Find Fcoll end ----------------------------------------------------------------------------------
+
+    /* Instead of dfcoll/dz we compute fcoll/(T_AST*H(z)^-1)*(dt/dz), 
+      where T_AST is the typical star-formation timescale, in units of the Hubble time.
+      This is the same parameter with 't_STAR' (defined in ANAL_PARAMS.H).
+      If turn the new parametrization on, this is a free parameter.
+      */
+    dfcoll = ST_over_PS[zpp_ct]*(double)fcoll*hubble(zpp)/T_AST*fabs(dtdz(zpp))*fabs(dzpp);
+#ifdef MINI_HALO
+    dfcollm = ST_over_PSm[zpp_ct]*(double)fcollm*hubble(zpp)/T_AST*fabs(dtdz(zpp))*fabs(dzpp);
+#endif
 #endif
     zpp_integrand = dfcoll * (1+curr_delNL0[zpp_ct]*dicke(zpp)) * pow(1+zpp, -X_RAY_SPEC_INDEX);
 
@@ -897,10 +906,6 @@ double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_fact
        gsl_integration_workspace * w 
      = gsl_integration_workspace_alloc (1000);
        tauX_params p;
-  float Splined_ans;
-#ifdef MINI_HALO
-  float Splined_ansm; // New in v2.1: compute function FgtrM_st_SFR using interpolation.
-#endif
 
        /*
 #ifdef DEBUG_ON
@@ -920,9 +925,9 @@ double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_fact
        else
        p.ion_eff = PS_ION_EFF; // uses the previous one in post reionization regime
 #else //SHARP_CUTOFF
-	   p.ion_eff = ion_eff;
+       p.ion_eff = ion_eff;
 #ifdef MINI_HALO
-	   p.ion_effm = ion_effm;
+       p.ion_effm = ion_effm;
 #endif //MINI_HALO
 #endif //SHARP_CUTOFF
 
