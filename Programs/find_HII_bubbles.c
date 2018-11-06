@@ -389,6 +389,11 @@ int main(int argc, char ** argv){
 #ifdef INHOMO_FEEDBACK
   float *J_21_LW=NULL;
 #endif 
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
+  float *Fcoll_prev=NULL, Fcoll_prev_ave, *Fcollm_prev=NULL, Fcoll_prev_avem;
+  float mean_f_coll_prev_st, mean_f_collm_prev_st;
+  int flag_first_reionization;
+#endif
   fftwf_complex *M_coll_unfiltered=NULL, *M_coll_filtered=NULL, *deltax_unfiltered=NULL, *deltax_filtered=NULL, *xe_unfiltered=NULL, *xe_filtered=NULL;
   fftwf_complex *N_rec_unfiltered=NULL, *N_rec_filtered=NULL;
   fftwf_plan plan;
@@ -399,7 +404,7 @@ int main(int argc, char ** argv){
   float nua, dnua, temparg, Gamma_R, z_eff;
   float F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, Mlim_Fstar, Mlim_Fesc; //New in v2
 #ifdef MINI_HALO
-  float F_STAR10m, F_ESC10m, Mlim_Fstarm, ION_EFF_FACTOR_MINI,M_MINm, M_MINa, Splined_Fcollm, dfcolldtm,Gamma_R_prefactorm,ST_over_PSm,f_collm, Mcrit_atom, Mcrit_LW=0., Mcrit_RE=0., mean_f_coll_stm; //New in v2.1
+  float F_STAR10m, F_ESC10m, Mlim_Fstarm, ION_EFF_FACTOR_MINI,M_MINm, M_MINa, Splined_Fcollm, dfcolldtm,Gamma_R_prefactorm,ST_over_PSm,f_collm, Mcrit_atom, Mcrit_LW=0., Mcrit_RE=0., mean_f_collm_st; //New in v2.1
   double X_LUMINOSITYm;
 #ifdef REION_SM
   double REION_SM13_Z_RE, REION_SM13_DELTA_Z_RE, REION_SM13_DELTA_Z_SC;
@@ -591,9 +596,10 @@ int main(int argc, char ** argv){
   Mcrit_atom          = atomic_cooling_threshold(REDSHIFT);
 #ifdef INHOMO_FEEDBACK
   // use the average for check dark ages and do the ST/PS renormalization
-  for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
+  for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++){
     Mcrit_LW += log10(lyman_werner_threshold(REDSHIFT, J_21_LW[ct]));
     Mcrit_RE += log10(reionization_feedback(REDSHIFT, Gamma12[ct], z_re[ct]));
+  }
   Mcrit_LW   /= HII_TOT_NUM_PIXELS;
   Mcrit_RE   /= HII_TOT_NUM_PIXELS;
   Mcrit_LW    = pow(10, Mcrit_LW);
@@ -658,6 +664,22 @@ int main(int argc, char ** argv){
     fprintf(stderr, "find_HII_bubbles.c: Error opening log file\n");
   }
 
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
+  Fcoll_prev  = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);  // stores the previous Fcoll
+  Fcollm_prev = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);  // stores the previous Fcollm
+  system("mkdir -p ../Boxes/Nion_evolution/");
+  sprintf(filename, "../Boxes/Nion_evolution/mean_f_coll_st_z%06.2f.bin", PREV_REDSHIFT);
+  if(F = fopen(filename, "r"))
+    fread(&mean_f_coll_prev_st, sizeof(float), 1, F);
+  else
+    mean_f_coll_prev_st = 0.;
+  sprintf(filename, "../Boxes/Nion_evolution/mean_f_collm_st_z%06.2f.bin", PREV_REDSHIFT);
+  if(F = fopen(filename, "r"))
+    fread(&mean_f_collm_prev_st, sizeof(float), 1, F);
+  else
+    mean_f_collm_prev_st = 0.;
+#endif
+
   // allocate memory for the neutral fraction box
   xH = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);
   if (!xH){
@@ -674,18 +696,37 @@ int main(int argc, char ** argv){
   // Nion_ST * ION_EFF_FACTOR = the mean number of IGM ionizing photon per baryon
   // see eq. (17) in Park et al. 2018
   //
-  // Note from YQ, ifdef IHHOMO_FEEDBACK, this calculate the mean collpased fraction when there is no LW or reionization
+  // Note from YQ, ifdef IHHOMO_FEEDBACK, this calculate the mean collpased fraction when LW and RE are areveraged
+#ifdef CONTEMPORANEOUS_DUTYCYCLE 
+  if (mean_f_coll_prev_st < 1e-15)
+    mean_f_coll_st  = mean_f_coll_prev_st  + DeltaNion_ST(REDSHIFT, PREV_REDSHIFT, M_MIN, M_MINa, ALPHA_STAR, ALPHA_ESC, F_STAR10, F_ESC10, Mlim_Fstar, Mlim_Fesc);
+  else
+    mean_f_coll_st = Nion_ST(REDSHIFT, M_MIN, M_MINa, ALPHA_STAR, ALPHA_ESC, F_STAR10, F_ESC10, Mlim_Fstar, Mlim_Fesc);
+  sprintf(filename, "../Boxes/Nion_evolution/mean_f_coll_st_z%06.2f.bin", REDSHIFT);
+  if(fwrite(&mean_f_coll_st, sizeof(float), 1, fopen(filename, "w")) !=1)
+    fprintf(stderr,  "find_HII_bubbles.c: Error writing %s", filename);
+
+  if (mean_f_collm_prev_st < 1e-15)
+    mean_f_collm_st = mean_f_collm_prev_st + DeltaNion_STm(REDSHIFT, PREV_REDSHIFT, M_MIN, M_MINm, Mcrit_atom, ALPHA_STAR, F_STAR10m, Mlim_Fstarm);
+  else
+    mean_f_collm_st = Nion_STm(REDSHIFT, M_MIN, M_MINm, Mcrit_atom, ALPHA_STAR, F_STAR10m, Mlim_Fstarm);
+  sprintf(filename, "../Boxes/Nion_evolution/mean_f_collm_st_z%06.2f.bin", REDSHIFT);
+  if(fwrite(&mean_f_collm_st, sizeof(float), 1, fopen(filename, "w")) !=1)
+    fprintf(stderr,  "find_HII_bubbles.c: Error writing %s", filename);
+
+#else //CONTEMPORANEOUS_DUTYCYCLE
   mean_f_coll_st = Nion_ST(REDSHIFT, M_MIN, M_MINa, ALPHA_STAR, ALPHA_ESC, F_STAR10, F_ESC10, Mlim_Fstar, Mlim_Fesc);
 #ifdef MINI_HALO
   // Nion_ST * ION_EFF_FACTOR + Nion_STm * ION_EFF_FACTOR_MINI = the mean number of IGM ionizing photon per baryon
-  mean_f_coll_stm = Nion_STm(REDSHIFT, M_MIN, M_MINm, Mcrit_atom, ALPHA_STAR, F_STAR10m, Mlim_Fstarm);
+  mean_f_collm_st = Nion_STm(REDSHIFT, M_MIN, M_MINm, Mcrit_atom, ALPHA_STAR, F_STAR10m, Mlim_Fstarm);
 #endif //MINI_HALO
+#endif //CONTEMPORANEOUS_DUTYCYCLE
 #endif //SHARP_CUTOFF
 
   /**********  CHECK IF WE ARE IN THE DARK AGES ******************************/
   // lets check if we are going to bother with computing the inhmogeneous field at all...
 #ifdef MINI_HALO
-  if ((mean_f_coll_st*ION_EFF_FACTOR + mean_f_coll_stm*ION_EFF_FACTOR_MINI < HII_ROUND_ERR)) // way too small to ionize anything...//New in v2.1
+  if ((mean_f_coll_st*ION_EFF_FACTOR + mean_f_collm_st*ION_EFF_FACTOR_MINI < HII_ROUND_ERR)) // way too small to ionize anything...//New in v2.1
 #else //MINI_HALO
   if ((mean_f_coll_st*ION_EFF_FACTOR < HII_ROUND_ERR)) // way too small to ionize anything...//New in v2
 #endif //MINI_HALO
@@ -696,19 +737,19 @@ int main(int argc, char ** argv){
                      For the purpose of checking if we are in the dark ages, the calculation here assumes no LW or RE background\n \
                      The ST mean collapse fraction is %e (atomic) and %e (molecular),\n \
                      which is much smaller than the effective critical collapse fraction of %e (atomic) and %e (molecular)\n \
-                     I will just declare everything to be neutral\n", mean_f_coll_st, mean_f_coll_stm, 1./ION_EFF_FACTOR, 1./ION_EFF_FACTOR_MINI);
+                     I will just declare everything to be neutral\n", mean_f_coll_st, mean_f_collm_st, 1./ION_EFF_FACTOR, 1./ION_EFF_FACTOR_MINI);
     fprintf(LOG, "INHOMO_FEEDBACK is ON!\n \
                   For the purpose of checking if we are in the dark ages, the calculation here assumes no LW or RE background\n \
                   The ST mean collapse fraction is %e (atomic) and %e (molecular),\n \
                   which is much smaller than the effective critical collapse fraction of %e (atomic) and %e (molecular)\n \
-                  I will just declare everything to be neutral\n", mean_f_coll_st, mean_f_coll_stm, 1./ION_EFF_FACTOR, 1./ION_EFF_FACTOR_MINI);
+                  I will just declare everything to be neutral\n", mean_f_coll_st, mean_f_collm_st, 1./ION_EFF_FACTOR, 1./ION_EFF_FACTOR_MINI);
 #else //INHOMO_FEEDBACK
     fprintf(stderr, "The ST mean collapse fraction is %e (atomic) and %e (molecular),\n \
                      which is much smaller than the effective critical collapse fraction of %e (atomic) and %e (molecular)\n \
-                     I will just declare everything to be neutral\n", mean_f_coll_st, mean_f_coll_stm, 1./ION_EFF_FACTOR, 1./ION_EFF_FACTOR_MINI);
+                     I will just declare everything to be neutral\n", mean_f_coll_st, mean_f_collm_st, 1./ION_EFF_FACTOR, 1./ION_EFF_FACTOR_MINI);
     fprintf(LOG, "The ST mean collapse fraction is %e (atomic) and %e (molecular),\n \
                   which is much smaller than the effective critical collapse fraction of %e (atomic) and %e (molecular)\n \
-                  I will just declare everything to be neutral\n", mean_f_coll_st, mean_f_coll_stm, 1./ION_EFF_FACTOR, 1./ION_EFF_FACTOR_MINI);
+                  I will just declare everything to be neutral\n", mean_f_coll_st, mean_f_collm_st, 1./ION_EFF_FACTOR, 1./ION_EFF_FACTOR_MINI);
 #endif //INHOMO_FEEDBACK
 #else //MINI_HALO
     fprintf(stderr, "The ST mean collapse fraction is %e, which is much smaller than the effective critical collapse fraction of %e\n \
@@ -1181,12 +1222,77 @@ int main(int argc, char ** argv){
         
 #ifndef SHARP_CUTOFF
     initialiseGL_Nion(NGL_SFR, M_MIN, massofscaleR);
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
+    // add the modification term to make sure dNion/dt > 0
+    // NOTE we do not check whether mean_f_coll_st*ION_EFF_FACTOR + mean_f_collm_st*ION_EFF_FACTOR_MINI 
+    // decreases during the dark ages, which is unlikely to happen
+    sprintf(filename, "../Boxes/Nion_evolution/Nion_z%06.2f_R%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", PREV_REDSHIFT, R, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+    if (F=fopen(filename, "rb")){  // this is the first call for this run, i.e. at the highest redshift
+      flag_first_reionization = 0;
+      //check if some read error occurs
+      if (mod_fread(Fcoll_prev, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
+        strcpy(error_message, "find_HII_bubbles.c: Read error occured while reading Nion box!\n");
+        goto CLEANUP;
+      }
+      Fcoll_prev_ave = 0.;
+      for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
+        Fcoll_prev_ave += Fcoll_prev[ct];
+      Fcoll_prev_ave   /= HII_TOT_NUM_PIXELS;
+#ifndef INHOMO_FEEDBACK
+      initialise_DeltaNion_spline(REDSHIFT, PREV_REDSHIFT, massofscaleR,M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
+#endif //INHOMO_FEEDBACK
+    }
+    else{ // this is the first call (highest redshift)
+      flag_first_reionization = 1;
+      for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
+        Fcoll_prev[ct] = 0.0;
+      Fcoll_prev_ave   = 0;
+      // so we calculation Nion instead of Delta Nion
+#ifndef INHOMO_FEEDBACK
+      initialise_Nion_spline(REDSHIFT, massofscaleR,M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
+#endif //INHOMO_FEEDBACK
+    }
+    // same for mini halos
+    sprintf(filename, "../Boxes/Nion_evolution/Nionm_z%06.2f_R%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", PREV_REDSHIFT, R, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+    if (F=fopen(filename, "rb")){  // this is the first call for this run, i.e. at the highest redshift
+      if (flag_first_reionization == 1){
+        strcpy(error_message, "find_HII_bubbles.c: read Nionm box but not Nion box???\n");
+        goto CLEANUP;
+      }
+      //check if some read error occurs
+      if (mod_fread(Fcollm_prev, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
+        strcpy(error_message, "find_HII_bubbles.c: Read error occured while reading Nionm box!\n");
+        goto CLEANUP;
+      }
+      Fcoll_prev_avem = 0.;
+      for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
+        Fcoll_prev_avem += Fcollm_prev[ct];
+      Fcoll_prev_avem   /= HII_TOT_NUM_PIXELS;
+#ifndef INHOMO_FEEDBACK
+      initialise_DeltaNion_splinem(REDSHIFT, PREV_REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,M_MINm,Mcrit_atom,F_STAR10m,Mlim_Fstarm);
+#endif //INHOMO_FEEDBACK
+    }
+    else{ // this is the first call (highest redshift)
+      if (flag_first_reionization == 0){
+        strcpy(error_message, "find_HII_bubbles.c: read Nion box but not Nionm box???\n");
+        goto CLEANUP;
+      }
+      for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
+        Fcollm_prev[ct] = 0.0;
+      Fcoll_prev_avem   = 0;
+      // so we calculation Nion instead of Delta Nion
+#ifndef INHOMO_FEEDBACK
+      initialise_Nion_splinem(REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,M_MINm,Mcrit_atom,F_STAR10m,Mlim_Fstarm);
+#endif //INHOMO_FEEDBACK
+    }
+#else //CONTEMPORANEOUS_DUTYCYCLE
 #ifndef INHOMO_FEEDBACK
     initialise_Nion_spline(REDSHIFT, massofscaleR,M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
 #ifdef MINI_HALO
     initialise_Nion_splinem(REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,M_MINm,Mcrit_atom,F_STAR10m,Mlim_Fstarm);
 #endif //MINI_HALO
 #endif //INHOMO_FEEDBACK
+#endif //CONTEMPORANEOUS_DUTYCYCLE
 #endif //SHARP_CUTOFF
 #endif //USE_HALO_FIELD
 
@@ -1203,12 +1309,42 @@ int main(int argc, char ** argv){
             erfc_num = (Deltac - (density_over_mean-1)) /  growth_factor;
             Splined_Fcoll = splined_erfc(erfc_num/erfc_denom);
 #else //SHARP_CUTOFF
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
+            // Here, 'Splined_Fcoll' and 'f_coll' are not the collpased fraction, but leave this name as is to simplify the variable name.
+            // f_coll * ION_EFF_FACTOR = the number of INCREASING IGM ionizing photon per baryon at a given overdensity
+            // unless it's the highest redshift then it's the same as ifndef CONTEMPORANEOUS_DUTYCYCLE
+            // see ...
+#ifdef INHOMO_FEEDBACK
+            Mcrit_RE = reionization_feedback(REDSHIFT, Gamma12[HII_R_INDEX(x,y,z)], z_re[HII_R_INDEX(x,y,z)]); 
+            Mcrit_LW = lyman_werner_threshold(REDSHIFT, J_21_LW[HII_R_INDEX(x,y,z)]);
+            M_MINa = Mcrit_RE > Mcrit_atom ? Mcrit_RE : Mcrit_atom;
+            M_MINm = Mcrit_RE > Mcrit_LW   ? Mcrit_RE : Mcrit_LW;
+            if (flag_first_reionization == 0){
+              // it's not Splined value anymore, I'm not using interpolation table for INHOMO_FEEDBACK in this verison
+              DeltaNion_density(density_over_mean-1, REDSHIFT, PREV_REDSHIFT, massofscaleR, M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc, &Splined_Fcoll);
+              DeltaNion_densitym(density_over_mean-1, REDSHIFT, PREV_REDSHIFT, massofscaleR, M_MIN,ALPHA_STAR,M_MINm,Mcrit_atom,F_STAR10m,Mlim_Fstarm, &Splined_Fcollm);
+            }
+            else{
+              Nion_density(density_over_mean-1, REDSHIFT, massofscaleR, M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc, &Splined_Fcoll);
+              Nion_densitym(density_over_mean-1, REDSHIFT, massofscaleR, M_MIN,ALPHA_STAR,M_MINm,Mcrit_atom,F_STAR10m,Mlim_Fstarm, &Splined_Fcollm);
+            }
+#else //INHOMO_FEEDBACK
+            if (flag_first_reionization == 0){
+              DeltaNion_Spline_density(density_over_mean - 1,&(Splined_Fcoll));
+              DeltaNion_Spline_densitym(density_over_mean - 1,&(Splined_Fcollm));
+            }
+            else{
+              Nion_Spline_density(density_over_mean - 1,&(Splined_Fcoll));
+              Nion_Spline_densitym(density_over_mean - 1,&(Splined_Fcollm));
+            }
+#endif //INHOMO_FEEDBACK
+#else //CONTEMPORANEOUS_DUTYCYCLE
             // Here again, 'Splined_Fcoll' and 'f_coll' are not the collpased fraction, but leave this name as is to simplify the variable name.
             // f_coll * ION_EFF_FACTOR = the number of IGM ionizing photon per baryon at a given overdensity.
             // see eq. (17) in Park et al. 2018
 #ifdef INHOMO_FEEDBACK
-            Mcrit_RE = reionization_feedback(REDSHIFT, Gamma12[HII_R_INDEX(x, y, z)], z_re[HII_R_INDEX(x, y, z)]); 
-            Mcrit_LW = lyman_werner_threshold(REDSHIFT, J_21_LW[HII_R_INDEX(x, y, z)]);
+            Mcrit_RE = reionization_feedback(REDSHIFT, Gamma12[HII_R_INDEX(x,y,z)], z_re[HII_R_INDEX(x,y,z)]); 
+            Mcrit_LW = lyman_werner_threshold(REDSHIFT, J_21_LW[HII_R_INDEX(x,y,z)]);
             M_MINa = Mcrit_RE > Mcrit_atom ? Mcrit_RE : Mcrit_atom;
             M_MINm = Mcrit_RE > Mcrit_LW   ? Mcrit_RE : Mcrit_LW;
             // it's not Splined value anymore, I'm not using interpolation table for INHOMO_FEEDBACK in this verison
@@ -1220,16 +1356,35 @@ int main(int argc, char ** argv){
             Nion_Spline_densitym(density_over_mean - 1,&(Splined_Fcollm));
 #endif //MINI_HALO
 #endif //INHOMO_FEEDBACK
+#endif //CONTEMPORANEOUS_DUTYCYCLE
 #endif //SHARP_CUTOFF
           }
           else { // the entrire cell belongs to a collpased halo...  this is rare...
-            Splined_Fcoll =  1.0;
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
+            if (flag_first_reionization == 0){
+              Splined_Fcoll  = 0.0;
+              Splined_Fcollm = 0.0;
+            }
+            else{
+              Splined_Fcoll  = 1.0;
+              Splined_Fcollm = 1.0;
+            }
+#else //CONTEMPORANEOUS_DUTYCYCLE
+            Splined_Fcoll  = 1.0;
 #ifdef MINI_HALO
-            Splined_Fcollm =  1.0;
+            Splined_Fcollm = 1.0;
 #endif //MINI_HALO
+#endif //CONTEMPORANEOUS_DUTYCYCLE
           }
 #endif //USE_HALO_FIELD
 
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
+          // save the value of the collasped fraction into the Fcoll array
+          Fcoll[HII_R_FFT_INDEX(x,y,z)]  = Splined_Fcoll  + Fcoll_prev[HII_R_FFT_INDEX(x,y,z)];
+          Fcollm[HII_R_FFT_INDEX(x,y,z)] = Splined_Fcollm + Fcollm_prev[HII_R_FFT_INDEX(x,y,z)];
+          f_coll  += Splined_Fcoll;        
+          f_collm += Splined_Fcollm;
+#else //CONTEMPORANEOUS_DUTYCYCLE
           // save the value of the collasped fraction into the Fcoll array
           Fcoll[HII_R_FFT_INDEX(x,y,z)] = Splined_Fcoll;
           f_coll += Splined_Fcoll;        
@@ -1237,6 +1392,7 @@ int main(int argc, char ** argv){
           Fcollm[HII_R_FFT_INDEX(x,y,z)] = Splined_Fcollm;
           f_collm += Splined_Fcollm;
 #endif
+#endif //CONTEMPORANEOUS_DUTYCYCLE
         }
       }
     } //  end loop through Fcoll box
@@ -1245,12 +1401,39 @@ int main(int argc, char ** argv){
     ST_over_PS = mean_f_coll_st/f_coll; // normalization ratio used to adjust the PS conditional collapsed fraction
 #ifdef MINI_HALO
     f_collm /= (double) HII_TOT_NUM_PIXELS; // ave PS fcoll for this filter scale
-    ST_over_PSm = mean_f_coll_stm/f_collm; // normalization ratio used to adjust the PS conditional collapsed fraction
+    ST_over_PSm = mean_f_collm_st/f_collm; // normalization ratio used to adjust the PS conditional collapsed fraction
 #endif
     fprintf(LOG, "end f_coll normalization if, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
     
     //     fprintf(stderr, "Last filter %i, R_filter=%f, fcoll=%f, ST_over_PS=%f, mean normalized fcoll=%f\n", LAST_FILTER_STEP, R, f_coll, ST_over_PS, f_coll*ST_over_PS);
+
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
+    sprintf(filename, "../Boxes/Nion_evolution/Nion_z%06.2f_R%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, R, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+    if (!(F=fopen(filename, "wb"))){
+      fprintf(stderr, "find_HII_bubbles.c: WARNING: Unable to open output file %s\n", filename);
+      fprintf(LOG, "find_HII_bubbles.c: WARNING: Unable to open output file %s\n", filename);
+    }
+    else{
+      if (mod_fwrite(Fcoll, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
+        fprintf(stderr, "find_HII_bubbles.c: WARNING: Unable to write output file %s\n", filename);
+        fprintf(LOG, "find_HII_bubbles.c: WARNING: Unable to write output file %s\n", filename);
+      }
+      fclose(F);
+    }
+    sprintf(filename, "../Boxes/Nion_evolution/Nionm_z%06.2f_R%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, R, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+    if (!(F=fopen(filename, "wb"))){
+      fprintf(stderr, "find_HII_bubbles.c: WARNING: Unable to open output file %s\n", filename);
+      fprintf(LOG, "find_HII_bubbles.c: WARNING: Unable to open output file %s\n", filename);
+    }
+    else{
+      if (mod_fwrite(Fcollm, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
+        fprintf(stderr, "find_HII_bubbles.c: WARNING: Unable to write output file %s\n", filename);
+        fprintf(LOG, "find_HII_bubbles.c: WARNING: Unable to write output file %s\n", filename);
+      }
+      fclose(F);
+    }
+#endif //CONTEMPORANEOUS_DUTYCYCLE
 
     /****************************************************************************/
     /************  MAIN LOOP THROUGH THE BOX FOR THIS FILTER SCALE **************/
@@ -1287,7 +1470,7 @@ int main(int argc, char ** argv){
 
 #ifdef INHOMO_RECO
           dfcolldt  = f_coll  / t_ast;
-          Gamma_R = Gamma_R_prefactor * dfcolldt;
+          Gamma_R   = Gamma_R_prefactor * dfcolldt;
 #ifdef MINI_HALO
           dfcolldtm = f_collm / t_ast;
           Gamma_R  += Gamma_R_prefactorm * dfcolldtm;
@@ -1312,33 +1495,33 @@ int main(int argc, char ** argv){
             // if this is the first crossing of the ionization barrier for this cell (largest R), record the gamma
             // this assumes photon-starved growth of HII regions...  breaks down post EoR
 #ifdef INHOMO_RECO
-            if (xH[HII_R_INDEX(x, y, z)] > FRACT_FLOAT_ERR){
-              Gamma12[HII_R_INDEX(x, y, z)] = Gamma_R;
+            if (xH[HII_R_INDEX(x,y,z)] > FRACT_FLOAT_ERR){
+              Gamma12[HII_R_INDEX(x,y,z)] = Gamma_R;
               aveR += R;
               Rct++;
             }
 
             // keep track of the first time this cell is ionized (earliest time)
-            if (z_re[HII_R_INDEX(x, y, z)] < 0)
-              z_re[HII_R_INDEX(x, y, z)] = REDSHIFT;          
+            if (z_re[HII_R_INDEX(x,y,z)] < 0)
+              z_re[HII_R_INDEX(x,y,z)] = REDSHIFT;          
 #endif //INHOMO_RECO
 
         
             // FLAG CELL(S) AS IONIZED
             if (FIND_BUBBLE_ALGORITHM == 2) // center method
-              xH[HII_R_INDEX(x, y, z)] = 0;
+              xH[HII_R_INDEX(x,y,z)] = 0;
             else if (FIND_BUBBLE_ALGORITHM == 1) // sphere method
               update_in_sphere(xH, HII_DIM, R/BOX_LEN, x/(HII_DIM+0.0), y/(HII_DIM+0.0), z/(HII_DIM+0.0));
             else{
               fprintf(stderr, "Incorrect choice of find bubble algorithm set in ANAL_PARAMS.H.\nSetting center method...");
               fprintf(LOG, "Incorrect choice of find bubble algorithm set in ANAL_PARAMS.H.\nSetting center method...");
-              xH[HII_R_INDEX(x, y, z)] = 0;
+              xH[HII_R_INDEX(x,y,z)] = 0;
             }
         
           } // end ionized
         
           // If not fully ionized, then assign partial ionizations 
-          else if (LAST_FILTER_STEP && (xH[HII_R_INDEX(x, y, z)] > TINY)){
+          else if (LAST_FILTER_STEP && (xH[HII_R_INDEX(x,y,z)] > TINY)){
 
 #ifndef USE_HALO_FIELD
             if (ave_N_min_cell < N_POISSON){ // add poissonian fluctuations to the nalo number
@@ -1369,15 +1552,15 @@ int main(int argc, char ** argv){
             else if (res_xH > 1)
               res_xH = 1;
           
-            xH[HII_R_INDEX(x, y, z)] = res_xH;
+            xH[HII_R_INDEX(x,y,z)] = res_xH;
           } // end partial ionizations at last filtering step
 
           /*
           if ((x==0) && (y==19) && (z==107)){ //DEBUGGING
             fprintf(stderr, "R=%g Mpc, <Delta>_R=%g, <fcoll>_R=%g, <rec>_V=%g, xH=%g, Gamma12=%g, z_re=%g\n",
-                R, density_over_mean, f_coll, rec, xH[HII_R_INDEX(x, y, z)], Gamma12[HII_R_INDEX(x, y, z)], z_re[HII_R_INDEX(x, y, z)]);
+                R, density_over_mean, f_coll, rec, xH[HII_R_INDEX(x,y,z)], Gamma12[HII_R_INDEX(x,y,z)], z_re[HII_R_INDEX(x,y,z)]);
             fprintf(LOG, "R=%g Mpc, <Delta>_R=%g, <fcoll>_R=%g, <rec>_V=%g, xH=%g, Gamma12=%g, z_re=%g\n",
-                R, density_over_mean, f_coll, rec, xH[HII_R_INDEX(x, y, z)], Gamma12[HII_R_INDEX(x, y, z)], z_re[HII_R_INDEX(x, y, z)]);
+                R, density_over_mean, f_coll, rec, xH[HII_R_INDEX(x,y,z)], Gamma12[HII_R_INDEX(x,y,z)], z_re[HII_R_INDEX(x,y,z)]);
             fflush(NULL);
           }
           */
@@ -1593,6 +1776,10 @@ int main(int argc, char ** argv){
   fftwf_free(Gamma12);
 #ifdef INHOMO_FEEDBACK 
   fftwf_free(J_21_LW);
+#endif
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
+  fftwf_free(Fcoll_prev);
+  fftwf_free(Fcollm_prev);
 #endif
   fclose(LOG);
   fftwf_free(deltax_unfiltered);

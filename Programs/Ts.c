@@ -1023,7 +1023,6 @@ int main(int argc, char ** argv){
 #endif
   fprintf(stderr, "\n Generated the table of SFRD using conditional mass function for mini halos = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
 #endif
-
 #endif //SHARP_CUTOFF
 
   if (RESTART == 1){
