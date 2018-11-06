@@ -141,9 +141,6 @@ struct parameters_gsl_SFR_intm_{
 
 struct parameters_gsl_SFR_con_int_{
     double z_obs;
-#ifdef CONTEMPORANEOUS_DUTYCYCLE
-    double zp_obs;
-#endif
     double Mval;
     double delta1;
     double delta2;
@@ -159,9 +156,6 @@ struct parameters_gsl_SFR_con_int_{
 #ifdef MINI_HALO
 struct parameters_gsl_SFR_con_intm_{
     double z_obs;
-#ifdef CONTEMPORANEOUS_DUTYCYCLE
-    double zp_obs;
-#endif
     double Mval;
     double delta1;
     double delta2;
@@ -1632,17 +1626,14 @@ double Nion_ConditionalM(double z, double M1, double M2, double delta1, double d
     lower_limit = M1;
     upper_limit = M2;
 
-    gsl_integration_qag (&F, lower_limit, upper_limit, 0, rel_tol,
-                        1000, GSL_INTEG_GAUSS61, w, &result, &error);
-    gsl_integration_workspace_free (w);
-
-    if(delta2 >= delta1) {
-        result = 1.;
-        return result;
-    }
+    if(delta2 >= delta1)
+      result = 1.;
     else {
-        return result;
+      gsl_integration_qag (&F, lower_limit, upper_limit, 0, rel_tol,
+                          1000, GSL_INTEG_GAUSS61, w, &result, &error);
+      gsl_integration_workspace_free (w);
     }
+    return result;
 
 }
 
@@ -1671,17 +1662,14 @@ double Nion_ConditionalMm(double z, double M1, double M2, double delta1, double 
     lower_limit = M1;
     upper_limit = M2;
 
-    gsl_integration_qag (&F, lower_limit, upper_limit, 0, rel_tol,
-                        1000, GSL_INTEG_GAUSS61, w, &result, &error);
-    gsl_integration_workspace_free (w);
-
-    if(delta2 >= delta1) {
-        result = 1.;
-        return result;
-    }
+    if(delta2 >= delta1)
+      result = 1.;
     else {
-        return result;
+      gsl_integration_qag (&F, lower_limit, upper_limit, 0, rel_tol,
+                          1000, GSL_INTEG_GAUSS61, w, &result, &error);
+      gsl_integration_workspace_free (w);
     }
+    return result;
 
 }
 #endif
@@ -1939,116 +1927,54 @@ double DeltaNion_STm(double z, double zp, double M_Min, double MassTurnover_lowe
 }
 #endif
 
-float DeltaNion_ConditionallnM_GL(float lnM, struct parameters_gsl_SFR_con_int_ parameters_gsl_SFR_con){
-    float M = exp(lnM);
-    float z = parameters_gsl_SFR_con.z_obs;
-    float zp = parameters_gsl_SFR_con.zp_obs;
-    float M2 = parameters_gsl_SFR_con.Mval;
-    float del1 = parameters_gsl_SFR_con.delta1;
-    float del2 = parameters_gsl_SFR_con.delta2;
-    float MassTurnover = parameters_gsl_SFR_con.Mdrop;
-    float Alpha_star = parameters_gsl_SFR_con.pl_star;
-    float Alpha_esc = parameters_gsl_SFR_con.pl_esc;
-    float Fstar10 = parameters_gsl_SFR_con.frac_star;
-    float Fesc10 = parameters_gsl_SFR_con.frac_esc;
-    float Mlim_Fstar = parameters_gsl_SFR_con.LimitMass_Fstar;
-    float Mlim_Fesc = parameters_gsl_SFR_con.LimitMass_Fesc;
-
-    float Fstar,Fesc;
-
-    if (Alpha_star > 0. && M > Mlim_Fstar)
-        Fstar = 1./Fstar10;
-    else if (Alpha_star < 0. && M < Mlim_Fstar)
-        Fstar = 1./Fstar10;
-    else
-        Fstar = pow(M/1e10,Alpha_star);
-
-    if (Alpha_esc > 0. && M > Mlim_Fesc)
-        Fesc = 1./Fesc10;
-    else if (Alpha_esc < 0. && M < Mlim_Fesc)
-        Fesc = 1./Fesc10;
-    else
-        Fesc = pow(M/1e10,Alpha_esc);
-
-    return M* exp(-MassTurnover / M) * Fstar * Fesc * 
-           (dNdM_conditional_second(z, log(M), M2, del1, del2) -
-            dNdM_conditional_second(zp, log(M), M2, del1, del2)) / sqrt(2.*PI);
-
-}
-#ifdef MINI_HALO
-float DeltaNion_ConditionallnM_GLm(float lnM, struct parameters_gsl_SFR_con_intm_ parameters_gsl_SFR_con){
-    float M = exp(lnM);
-    float z = parameters_gsl_SFR_con.z_obs;
-    float zp = parameters_gsl_SFR_con.zp_obs;
-    float M2 = parameters_gsl_SFR_con.Mval;
-    float del1 = parameters_gsl_SFR_con.delta1;
-    float del2 = parameters_gsl_SFR_con.delta2;
-    float Alpha_star = parameters_gsl_SFR_con.pl_star;
-    float MassTurnoverm = parameters_gsl_SFR_con.Mdropm1;
-    float Mcrit_atom = parameters_gsl_SFR_con.Mdropm2;
-    float Fstar10m = parameters_gsl_SFR_con.frac_starm;
-    float Mlim_Fstarm = parameters_gsl_SFR_con.LimitMass_Fstarm;
-
-    float Fstarm;
-
-    if (Alpha_star > 0. && M > Mlim_Fstarm)
-        Fstarm = 1./Fstar10m;
-    else if (Alpha_star < 0. && M < Mlim_Fstarm)
-        Fstarm = 1./Fstar10m;
-    else
-        Fstarm = pow(M/1e10,Alpha_star);
-
-    return M* exp(-MassTurnoverm / M) * exp(-M / Mcrit_atom) * Fstarm *
-           (dNdM_conditional_second(z, log(M), M2, del1, del2) -
-            dNdM_conditional_second(zp, log(M), M2, del1, del2)) / sqrt(2. * PI);
-}
-#endif
-
 float GaussLegendreQuad_DeltaNion(int n, float z, float zp, float M2, float delta1, float delta2, float MassTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc) {
-    //Performs the Gauss-Legendre quadrature.
-    int i;
+  if(delta2 > delta1)
+    return 0.;
 
-    float integrand, x;
-    integrand = 0.;
+  struct parameters_gsl_SFR_con_int_ parameters_gsl_SFR_con = {
+      .z_obs = z,
+      .Mval = M2,
+      .delta1 = delta1,
+      .delta2 = delta2,
+      .Mdrop = MassTurnover,
+      .pl_star = Alpha_star,
+      .pl_esc = Alpha_esc,
+      .frac_star = Fstar10,
+      .frac_esc = Fesc10,
+      .LimitMass_Fstar = Mlim_Fstar,
+      .LimitMass_Fesc = Mlim_Fesc
+  };
 
-    struct parameters_gsl_SFR_con_int_ parameters_gsl_SFR_con = {
-        .z_obs = z,
-        .zp_obs = zp,
-        .Mval = M2,
-        .delta1 = delta1,
-        .delta2 = delta2,
-        .Mdrop = MassTurnover,
-        .pl_star = Alpha_star,
-        .pl_esc = Alpha_esc,
-        .frac_star = Fstar10,
-        .frac_esc = Fesc10,
-        .LimitMass_Fstar = Mlim_Fstar,
-        .LimitMass_Fesc = Mlim_Fesc
-    };
+  struct parameters_gsl_SFR_con_int_ parameters_gsl_SFR_conp = {
+      .z_obs = zp,
+      .Mval = M2,
+      .delta1 = delta1,
+      .delta2 = delta2,
+      .Mdrop = MassTurnover,
+      .pl_star = Alpha_star,
+      .pl_esc = Alpha_esc,
+      .frac_star = Fstar10,
+      .frac_esc = Fesc10,
+      .LimitMass_Fstar = Mlim_Fstar,
+      .LimitMass_Fesc = Mlim_Fesc
+  };
 
-    if(delta2 > delta1){
-        return 0.;
-    }
-    else{
-        for(i=1; i<(n+1); i++){
-            x = xi_SFR[i];
-            integrand += wi_SFR[i]*DeltaNion_ConditionallnM_GL(x,parameters_gsl_SFR_con);
-        }
-        return integrand;
-    }
+  //Performs the Gauss-Legendre quadrature.
+  int i;
+  float integrand = 0.;
+  for(i=1; i<(n+1); i++)
+    integrand += wi_SFR[i]*(Nion_ConditionallnM_GL(xi_SFR[i],parameters_gsl_SFR_con) - Nion_ConditionallnM_GL(xi_SFR[i],parameters_gsl_SFR_conp));
+
+  return integrand;
 
 }
 #ifdef MINI_HALO
 float GaussLegendreQuad_DeltaNionm(int n, float z, float zp, float M2, float delta1, float delta2, float Alpha_star, float MassTurnoverm, float Mcrit_atom, float Fstar10m, float Mlim_Fstarm) {
-    //Performs the Gauss-Legendre quadrature.
-    int i;
-
-    float integrand, x;
-    integrand = 0.;
+    if(delta2 > delta1)
+      return 0.;
 
     struct parameters_gsl_SFR_con_intm_ parameters_gsl_SFR_con = {
         .z_obs = z,
-        .zp_obs = zp,
         .Mval = M2,
         .delta1 = delta1,
         .delta2 = delta2,
@@ -2059,90 +1985,34 @@ float GaussLegendreQuad_DeltaNionm(int n, float z, float zp, float M2, float del
         .LimitMass_Fstarm = Mlim_Fstarm
     };
 
-    if(delta2 > delta1){
-        return 0.;
-    }
-    else{
-        for(i=1; i<(n+1); i++){
-            x = xi_SFR[i];
-            integrand += wi_SFR[i]*DeltaNion_ConditionallnM_GLm(x,parameters_gsl_SFR_con);
-        }
-        return integrand;
-    }
+    struct parameters_gsl_SFR_con_intm_ parameters_gsl_SFR_conp = {
+        .z_obs = zp,
+        .Mval = M2,
+        .delta1 = delta1,
+        .delta2 = delta2,
+        .pl_star = Alpha_star,
+        .Mdropm1 = MassTurnoverm,
+        .Mdropm2 = Mcrit_atom,
+        .frac_starm = Fstar10m,
+        .LimitMass_Fstarm = Mlim_Fstarm
+    };
 
-}
-#endif
+    //Performs the Gauss-Legendre quadrature.
+    int i;
+    float integrand = 0.;
+    for(i=1; i<(n+1); i++)
+      integrand += wi_SFR[i]*(Nion_ConditionallnM_GLm(xi_SFR[i],parameters_gsl_SFR_con) - Nion_ConditionallnM_GLm(xi_SFR[i],parameters_gsl_SFR_conp));
 
+    return integrand;
 
-double dDeltaNion_ConditionallnM(double lnM, void *params) {
-    struct parameters_gsl_SFR_con_int_ vals = *(struct parameters_gsl_SFR_con_int_ *)params;
-    double M = exp(lnM); // linear scale
-    double z = vals.z_obs;
-    double zp = vals.zp_obs;
-    double M2 = vals.Mval; // natural log scale
-    double del1 = vals.delta1;
-    double del2 = vals.delta2;
-    double MassTurnover = vals.Mdrop;
-    double Alpha_star = vals.pl_star;
-    double Alpha_esc = vals.pl_esc;
-    double Fstar10 = vals.frac_star;
-    double Fesc10 = vals.frac_esc;
-    double Mlim_Fstar = vals.LimitMass_Fstar;
-    double Mlim_Fesc = vals.LimitMass_Fesc;
-
-    double Fstar,Fesc;
-
-    if (Alpha_star > 0. && M > Mlim_Fstar)
-        Fstar = 1./Fstar10;
-    else if (Alpha_star < 0. && M < Mlim_Fstar)
-        Fstar = 1./Fstar10;
-    else
-        Fstar = pow(M/1e10,Alpha_star);
-
-    if (Alpha_esc > 0. && M > Mlim_Fesc)
-        Fesc = 1./Fesc10;
-    else if (Alpha_esc < 0. && M < Mlim_Fesc)
-        Fesc = 1./Fesc10;
-    else 
-        Fesc = pow(M/1e10,Alpha_esc);
-
-    return M * exp(-MassTurnover / M) * Fstar * Fesc *
-           (dNdM_conditional_second(z, log(M), M2, del1, del2) - 
-            dNdM_conditional_second(zp, log(M), M2, del1, del2)) / sqrt(2.*PI);
-}
-
-#ifdef MINI_HALO
-double dDeltaNion_ConditionallnMm(double lnM, void *params) {
-    struct parameters_gsl_SFR_con_intm_ vals = *(struct parameters_gsl_SFR_con_intm_ *)params;
-    double M = exp(lnM); // linear scale
-    double z = vals.z_obs;
-    double zp = vals.zp_obs;
-    double M2 = vals.Mval; // natural log scale
-    double del1 = vals.delta1;
-    double del2 = vals.delta2;
-    double Alpha_star = vals.pl_star;
-    double MassTurnoverm = vals.Mdropm1;
-    double Mcrit_atom = vals.Mdropm2;
-    double Fstar10m = vals.frac_starm;
-    double Mlim_Fstarm = vals.LimitMass_Fstarm;
-
-    double Fstarm;
-
-    if (Alpha_star > 0. && M > Mlim_Fstarm)
-        Fstarm = 1./Fstar10m;
-    else if (Alpha_star < 0. && M < Mlim_Fstarm)
-        Fstarm = 1./Fstar10m;
-    else
-        Fstarm = pow(M/1e10,Alpha_star);
-
-    return M * exp(-MassTurnoverm / M) * exp(-M / Mcrit_atom) * Fstarm *
-           (dNdM_conditional_second(z, log(M), M2, del1, del2) - 
-            dNdM_conditional_second(zp, log(M), M2, del1, del2))/ sqrt(2. * PI);
 }
 #endif
 
 double DeltaNion_ConditionalM(double z, double zp, double M1, double M2, double delta1, double delta2, double MassTurnover, double Alpha_star, double Alpha_esc, double Fstar10, double Fesc10, double Mlim_Fstar, double Mlim_Fesc) {
-    double result, error, lower_limit, upper_limit;
+    if(delta2 >= delta1)
+      return 0.;
+
+    double result, resultp, error, lower_limit, upper_limit;
     gsl_function F;
     double rel_tol = 0.005; //<- relative tolerance
     gsl_integration_workspace * w
@@ -2150,7 +2020,6 @@ double DeltaNion_ConditionalM(double z, double zp, double M1, double M2, double 
 
     struct parameters_gsl_SFR_con_int_ parameters_gsl_SFR_con = {
         .z_obs = z,
-        .zp_obs = zp,
         .Mval = M2,
         .delta1 = delta1,
         .delta2 = delta2,
@@ -2163,28 +2032,42 @@ double DeltaNion_ConditionalM(double z, double zp, double M1, double M2, double 
         .LimitMass_Fesc = Mlim_Fesc
     };
 
-    F.function = &dDeltaNion_ConditionallnM;
-    F.params = &parameters_gsl_SFR_con;
+    struct parameters_gsl_SFR_con_int_ parameters_gsl_SFR_conp = {
+        .z_obs = zp,
+        .Mval = M2,
+        .delta1 = delta1,
+        .delta2 = delta2,
+        .Mdrop = MassTurnover,
+        .pl_star = Alpha_star,
+        .pl_esc = Alpha_esc,
+        .frac_star = Fstar10,
+        .frac_esc = Fesc10,
+        .LimitMass_Fstar = Mlim_Fstar,
+        .LimitMass_Fesc = Mlim_Fesc
+    };
+
     lower_limit = M1;
     upper_limit = M2;
+    F.function = &dNion_ConditionallnM;
 
+    F.params = &parameters_gsl_SFR_con;
     gsl_integration_qag (&F, lower_limit, upper_limit, 0, rel_tol,
                         1000, GSL_INTEG_GAUSS61, w, &result, &error);
+    F.params = &parameters_gsl_SFR_conp;
+    gsl_integration_qag (&F, lower_limit, upper_limit, 0, rel_tol,
+                        1000, GSL_INTEG_GAUSS61, w, &resultp, &error);
     gsl_integration_workspace_free (w);
-
-    if(delta2 >= delta1) {
-        result = 0.;
-        return result;
-    }
-    else {
-        return result;
-    }
+    
+    return result - resultp;
 
 }
 
 #ifdef MINI_HALO
 double DeltaNion_ConditionalMm(double z, double zp, double M1, double M2, double delta1, double delta2, double Alpha_star, double MassTurnoverm, double Mcrit_atom, double Fstar10m, double Mlim_Fstarm) {
-    double result, error, lower_limit, upper_limit;
+    if(delta2 >= delta1)
+      return 0.;
+
+    double result, resultp, error, lower_limit, upper_limit;
     gsl_function F;
     double rel_tol = 0.005; //<- relative tolerance
     gsl_integration_workspace * w
@@ -2192,7 +2075,6 @@ double DeltaNion_ConditionalMm(double z, double zp, double M1, double M2, double
 
     struct parameters_gsl_SFR_con_intm_ parameters_gsl_SFR_con = {
         .z_obs = z,
-        .zp_obs = zp,
         .Mval = M2,
         .delta1 = delta1,
         .delta2 = delta2,
@@ -2203,22 +2085,31 @@ double DeltaNion_ConditionalMm(double z, double zp, double M1, double M2, double
         .LimitMass_Fstarm = Mlim_Fstarm
     };
 
-    F.function = &dDeltaNion_ConditionallnMm;
-    F.params = &parameters_gsl_SFR_con;
+    struct parameters_gsl_SFR_con_intm_ parameters_gsl_SFR_conp = {
+        .z_obs = zp,
+        .Mval = M2,
+        .delta1 = delta1,
+        .delta2 = delta2,
+        .pl_star = Alpha_star,
+        .Mdropm1 = MassTurnoverm,
+        .Mdropm2 = Mcrit_atom,
+        .frac_starm = Fstar10m,
+        .LimitMass_Fstarm = Mlim_Fstarm
+    };
+
     lower_limit = M1;
     upper_limit = M2;
+    F.function = &dNion_ConditionallnMm;
 
+    F.params = &parameters_gsl_SFR_con;
     gsl_integration_qag (&F, lower_limit, upper_limit, 0, rel_tol,
                         1000, GSL_INTEG_GAUSS61, w, &result, &error);
+    F.params = &parameters_gsl_SFR_conp;
+    gsl_integration_qag (&F, lower_limit, upper_limit, 0, rel_tol,
+                        1000, GSL_INTEG_GAUSS61, w, &resultp, &error);
     gsl_integration_workspace_free (w);
 
-    if(delta2 >= delta1) {
-        result = 0.;
-        return result;
-    }
-    else {
-        return result;
-    }
+    return result - resultp;
 
 }
 #endif
