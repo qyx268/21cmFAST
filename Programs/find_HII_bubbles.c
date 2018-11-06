@@ -1383,8 +1383,8 @@ int main(int argc, char ** argv){
           // save the value of the collasped fraction into the Fcoll array
           Fcoll[HII_R_FFT_INDEX(x,y,z)]  = Splined_Fcoll  + Fcoll_prev[HII_R_FFT_INDEX(x,y,z)];
           Fcollm[HII_R_FFT_INDEX(x,y,z)] = Splined_Fcollm + Fcollm_prev[HII_R_FFT_INDEX(x,y,z)];
-          f_coll  += Splined_Fcoll;        
-          f_collm += Splined_Fcollm;
+          f_coll  += Fcoll[HII_R_FFT_INDEX(x,y,z)];
+          f_collm += Fcollm[HII_R_FFT_INDEX(x,y,z)];
 #else //CONTEMPORANEOUS_DUTYCYCLE
           // save the value of the collasped fraction into the Fcoll array
           Fcoll[HII_R_FFT_INDEX(x,y,z)] = Splined_Fcoll;
