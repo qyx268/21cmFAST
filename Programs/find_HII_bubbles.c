@@ -391,7 +391,7 @@ int main(int argc, char ** argv){
 #endif 
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
   float *Fcoll_prev=NULL, Fcoll_prev_ave, *Fcollm_prev=NULL, Fcoll_prev_avem;
-  float mean_f_coll_prev_st, mean_f_collm_prev_st;
+  double mean_f_coll_prev_st, mean_f_collm_prev_st;
   int flag_first_reionization;
 #endif
   fftwf_complex *M_coll_unfiltered=NULL, *M_coll_filtered=NULL, *deltax_unfiltered=NULL, *deltax_filtered=NULL, *xe_unfiltered=NULL, *xe_filtered=NULL;
@@ -404,7 +404,8 @@ int main(int argc, char ** argv){
   float nua, dnua, temparg, Gamma_R, z_eff;
   float F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, Mlim_Fstar, Mlim_Fesc; //New in v2
 #ifdef MINI_HALO
-  float F_STAR10m, F_ESC10m, Mlim_Fstarm, ION_EFF_FACTOR_MINI,M_MINm, M_MINa, Splined_Fcollm, dfcolldtm,Gamma_R_prefactorm,ST_over_PSm,f_collm, Mcrit_atom, Mcrit_LW=0., Mcrit_RE=0., mean_f_collm_st; //New in v2.1
+  float F_STAR10m, F_ESC10m, Mlim_Fstarm, ION_EFF_FACTOR_MINI,M_MINm, M_MINa, Splined_Fcollm, dfcolldtm,Gamma_R_prefactorm,ST_over_PSm,f_collm, Mcrit_atom, Mcrit_LW=0., Mcrit_RE=0.;
+  double mean_f_collm_st; //New in v2.1
   double X_LUMINOSITYm;
 #ifdef REION_SM
   double REION_SM13_Z_RE, REION_SM13_DELTA_Z_RE, REION_SM13_DELTA_Z_SC;
@@ -670,12 +671,12 @@ int main(int argc, char ** argv){
   system("mkdir -p ../Boxes/Nion_evolution/");
   sprintf(filename, "../Boxes/Nion_evolution/mean_f_coll_st_z%06.2f.bin", PREV_REDSHIFT);
   if(F = fopen(filename, "r"))
-    fread(&mean_f_coll_prev_st, sizeof(float), 1, F);
+    fread(&mean_f_coll_prev_st, sizeof(double), 1, F);
   else
     mean_f_coll_prev_st = 0.;
   sprintf(filename, "../Boxes/Nion_evolution/mean_f_collm_st_z%06.2f.bin", PREV_REDSHIFT);
   if(F = fopen(filename, "r"))
-    fread(&mean_f_collm_prev_st, sizeof(float), 1, F);
+    fread(&mean_f_collm_prev_st, sizeof(double), 1, F);
   else
     mean_f_collm_prev_st = 0.;
 #endif
@@ -703,7 +704,7 @@ int main(int argc, char ** argv){
   else
     mean_f_coll_st = Nion_ST(REDSHIFT, M_MIN, M_MINa, ALPHA_STAR, ALPHA_ESC, F_STAR10, F_ESC10, Mlim_Fstar, Mlim_Fesc);
   sprintf(filename, "../Boxes/Nion_evolution/mean_f_coll_st_z%06.2f.bin", REDSHIFT);
-  if(fwrite(&mean_f_coll_st, sizeof(float), 1, fopen(filename, "w")) !=1)
+  if(fwrite(&mean_f_coll_st, sizeof(double), 1, fopen(filename, "w")) !=1)
     fprintf(stderr,  "find_HII_bubbles.c: Error writing %s", filename);
 
   if (mean_f_collm_prev_st < 1e-15)
@@ -711,7 +712,7 @@ int main(int argc, char ** argv){
   else
     mean_f_collm_st = Nion_STm(REDSHIFT, M_MIN, M_MINm, Mcrit_atom, ALPHA_STAR, F_STAR10m, Mlim_Fstarm);
   sprintf(filename, "../Boxes/Nion_evolution/mean_f_collm_st_z%06.2f.bin", REDSHIFT);
-  if(fwrite(&mean_f_collm_st, sizeof(float), 1, fopen(filename, "w")) !=1)
+  if(fwrite(&mean_f_collm_st, sizeof(double), 1, fopen(filename, "w")) !=1)
     fprintf(stderr,  "find_HII_bubbles.c: Error writing %s", filename);
 
 #else //CONTEMPORANEOUS_DUTYCYCLE
@@ -734,28 +735,28 @@ int main(int argc, char ** argv){
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
     fprintf(stderr, "INHOMO_FEEDBACK is ON!\n \
-                     For the purpose of checking if we are in the dark ages, the calculation here assumes no LW or RE background\n \
-                     The ST mean collapse fraction is %e (atomic) and %e (molecular),\n \
-                     which is much smaller than the effective critical collapse fraction of %e (atomic) and %e (molecular)\n \
-                     I will just declare everything to be neutral\n", mean_f_coll_st, mean_f_collm_st, 1./ION_EFF_FACTOR, 1./ION_EFF_FACTOR_MINI);
+  For the purpose of checking if we are in the dark ages, the calculation here assumes mean LW/RE background\n \
+  The ST mean collapse fraction is %e (atomic) and %e (molecular),\n \
+  which is much smaller than the effective critical collapse fraction of %e (atomic) and %e (molecular)\n \
+  I will just declare everything to be neutral\n", mean_f_coll_st, mean_f_collm_st, 1./ION_EFF_FACTOR, 1./ION_EFF_FACTOR_MINI);
     fprintf(LOG, "INHOMO_FEEDBACK is ON!\n \
-                  For the purpose of checking if we are in the dark ages, the calculation here assumes no LW or RE background\n \
-                  The ST mean collapse fraction is %e (atomic) and %e (molecular),\n \
-                  which is much smaller than the effective critical collapse fraction of %e (atomic) and %e (molecular)\n \
-                  I will just declare everything to be neutral\n", mean_f_coll_st, mean_f_collm_st, 1./ION_EFF_FACTOR, 1./ION_EFF_FACTOR_MINI);
+  For the purpose of checking if we are in the dark ages, the calculation here assumes mean LW/RE background\n \
+  The ST mean collapse fraction is %e (atomic) and %e (molecular),\n \
+  which is much smaller than the effective critical collapse fraction of %e (atomic) and %e (molecular)\n \
+  I will just declare everything to be neutral\n", mean_f_coll_st, mean_f_collm_st, 1./ION_EFF_FACTOR, 1./ION_EFF_FACTOR_MINI);
 #else //INHOMO_FEEDBACK
     fprintf(stderr, "The ST mean collapse fraction is %e (atomic) and %e (molecular),\n \
-                     which is much smaller than the effective critical collapse fraction of %e (atomic) and %e (molecular)\n \
-                     I will just declare everything to be neutral\n", mean_f_coll_st, mean_f_collm_st, 1./ION_EFF_FACTOR, 1./ION_EFF_FACTOR_MINI);
+  which is much smaller than the effective critical collapse fraction of %e (atomic) and %e (molecular)\n \
+  I will just declare everything to be neutral\n", mean_f_coll_st, mean_f_collm_st, 1./ION_EFF_FACTOR, 1./ION_EFF_FACTOR_MINI);
     fprintf(LOG, "The ST mean collapse fraction is %e (atomic) and %e (molecular),\n \
-                  which is much smaller than the effective critical collapse fraction of %e (atomic) and %e (molecular)\n \
-                  I will just declare everything to be neutral\n", mean_f_coll_st, mean_f_collm_st, 1./ION_EFF_FACTOR, 1./ION_EFF_FACTOR_MINI);
+  which is much smaller than the effective critical collapse fraction of %e (atomic) and %e (molecular)\n \
+  I will just declare everything to be neutral\n", mean_f_coll_st, mean_f_collm_st, 1./ION_EFF_FACTOR, 1./ION_EFF_FACTOR_MINI);
 #endif //INHOMO_FEEDBACK
 #else //MINI_HALO
     fprintf(stderr, "The ST mean collapse fraction is %e, which is much smaller than the effective critical collapse fraction of %e\n \
-                     I will just declare everything to be neutral\n", mean_f_coll_st, 1./ION_EFF_FACTOR);
+  I will just declare everything to be neutral\n", mean_f_coll_st, 1./ION_EFF_FACTOR);
     fprintf(LOG, "The ST mean collapse fraction is %e, which is much smaller than the effective critical collapse fraction of %e\n \
-                  I will just declare everything to be neutral\n", mean_f_coll_st, 1./ION_EFF_FACTOR);
+  I will just declare everything to be neutral\n", mean_f_coll_st, 1./ION_EFF_FACTOR);
 #endif //MINI_HALO
 
 #ifdef USE_TS_IN_21CM
