@@ -67,8 +67,11 @@ static gsl_spline *NionLow_splinem;
 
 void initialiseGL_Nion(int n, float M_Min, float M_Max);
 void Nion_Spline_density(float Overdensity, float *splined_value);
+#ifdef INHOMO_FEEDBACK
+void initialise_Nion_spline(float z, float Mmax, float Mmin, float MMinTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc);
+#else //INHOMO_FEEDBACK
 void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc);
-
+#endif //INHOMO_FEEDBACK
 float Mass_limit (float logM, float PL, float FRAC);
 void bisection(float *x, float xlow, float xup, int *iter);
 float Mass_limit_bisection(float Mmin, float Mmax, float PL, float FRAC);
@@ -1680,10 +1683,16 @@ double Nion_ConditionalMm(double z, double M1, double M2, double delta1, double 
 // see eq. (17) in Park et al. 2018
 // Note this function DO NOT include ION_EFF_FACTOR, defined as f_{\ast,10}*f_{esc,10}*N_{\gamma/b}. 
 // The actual Nion in eq. (17) is the value multiplied by ION_EFF_FACTOR.
-void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc){
+#ifdef INHOMO_FEEDBACK
+void initialise_Nion_spline(float z, float Mmax, float Mmin, float MMinTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc)
+#else //INHOMO_FEEDBACK
+void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc)
+#endif //INHOMO_FEEDBACK
+{
     double overdense_val;
     double overdense_large_high = Deltac, overdense_large_low = 1.5;
     double overdense_small_high = 1.5, overdense_small_low = -1. + 9e-8;
+
     int i;
     NionLow_spline_acc = gsl_interp_accel_alloc ();
     NionLow_spline = gsl_spline_alloc (gsl_interp_cspline, NSFR_low);
@@ -1713,7 +1722,12 @@ void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover,
 }
 
 #ifdef MINI_HALO
-void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, float MassTurnoverm, float Mcrit_atom, float Fstar10m, float Mlim_Fstarm){
+#ifdef INHOMO_FEEDBACK
+void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, float MminTurnoverm, float Mcrit_atom, float Fstar10m, float Mlim_Fstarm)
+#else //INHOMO_FEEDBACK
+void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, float MassTurnoverm, float Mcrit_atom, float Fstar10m, float Mlim_Fstarm)
+#endif //INHOMO_FEEDBACK
+{
     //double overdense_val;
     //double overdense_large_high = Deltac, overdense_large_low = 1.5;
    // double overdense_small_high = 1.5, overdense_small_low = -1. + 9e-8;
@@ -1747,7 +1761,12 @@ void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, 
 #endif
 
 // Find the number of IGM ionizing photons per baryon at a given overdensity using interpolation.
-void Nion_Spline_density(float Overdensity, float *splined_value){
+#ifdef INHOMO_FEEDBACK
+void Nion_Spline_density(float Overdensity, float M_MINa, float *splined_value)
+#else //INHOMO_FEEDBACK
+void Nion_Spline_density(float Overdensity, float *splined_value)
+#endif //INHOMO_FEEDBACK
+{
     int i;
     float returned_value;
 
@@ -1775,7 +1794,12 @@ void Nion_Spline_density(float Overdensity, float *splined_value){
     *splined_value = returned_value;
 }
 #ifdef MINI_HALO
-void Nion_Spline_densitym(float Overdensity, float *splined_value){
+#ifdef INHOMO_FEEDBACK
+void Nion_Spline_densitym(float Overdensity, float M_MINm, float *splined_value)
+#else //INHOMO_FEEDBACK
+void Nion_Spline_densitym(float Overdensity, float *splined_value)
+#endif //INHOMO_FEEDBACK
+{
     int i;
     float returned_value;
 
@@ -2114,7 +2138,12 @@ double DeltaNion_ConditionalMm(double z, double zp, double M1, double M2, double
 }
 #endif
 
-void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, float MassTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc){
+#ifdef INHOMO_FEEDBACK
+void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, float MminTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc)
+#else //INHOMO_FEEDBACK
+void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, float MassTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc)
+#endif //INHOMO_FEEDBACK
+{
     double overdense_val;
     double overdense_large_high = Deltac, overdense_large_low = 1.5;
     double overdense_small_high = 1.5, overdense_small_low = -1. + 9e-8;
@@ -2147,7 +2176,12 @@ void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, floa
 }
 
 #ifdef MINI_HALO
-void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, float Alpha_star, float MassTurnoverm, float Mcrit_atom, float Fstar10m, float Mlim_Fstarm){
+#ifdef INHOMO_FEEDBACK
+void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, float Alpha_star, float MminTurnoverm, float Mcrit_atom, float Fstar10m, float Mlim_Fstarm)
+#else //INHOMO_FEEDBACK	
+void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, float Alpha_star, float MassTurnoverm, float Mcrit_atom, float Fstar10m, float Mlim_Fstarm)
+#endif //INHOMO_FEEDBACK
+{
     //double overdense_val;
     //double overdense_large_high = Deltac, overdense_large_low = 1.5;
    // double overdense_small_high = 1.5, overdense_small_low = -1. + 9e-8;
@@ -2181,7 +2215,12 @@ void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, flo
 #endif //MINI_HALO
 
 // Find the number of IGM ionizing photons per baryon at a given overdensity using interpolation.
-void DeltaNion_Spline_density(float Overdensity, float *splined_value){
+#ifdef INHOMO_FEEDBACK
+void DeltaNion_Spline_density(float Overdensity, float M_MINa, float *splined_value)
+#else //INHOMO_FEEDBACK
+void DeltaNion_Spline_density(float Overdensity, float *splined_value)
+#endif //INHOMO_FEEDBACK
+{
     int i;
     float returned_value;
 
@@ -2207,7 +2246,12 @@ void DeltaNion_Spline_density(float Overdensity, float *splined_value){
     }
 }
 #ifdef MINI_HALO
-void DeltaNion_Spline_densitym(float Overdensity, float *splined_value){
+#ifdef INHOMO_FEEDBACK
+void DeltaNion_Spline_densitym(float Overdensity, float M_MINm, float *splined_value)
+#else //INHOMO_FEEDBACK
+void DeltaNion_Spline_densitym(float Overdensity, float *splined_value)
+#endif //INHOMO_FEEDBACK
+{
     int i;
     float returned_value;
 
@@ -2630,51 +2674,5 @@ void reading_reionization_SM13parameters(double *REION_SM13_Z_RE, double *REION_
 }
 #endif //REION_SM
 
-#ifdef INHOMO_FEEDBACK
-#ifdef CONTEMPORANEOUS_DUTYCYCLE
-void DeltaNion_density(float Overdensity, float z, float zp, float Mmax, float Mmin, float MassTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc, float *returned_value){
-  if ((Overdensity<-1.) || (Overdensity>=0.99*Deltac))
-    *returned_value = 0.;
-  else if (Overdensity<1.5)
-    *returned_value = GaussLegendreQuad_DeltaNion(NGL_SFR, z, zp, log(Mmax), Deltac, Overdensity, MassTurnover, Alpha_star, Alpha_esc, Fstar10, Fesc10, Mlim_Fstar, Mlim_Fesc);
-  else
-    *returned_value = DeltaNion_ConditionalM(z,zp,log(Mmin),log(Mmax),Deltac, Overdensity, MassTurnover, Alpha_star, Alpha_esc, Fstar10, Fesc10, Mlim_Fstar, Mlim_Fesc);
-}
-
-void DeltaNion_densitym(float Overdensity, float z, float zp, float Mmax, float Mmin, float Alpha_star, float MassTurnoverm, float Mcrit_atom, float Fstar10m, float Mlim_Fstarm, float *returned_value){
-  if ((Overdensity<-1.) || (Overdensity>=0.99*Deltac))
-    *returned_value = 0.;
-  else if (Overdensity<1.5)
-    *returned_value = GaussLegendreQuad_DeltaNionm(NGL_SFR, z, zp, log(Mmax), Deltac, Overdensity, Alpha_star,MassTurnoverm,Mcrit_atom,Fstar10m,Mlim_Fstarm);
-  else
-    *returned_value = DeltaNion_ConditionalMm(z,zp,log(Mmin),log(Mmax),Deltac, Overdensity, Alpha_star, MassTurnoverm, Mcrit_atom, Fstar10m, Mlim_Fstarm);
-}
 #endif
 
-void Nion_density(float Overdensity, float z, float Mmax, float Mmin, float MassTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc, float *returned_value){
-  if (Overdensity<-1.)
-    *returned_value = 0.;
-  else if (Overdensity>=0.99*Deltac)
-    *returned_value = 1.;
-  else if (Overdensity<1.5)
-    *returned_value = GaussLegendreQuad_Nion(NGL_SFR, z, log(Mmax), Deltac, Overdensity, MassTurnover, Alpha_star, Alpha_esc, Fstar10, Fesc10, Mlim_Fstar, Mlim_Fesc);
-  else
-    *returned_value = Nion_ConditionalM(z,log(Mmin),log(Mmax),Deltac, Overdensity, MassTurnover, Alpha_star, Alpha_esc, Fstar10, Fesc10, Mlim_Fstar, Mlim_Fesc);
-  if (*returned_value > 1.)
-    *returned_value = 1.;
-}
-
-void Nion_densitym(float Overdensity, float z, float Mmax, float Mmin, float Alpha_star, float MassTurnoverm, float Mcrit_atom, float Fstar10m, float Mlim_Fstarm, float *returned_value){
-  if (Overdensity<-1.)
-    *returned_value = 0.;
-  else if (Overdensity>=0.99*Deltac)
-    *returned_value = 1.;
-  else if (Overdensity<1.5)
-    *returned_value = GaussLegendreQuad_Nionm(NGL_SFR, z, log(Mmax), Deltac, Overdensity, Alpha_star,MassTurnoverm,Mcrit_atom,Fstar10m,Mlim_Fstarm);
-  else
-    *returned_value = Nion_ConditionalMm(z,log(Mmin),log(Mmax),Deltac, Overdensity, Alpha_star, MassTurnoverm, Mcrit_atom, Fstar10m, Mlim_Fstarm);
-  if (*returned_value > 1.)
-    *returned_value = 1.;
-}
-#endif
-#endif

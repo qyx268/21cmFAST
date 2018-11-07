@@ -1239,7 +1239,9 @@ int main(int argc, char ** argv){
       for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
         Fcoll_prev_ave += Fcoll_prev[ct];
       Fcoll_prev_ave   /= HII_TOT_NUM_PIXELS;
-#ifndef INHOMO_FEEDBACK
+#ifdef INHOMO_FEEDBACK
+      initialise_DeltaNion_spline(REDSHIFT, PREV_REDSHIFT, massofscaleR,M_MIN,Mcrit_atom,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
+#else //INHOMO_FEEDBACK
       initialise_DeltaNion_spline(REDSHIFT, PREV_REDSHIFT, massofscaleR,M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
 #endif //INHOMO_FEEDBACK
     }
@@ -1249,7 +1251,9 @@ int main(int argc, char ** argv){
         Fcoll_prev[ct] = 0.0;
       Fcoll_prev_ave   = 0;
       // so we calculation Nion instead of Delta Nion
-#ifndef INHOMO_FEEDBACK
+#ifdef INHOMO_FEEDBACK
+      initialise_Nion_spline(REDSHIFT, massofscaleR,M_MIN,Mcrit_atom,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
+#else //INHOMO_FEEDBACK
       initialise_Nion_spline(REDSHIFT, massofscaleR,M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
 #endif //INHOMO_FEEDBACK
     }
@@ -1269,7 +1273,9 @@ int main(int argc, char ** argv){
       for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
         Fcoll_prev_avem += Fcollm_prev[ct];
       Fcoll_prev_avem   /= HII_TOT_NUM_PIXELS;
-#ifndef INHOMO_FEEDBACK
+#ifdef INHOMO_FEEDBACK
+      initialise_DeltaNion_splinem(REDSHIFT, PREV_REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,lyman_werner_threshold(REDSHIFT,0),Mcrit_atom,F_STAR10m,Mlim_Fstarm);
+#else //INHOMO_FEEDBACK
       initialise_DeltaNion_splinem(REDSHIFT, PREV_REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,M_MINm,Mcrit_atom,F_STAR10m,Mlim_Fstarm);
 #endif //INHOMO_FEEDBACK
     }
@@ -1282,17 +1288,22 @@ int main(int argc, char ** argv){
         Fcollm_prev[ct] = 0.0;
       Fcoll_prev_avem   = 0;
       // so we calculation Nion instead of Delta Nion
-#ifndef INHOMO_FEEDBACK
+#ifdef INHOMO_FEEDBACK
+      initialise_Nion_splinem(REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,lyman_werner_threshold(REDSHIFT,0),Mcrit_atom,F_STAR10m,Mlim_Fstarm);
+#else //INHOMO_FEEDBACK
       initialise_Nion_splinem(REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,M_MINm,Mcrit_atom,F_STAR10m,Mlim_Fstarm);
 #endif //INHOMO_FEEDBACK
     }
 #else //CONTEMPORANEOUS_DUTYCYCLE
-#ifndef INHOMO_FEEDBACK
-    initialise_Nion_spline(REDSHIFT, massofscaleR,M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
 #ifdef MINI_HALO
+#ifdef INHOMO_FEEDBACK
+    initialise_Nion_spline(REDSHIFT, massofscaleR,M_MIN,Mcrit_atom,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
+    initialise_Nion_splinem(REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,lyman_werner_threshold(REDSHIFT,0),Mcrit_atom,F_STAR10m,Mlim_Fstarm);
+#else //INHOMO_FEEDBACK
+    initialise_Nion_spline(REDSHIFT, massofscaleR,M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
     initialise_Nion_splinem(REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,M_MINm,Mcrit_atom,F_STAR10m,Mlim_Fstarm);
-#endif //MINI_HALO
 #endif //INHOMO_FEEDBACK
+#endif //MINI_HALO
 #endif //CONTEMPORANEOUS_DUTYCYCLE
 #endif //SHARP_CUTOFF
 #endif //USE_HALO_FIELD
@@ -1321,13 +1332,13 @@ int main(int argc, char ** argv){
             M_MINa = Mcrit_RE > Mcrit_atom ? Mcrit_RE : Mcrit_atom;
             M_MINm = Mcrit_RE > Mcrit_LW   ? Mcrit_RE : Mcrit_LW;
             if (flag_first_reionization == 0){
-              // it's not Splined value anymore, I'm not using interpolation table for INHOMO_FEEDBACK in this verison
-              DeltaNion_density(density_over_mean-1, REDSHIFT, PREV_REDSHIFT, massofscaleR, M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc, &Splined_Fcoll);
-              DeltaNion_densitym(density_over_mean-1, REDSHIFT, PREV_REDSHIFT, massofscaleR, M_MIN,ALPHA_STAR,M_MINm,Mcrit_atom,F_STAR10m,Mlim_Fstarm, &Splined_Fcollm);
+              // it's Splined value anymore, otherwise it's taking forever!
+              DeltaNion_Spline_density(density_over_mean - 1, M_MINa, &(Splined_Fcoll));
+              DeltaNion_Spline_densitym(density_over_mean - 1, M_MINm, &(Splined_Fcollm));
             }
             else{
-              Nion_density(density_over_mean-1, REDSHIFT, massofscaleR, M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc, &Splined_Fcoll);
-              Nion_densitym(density_over_mean-1, REDSHIFT, massofscaleR, M_MIN,ALPHA_STAR,M_MINm,Mcrit_atom,F_STAR10m,Mlim_Fstarm, &Splined_Fcollm);
+              Nion_Spline_density(density_over_mean - 1, M_MINa, &(Splined_Fcoll));
+              Nion_Spline_densitym(density_over_mean - 1, M_MINm, &(Splined_Fcollm));
             }
 #else //INHOMO_FEEDBACK
             if (flag_first_reionization == 0){
@@ -1348,9 +1359,9 @@ int main(int argc, char ** argv){
             Mcrit_LW = lyman_werner_threshold(REDSHIFT, J_21_LW[HII_R_INDEX(x,y,z)]);
             M_MINa = Mcrit_RE > Mcrit_atom ? Mcrit_RE : Mcrit_atom;
             M_MINm = Mcrit_RE > Mcrit_LW   ? Mcrit_RE : Mcrit_LW;
-            // it's not Splined value anymore, I'm not using interpolation table for INHOMO_FEEDBACK in this verison
-            Nion_density(density_over_mean-1, REDSHIFT, massofscaleR, M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc, &Splined_Fcoll);
-            Nion_densitym(density_over_mean-1, REDSHIFT, massofscaleR, M_MIN,ALPHA_STAR,M_MINm,Mcrit_atom,F_STAR10m,Mlim_Fstarm, &Splined_Fcollm);
+
+            Nion_Spline_density(density_over_mean - 1, M_MINa, &(Splined_Fcoll));
+            Nion_Spline_densitym(density_over_mean - 1, M_MINm, &(Splined_Fcollm));
 #else //INHOMO_FEEDBACK
             Nion_Spline_density(density_over_mean - 1,&(Splined_Fcoll));
 #ifdef MINI_HALO
