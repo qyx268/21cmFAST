@@ -47,6 +47,9 @@ static gsl_spline *erfc_spline;
 #define NSFR_high 200
 #define NSFR_low 250
 #define NGL_SFR 100 
+#ifdef INHOMO_FEEDBACK
+#define NMTURN 200
+#endif //INHOMO_FEEDBACK
 /* Number of interpolation points for the interpolation table for z'' 
                 This is the same parameter in 21CMMC */
 #define zpp_interp_points (int) (300) 
@@ -56,9 +59,18 @@ static gsl_interp_accel *Fcoll_spline_acc;
 static gsl_spline *Fcoll_spline;
 
 /* New in v2 - part 2 of 4: begin */
-static double log10_overdense_spline_SFR[NSFR_low], log10_Nion_spline[NSFR_low];
+static double log10_overdense_spline_SFR[NSFR_low];
 static gsl_interp_accel *NionLow_spline_acc;
+#ifdef INHOMO_FEEDBACK
+static double log10_Mturn_spline_SFR[NMTURN];
+static double log10_Mturn_spline_SFRm[NMTURN];
+static gsl_interp_accel *NionLow_spline_acc_Mturn;
+static gsl_spline2d *NionLow_spline;
+static double log10_Nion_spline[NSFR_low][NMTURN];
+#else //INHOMO_FEEDBACK
 static gsl_spline *NionLow_spline;
+static double log10_Nion_spline[NSFR_low];
+#endif //INHOMO_FEEDBACK
 #ifdef MINI_HALO
 static double log10_Nion_splinem[NSFR_low];
 static gsl_interp_accel *NionLow_spline_accm;
@@ -192,7 +204,12 @@ float *Mass_Spline, *Sigma_Spline, *dSigmadm_Spline, *second_derivs_sigma, *seco
 void initialiseSplinedSigmaM(float M_Min, float M_Max);
 
 /* New in v2 - part 3 of 4: start */
-float *Overdense_spline_SFR,*Nion_spline,*second_derivs_Nion;
+float *Overdense_spline_SFR,*Nion_spline;
+#ifdef INHOMO_FEEDBACK
+float *second_derivs_Nion[NMTURN];
+#else //INHOMO_FEEDBACK
+float *second_derivs_Nion;
+#endif //INHOMO_FEEDBACK
 float *xi_SFR,*wi_SFR;
 #ifdef MINI_HALO
 float *Nion_splinem,*second_derivs_Nionm;
@@ -1192,6 +1209,72 @@ void splint(float xa[], float ya[], float y2a[], int n, float x, float *y)
     *y=a*ya[klo]+b*ya[khi]+((a*a*a-a)*y2a[klo]+(b*b*b-b)*y2a[khi])*(h*h)/6.0;
 }
 
+void spline2d(float x[], float y[], float z[][], int nx, int ny, float zp1, float zpn, float z2[][])
+// TODO!!!!!
+{
+    int i,k;
+    float p,qn,sig,un,*u;
+    int na,nb,check;
+    u=vector(1,n-1);
+    if (yp1 > 0.99e30)                     // The lower boundary condition is set either to be "natural"
+        y2[1]=u[1]=0.0;
+    else {                                 // or else to have a specified first derivative.
+        y2[1] = -0.5;
+        u[1]=(3.0/(x[2]-x[1]))*((y[2]-y[1])/(x[2]-x[1])-yp1);
+    }
+    for (i=2;i<=n-1;i++) {                              //This is the decomposition loop of the tridiagonal algorithm.
+        sig=(x[i]-x[i-1])/(x[i+1]-x[i-1]);                //y2 and u are used for temporary
+        na = 1;
+        nb = 1;
+        check = 0;
+        while(((float)(x[i+na*1]-x[i-nb*1])==(float)0.0)) {
+            check = check + 1;
+            if(check%2==0) {
+                na = na + 1;
+            }
+            else {
+                nb = nb + 1;
+            }
+            sig=(x[i]-x[i-1])/(x[i+na*1]-x[i-nb*1]);
+        }
+        p=sig*y2[i-1]+2.0;                                //storage of the decomposed
+        y2[i]=(sig-1.0)/p;                                //  factors.
+        u[i]=(y[i+1]-y[i])/(x[i+1]-x[i]) - (y[i]-y[i-1])/(x[i]-x[i-1]);
+        u[i]=(6.0*u[i]/(x[i+1]-x[i-1])-sig*u[i-1])/p;
+        
+        if(((float)(x[i+1]-x[i])==(float)0.0) || ((float)(x[i]-x[i-1])==(float)0.0)) {
+            na = 0;
+            nb = 0;
+            check = 0;
+            while((float)(x[i+na*1]-x[i-nb])==(float)(0.0) || ((float)(x[i+na]-x[i-nb*1])==(float)0.0)) {
+                check = check + 1;
+                if(check%2==0) {
+                    na = na + 1;
+                }
+                else {
+                    nb = nb + 1;
+                }
+            }
+            u[i]=(y[i+1]-y[i])/(x[i+na*1]-x[i-nb]) - (y[i]-y[i-1])/(x[i+na]-x[i-nb*1]);
+            
+            u[i]=(6.0*u[i]/(x[i+na*1]-x[i-nb*1])-sig*u[i-1])/p;
+            
+        }
+    }
+    if (ypn > 0.99e30)                        //The upper boundary condition is set either to be "natural"
+        qn=un=0.0;
+    else {                                    //or else to have a specified first derivative.
+        qn=0.5;
+        un=(3.0/(x[n]-x[n-1]))*(ypn-(y[n]-y[n-1])/(x[n]-x[n-1]));
+    }
+    y2[n]=(un-qn*u[n-1])/(qn*y2[n-1]+1.0);
+    
+    for (k=n-1;k>=1;k--) {                      //This is the backsubstitution loop of the tridiagonal
+        y2[k]=y2[k]*y2[k+1]+u[k];               //algorithm.
+    }
+    free_vector(u,1,n-1);
+}
+
 unsigned long *lvector(long nl, long nh)
 /* allocate an unsigned long vector with subscript range v[nl..nh] */
 {
@@ -1695,30 +1778,65 @@ void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover,
 
     int i;
     NionLow_spline_acc = gsl_interp_accel_alloc ();
+#ifdef INHOMO_FEEDBACK
+    double MassTurnover;
+    double LogMassTurnover_high = 10;
+	double LogMassTurnover_low = log10(MMinTurnover);
+
+    int j;
+    NionLow_spline_acc_Mturn = gsl_interp_accel_alloc ();
+    NionLow_spline = gsl_spline2d_alloc (gsl_interp_cspline, NSFR_low, NMTURN);
+#else //INHOMO_FEEDBACK
     NionLow_spline = gsl_spline_alloc (gsl_interp_cspline, NSFR_low);
+#endif //INHOMO_FEEDBACK
 
     for (i=0; i<NSFR_low; i++){
         overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low-1.)*(log10(1.+overdense_small_high)-log10(1.+overdense_small_low));
-
         log10_overdense_spline_SFR[i] = overdense_val;
-        log10_Nion_spline[i] = log10(GaussLegendreQuad_Nion(NGL_SFR,z,log(Mmax),Deltac,pow(10.,log10_overdense_spline_SFR[i])-1.,MassTurnover,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc));
 
-        if(log10_Nion_spline[i] < -40.){
-            log10_Nion_spline[i] = -40.;
+#ifdef INHOMO_FEEDBACK
+        for (j=0; j<NMTURN; j++){
+          log10_Mturn_spline_SFR[j] = LogMassTurnover_low + (double)j/((double)NMTURN-1.)*(LogMassTurnover_high-LogMassTurnover_low);
+          MassTurnover =  pow(10., log10_Mturn_spline_SFR[j]);
+          log10_Nion_spline[i][j] = log10(GaussLegendreQuad_Nion(NGL_SFR,z,log(Mmax),Deltac,pow(10.,log10_overdense_spline_SFR[i])-1.,MassTurnover,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc));
+          if(log10_Nion_spline[i][j] < -40.)
+            log10_Nion_spline[i][j] = -40.;
         }
+#else //INHOMO_FEEDBACK
+        log10_Nion_spline[i] = log10(GaussLegendreQuad_Nion(NGL_SFR,z,log(Mmax),Deltac,pow(10.,log10_overdense_spline_SFR[i])-1.,MassTurnover,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc));
+        if(log10_Nion_spline[i] < -40.)
+            log10_Nion_spline[i] = -40.;
+#endif
     }
+#ifdef INHOMO_FEEDBACK
+    gsl_spline2d_init(NionLow_spline, log10_overdense_spline_SFR, log10_Mturn_spline_SFR, log10_Nion_spline, NSFR_low, NMTURN);
+#else //INHOMO_FEEDBACK
     gsl_spline_init(NionLow_spline, log10_overdense_spline_SFR, log10_Nion_spline, NSFR_low);
+#endif //INHOMO_FEEDBACK
 
 
     for(i=0;i<NSFR_high;i++) {
         Overdense_spline_SFR[i] = overdense_large_low + (float)i/((float)NSFR_high-1.)*(overdense_large_high - overdense_large_low);
-        Nion_spline[i] = Nion_ConditionalM(z,log(Mmin),log(Mmax),Deltac,Overdense_spline_SFR[i],MassTurnover,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
 
-        if(Nion_spline[i]<0.) {
-            Nion_spline[i]=pow(10.,-40.0);
-        }
+#ifdef INHOMO_FEEDBACK
+		for (j=0; j<NMTURN; j++){
+		  //log10_Mturn_spline_SFR[j] = LogMassTurnover_low + (double)j/((double)NMTURN-1.)*(LogMassTurnover_high-LogMassTurnover_low);
+		  MassTurnover =  pow(10., log10_Mturn_spline_SFR[j]);
+		  Nion_spline[i][j] = Nion_ConditionalM(z,log(Mmin),log(Mmax),Deltac,Overdense_spline_SFR[i],MassTurnover,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
+          if(Nion_spline[i][j]<0.)
+            Nion_spline[i][j]=pow(10.,-40.0);
+		}
+#else //INHOMO_FEEDBACK
+        Nion_spline[i] = Nion_ConditionalM(z,log(Mmin),log(Mmax),Deltac,Overdense_spline_SFR[i],MassTurnover,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
+        if(Nion_spline[i]<0.)
+          Nion_spline[i]=pow(10.,-40.0);
+#endif //INHOMO_FEEDBACK
     }
+#ifdef INHOMO_FEEDBACK
+    spline2d(Overdense_spline_SFR-1,log10_Mturn_spline_SFR, Nion_spline-1,NSFR_high, NMTURN,0,0,second_derivs_Nion-1);
+#else //INHOMO_FEEDBACK
     spline(Overdense_spline_SFR-1,Nion_spline-1,NSFR_high,0,0,second_derivs_Nion-1);
+#endif //INHOMO_FEEDBACK
 }
 
 #ifdef MINI_HALO
@@ -1733,30 +1851,65 @@ void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, 
    // double overdense_small_high = 1.5, overdense_small_low = -1. + 9e-8;
     int i;
     NionLow_spline_accm = gsl_interp_accel_alloc ();
+#ifdef INHOMO_FEEDBACK
+	double MassTurnoverm;
+	double LogMassTurnover_high = log10(Mcrit_atom);
+	double LogMassTurnover_low = log10(MMinTurnoverm);
+
+	int j;
+	NionLow_spline_accm_Mturn = gsl_interp_accel_alloc ();
+	NionLow_splinem = gsl_spline2d_alloc (gsl_interp_cspline, NSFR_low, NMTURN);
+#else //INHOMO_FEEDBACK
     NionLow_splinem = gsl_spline_alloc (gsl_interp_cspline, NSFR_low);
+#endif //INHOMO_FEEDBACK
 
     for (i=0; i<NSFR_low; i++){
         //overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low-1.)*(log10(1.+overdense_small_high)-log10(1.+overdense_small_low));
-
         //log10_overdense_spline_SFR[i] = overdense_val;
+		
+#ifdef INHOMO_FEEDBACK
+		for (j=0; j<NMTURN; j++){
+		  log10_Mturn_spline_SFRm[j] = LogMassTurnover_low + (double)j/((double)NMTURN-1.)*(LogMassTurnover_high-LogMassTurnover_low);
+		  MassTurnoverm =  pow(10., log10_Mturn_spline_SFRm[j]);
+          log10_Nion_splinem[i][j] = log10(GaussLegendreQuad_Nionm(NGL_SFR,z,log(Mmax),Deltac,pow(10.,log10_overdense_spline_SFR[i])-1.,Alpha_star,MassTurnoverm,Mcrit_atom,Fstar10m,Mlim_Fstarm));
+		  if(log10_Nion_splinem[i][j] < -40.)
+			log10_Nion_splinem[i][j] = -40.;
+		}
+#else //INHOMO_FEEDBACK
         log10_Nion_splinem[i] = log10(GaussLegendreQuad_Nionm(NGL_SFR,z,log(Mmax),Deltac,pow(10.,log10_overdense_spline_SFR[i])-1.,Alpha_star,MassTurnoverm,Mcrit_atom,Fstar10m,Mlim_Fstarm));
-
-        if(log10_Nion_splinem[i] < -40.){
+        if(log10_Nion_splinem[i] < -40.)
             log10_Nion_splinem[i] = -40.;
-        }
+#endif
     }
+#ifdef INHOMO_FEEDBACK
+    gsl_spline2d_init(NionLow_splinem, log10_overdense_spline_SFR, log10_Mturn_spline_SFRm, log10_Nion_splinem, NSFR_low, NMTURN);
+#else //INHOMO_FEEDBACK
     gsl_spline_init(NionLow_splinem, log10_overdense_spline_SFR, log10_Nion_splinem, NSFR_low);
+#endif //INHOMO_FEEDBACK
 
 
     for(i=0;i<NSFR_high;i++) {
         //Overdense_spline_SFR[i] = overdense_large_low + (float)i/((float)NSFR_high-1.)*(overdense_large_high - overdense_large_low);
-        Nion_splinem[i] = Nion_ConditionalMm(z,log(Mmin),log(Mmax),Deltac,Overdense_spline_SFR[i],Alpha_star,MassTurnoverm,Mcrit_atom,Fstar10m,Mlim_Fstarm);
 
-        if(Nion_splinem[i]<0.) {
-            Nion_splinem[i]=pow(10.,-40.0);
-        }
+#ifdef INHOMO_FEEDBACK
+		for (j=0; j<NMTURN; j++){
+		  //log10_Mturn_spline_SFRm[j] = LogMassTurnover_low + (double)j/((double)NMTURN-1.)*(LogMassTurnover_high-LogMassTurnover_low);
+		  MassTurnover =  pow(10., log10_Mturn_spline_SFR[j]);
+        Nion_splinem[i][j] = Nion_ConditionalMm(z,log(Mmin),log(Mmax),Deltac,Overdense_spline_SFR[i],Alpha_star,MassTurnoverm,Mcrit_atom,Fstar10m,Mlim_Fstarm);
+        if(Nion_splinem[i][j]<0.)
+          Nion_splinem[i][j]=pow(10.,-40.0);
+		}
+#else //INHOMO_FEEDBACK
+        Nion_splinem[i] = Nion_ConditionalMm(z,log(Mmin),log(Mmax),Deltac,Overdense_spline_SFR[i],Alpha_star,MassTurnoverm,Mcrit_atom,Fstar10m,Mlim_Fstarm);
+        if(Nion_splinem[i]<0.)
+          Nion_splinem[i]=pow(10.,-40.0);
+#endif //INHOMO_FEEDBACK
     }
+#ifdef INHOMO_FEEDBACK
+    spline2d(Overdense_spline_SFR-1,log10_Mturn_spline_SFRm, Nion_splinem-1,NSFR_high, NMTURN,0,0,second_derivs_Nionm-1);
+#else //INHOMO_FEEDBACK
     spline(Overdense_spline_SFR-1,Nion_splinem-1,NSFR_high,0,0,second_derivs_Nionm-1);
+#endif //INHOMO_FEEDBACK
 }
 #endif
 
@@ -2178,7 +2331,7 @@ void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, floa
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
 void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, float Alpha_star, float MminTurnoverm, float Mcrit_atom, float Fstar10m, float Mlim_Fstarm)
-#else //INHOMO_FEEDBACK	
+#else //INHOMO_FEEDBACK    
 void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, float Alpha_star, float MassTurnoverm, float Mcrit_atom, float Fstar10m, float Mlim_Fstarm)
 #endif //INHOMO_FEEDBACK
 {

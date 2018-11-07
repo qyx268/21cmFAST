@@ -38,10 +38,21 @@ void init_21cmMC_arrays() { // defined in Cosmo_c_files/ps.c
     
     Overdense_spline_SFR = calloc(NSFR_high,sizeof(float)); // New in v2
     Nion_spline = calloc(NSFR_high,sizeof(float));
+#ifdef INHOMO_FEEDBACK
+	int i;
+	for (i=0; i< NMTURN; i++)
+      second_derivs_Nion[i] = calloc(NSFR_high,sizeof(float));
+#else //INHOMO_FEEDBACK
     second_derivs_Nion = calloc(NSFR_high,sizeof(float));
+#endif //INHOMO_FEEDBACK
 #ifdef MINI_HALO
     Nion_splinem = calloc(NSFR_high,sizeof(float));
+#ifdef INHOMO_FEEDBACK
+	for (i=0; i< NMTURN; i++)
+      second_derivs_Nionm[i] = calloc(NSFR_high,sizeof(float));
+#else //INHOMO_FEEDBACK
     second_derivs_Nionm = calloc(NSFR_high,sizeof(float));
+#endif //INHOMO_FEEDBACK
 #endif //MINI_HALO
     xi_SFR = calloc((NGL_SFR+1),sizeof(float));
     wi_SFR = calloc((NGL_SFR+1),sizeof(float));
@@ -57,17 +68,37 @@ void destroy_21cmMC_arrays() {
 
     free(Overdense_spline_SFR); // New in v2
     free(Nion_spline);
+#ifdef INHOMO_FEEDBACK
+	for (i=0; i< NMTURN; i++)
+      free(second_derivs_Nion[i]);
+#else //INHOMO_FEEDBACK
     free(second_derivs_Nion);
+#endif //INHOMO_FEEDBACK
 #ifdef MINI_HALO
     free(Nion_splinem);
+#ifdef INHOMO_FEEDBACK
+	for (i=0; i< NMTURN; i++)
+      free(second_derivs_Nionm[i]);
+#else //INHOMO_FEEDBACK
     free(second_derivs_Nionm);
+#endif //INHOMO_FEEDBACK
 #endif //MINI_HALO
     free(xi_SFR);
     free(wi_SFR);
+#ifdef INHOMO_FEEDBACK
+    gsl_spline2d_free(NionLow_spline);
+    gsl_interp_accel_free(NionLow_spline_acc_Mturn);
+#else //INHOMO_FEEDBACK
     gsl_spline_free(NionLow_spline);
+#endif //INHOMO_FEEDBACK
     gsl_interp_accel_free(NionLow_spline_acc);
 #ifdef MINI_HALO
+#ifdef INHOMO_FEEDBACK
+    gsl_spline2d_free(NionLow_splinem);
+    gsl_interp_accel_free(NionLow_spline_accm_Mturn);
+#else //INHOMO_FEEDBACK
     gsl_spline_free(NionLow_splinem);
+#endif //INHOMO_FEEDBACK
     gsl_interp_accel_free(NionLow_spline_accm);
 #endif //MINI_HALO
 }
