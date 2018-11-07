@@ -700,17 +700,17 @@ int main(int argc, char ** argv){
   // Note from YQ, ifdef IHHOMO_FEEDBACK, this calculate the mean collpased fraction when LW and RE are areveraged
 #ifdef CONTEMPORANEOUS_DUTYCYCLE 
   if (mean_f_coll_prev_st < 1e-15)
-    mean_f_coll_st  = mean_f_coll_prev_st  + DeltaNion_ST(REDSHIFT, PREV_REDSHIFT, M_MIN, M_MINa, ALPHA_STAR, ALPHA_ESC, F_STAR10, F_ESC10, Mlim_Fstar, Mlim_Fesc);
-  else
     mean_f_coll_st = Nion_ST(REDSHIFT, M_MIN, M_MINa, ALPHA_STAR, ALPHA_ESC, F_STAR10, F_ESC10, Mlim_Fstar, Mlim_Fesc);
+  else
+    mean_f_coll_st  = mean_f_coll_prev_st  + DeltaNion_ST(REDSHIFT, PREV_REDSHIFT, M_MIN, M_MINa, ALPHA_STAR, ALPHA_ESC, F_STAR10, F_ESC10, Mlim_Fstar, Mlim_Fesc);
   sprintf(filename, "../Boxes/Nion_evolution/mean_f_coll_st_z%06.2f.bin", REDSHIFT);
   if(fwrite(&mean_f_coll_st, sizeof(double), 1, fopen(filename, "w")) !=1)
     fprintf(stderr,  "find_HII_bubbles.c: Error writing %s", filename);
 
   if (mean_f_collm_prev_st < 1e-15)
-    mean_f_collm_st = mean_f_collm_prev_st + DeltaNion_STm(REDSHIFT, PREV_REDSHIFT, M_MIN, M_MINm, Mcrit_atom, ALPHA_STAR, F_STAR10m, Mlim_Fstarm);
-  else
     mean_f_collm_st = Nion_STm(REDSHIFT, M_MIN, M_MINm, Mcrit_atom, ALPHA_STAR, F_STAR10m, Mlim_Fstarm);
+  else
+    mean_f_collm_st = mean_f_collm_prev_st + DeltaNion_STm(REDSHIFT, PREV_REDSHIFT, M_MIN, M_MINm, Mcrit_atom, ALPHA_STAR, F_STAR10m, Mlim_Fstarm);
   sprintf(filename, "../Boxes/Nion_evolution/mean_f_collm_st_z%06.2f.bin", REDSHIFT);
   if(fwrite(&mean_f_collm_st, sizeof(double), 1, fopen(filename, "w")) !=1)
     fprintf(stderr,  "find_HII_bubbles.c: Error writing %s", filename);
