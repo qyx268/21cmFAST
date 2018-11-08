@@ -37,20 +37,19 @@ float *Fcollm;
 void init_21cmMC_arrays() { // defined in Cosmo_c_files/ps.c
     
     Overdense_spline_SFR = calloc(NSFR_high,sizeof(float)); // New in v2
-    Nion_spline = calloc(NSFR_high,sizeof(float));
 #ifdef INHOMO_FEEDBACK
-	int i;
-	for (i=0; i< NMTURN; i++)
-      second_derivs_Nion[i] = calloc(NSFR_high,sizeof(float));
+    Nion_spline = calloc(NSFR_high*NMTURN,sizeof(float));
+    second_derivs_Nion = calloc(NSFR_high*NMTURN,sizeof(float));
 #else //INHOMO_FEEDBACK
+    Nion_spline = calloc(NSFR_high,sizeof(float));
     second_derivs_Nion = calloc(NSFR_high,sizeof(float));
 #endif //INHOMO_FEEDBACK
 #ifdef MINI_HALO
-    Nion_splinem = calloc(NSFR_high,sizeof(float));
 #ifdef INHOMO_FEEDBACK
-	for (i=0; i< NMTURN; i++)
-      second_derivs_Nionm[i] = calloc(NSFR_high,sizeof(float));
+    Nion_splinem = calloc(NSFR_high*NMTURN,sizeof(float));
+    second_derivs_Nionm = calloc(NSFR_high*NMTURN,sizeof(float));
 #else //INHOMO_FEEDBACK
+    Nion_splinem = calloc(NSFR_high,sizeof(float));
     second_derivs_Nionm = calloc(NSFR_high,sizeof(float));
 #endif //INHOMO_FEEDBACK
 #endif //MINI_HALO
@@ -68,20 +67,10 @@ void destroy_21cmMC_arrays() {
 
     free(Overdense_spline_SFR); // New in v2
     free(Nion_spline);
-#ifdef INHOMO_FEEDBACK
-	for (i=0; i< NMTURN; i++)
-      free(second_derivs_Nion[i]);
-#else //INHOMO_FEEDBACK
     free(second_derivs_Nion);
-#endif //INHOMO_FEEDBACK
 #ifdef MINI_HALO
     free(Nion_splinem);
-#ifdef INHOMO_FEEDBACK
-	for (i=0; i< NMTURN; i++)
-      free(second_derivs_Nionm[i]);
-#else //INHOMO_FEEDBACK
     free(second_derivs_Nionm);
-#endif //INHOMO_FEEDBACK
 #endif //MINI_HALO
     free(xi_SFR);
     free(wi_SFR);
@@ -745,7 +734,6 @@ int main(int argc, char ** argv){
   sprintf(filename, "../Boxes/Nion_evolution/mean_f_collm_st_z%06.2f.bin", REDSHIFT);
   if(fwrite(&mean_f_collm_st, sizeof(double), 1, fopen(filename, "w")) !=1)
     fprintf(stderr,  "find_HII_bubbles.c: Error writing %s", filename);
-
 #else //CONTEMPORANEOUS_DUTYCYCLE
   mean_f_coll_st = Nion_ST(REDSHIFT, M_MIN, M_MINa, ALPHA_STAR, ALPHA_ESC, F_STAR10, F_ESC10, Mlim_Fstar, Mlim_Fesc);
 #ifdef MINI_HALO

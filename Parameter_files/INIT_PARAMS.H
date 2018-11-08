@@ -26,6 +26,11 @@
 #include <gsl/gsl_spline.h>
 #include <gsl/gsl_errno.h>
 #include "COSMOLOGY.H"
+#include "ANAL_PARAMS.H"
+#ifdef INHOMO_FEEDBACK
+#include <gsl/gsl_interp2d.h>
+#include <gsl/gsl_spline2d.h>
+#endif
 
 
 /******** BEGIN USER CHANGABLE DEFINITIONS   **********/

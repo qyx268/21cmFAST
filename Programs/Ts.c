@@ -33,13 +33,16 @@ void init_21cmMC_arrays() {
   for (i=0; i < NUM_FILTER_STEPS_FOR_Ts; i++){
     SFRDLow_zpp_spline_acc[i] = gsl_interp_accel_alloc ();
     SFRDLow_zpp_spline[i] = gsl_spline_alloc (gsl_interp_cspline, NSFR_low);
-
     second_derivs_Nion_zpp[i] = calloc(NSFR_high,sizeof(float));
-#ifdef MINI_HALO
-#ifndef INHOMO_FEEDBACK
-    SFRDLow_zpp_spline_accm[i] = gsl_interp_accel_alloc ();
-    SFRDLow_zpp_splinem[i] = gsl_spline_alloc (gsl_interp_cspline, NSFR_low);
 
+#ifdef MINI_HALO
+    SFRDLow_zpp_spline_accm[i] = gsl_interp_accel_alloc ();
+#ifdef INHOMO_FEEDBACK
+    SFRDLow_zpp_spline_accm_Mturn[i] = gsl_interp_accel_alloc ();
+    SFRDLow_zpp_splinem[i] = gsl_spline2d_alloc (gsl_interp2d_bicubic, NSFR_low, NMTURN);
+    second_derivs_Nion_zppm[i] = calloc(NSFR_high*NMTURN,sizeof(float));
+#else
+    SFRDLow_zpp_splinem[i] = gsl_spline_alloc (gsl_interp_cspline, NSFR_low);
     second_derivs_Nion_zppm[i] = calloc(NSFR_high,sizeof(float));
 #endif
 #endif
@@ -48,32 +51,43 @@ void init_21cmMC_arrays() {
   redshift_interp_table = calloc(NUM_FILTER_STEPS_FOR_Ts*Nsteps_zp, sizeof(float)); // New
 
   log10_overdense_low_table = calloc(NSFR_low,sizeof(double));
+#ifdef INHOMO_FEEDBACK
+  log10_overdense_low_table_Mturn = calloc(NMTURN,sizeof(double));
+#endif
+
   log10_SFRD_z_low_table = (double **)calloc(NUM_FILTER_STEPS_FOR_Ts*Nsteps_zp,sizeof(double *)); //New
 #ifdef MINI_HALO
-#ifndef INHOMO_FEEDBACK
   log10_SFRD_z_low_tablem = (double **)calloc(NUM_FILTER_STEPS_FOR_Ts*Nsteps_zp,sizeof(double *)); //New
 #endif
-#endif
   for(i=0;i<NUM_FILTER_STEPS_FOR_Ts*Nsteps_zp;i++){  // New
+#ifdef INHOMO_FEEDBACK
+    log10_SFRD_z_low_table[i] = (double *)calloc(NSFR_low*NMTURN,sizeof(double));
+    log10_SFRD_z_low_tablem[i] = (double *)calloc(NSFR_low*NMTURN,sizeof(double));
+#else
     log10_SFRD_z_low_table[i] = (double *)calloc(NSFR_low,sizeof(double));
 #ifdef MINI_HALO
-#ifndef INHOMO_FEEDBACK
     log10_SFRD_z_low_tablem[i] = (double *)calloc(NSFR_low,sizeof(double));
 #endif
 #endif
   }
 
+
   Overdense_high_table = calloc(NSFR_high,sizeof(float));
+#ifdef INHOMO_FEEDBACK
+  Overdense_high_table_Mturn = calloc(NMTURN,sizeof(double));
+#endif
+
   SFRD_z_high_table = (float **)calloc(NUM_FILTER_STEPS_FOR_Ts*Nsteps_zp,sizeof(float *)); //New
 #ifdef MINI_HALO
-#ifndef INHOMO_FEEDBACK
   SFRD_z_high_tablem = (float **)calloc(NUM_FILTER_STEPS_FOR_Ts*Nsteps_zp,sizeof(float *)); //New
 #endif
-#endif
   for(i=0;i<NUM_FILTER_STEPS_FOR_Ts*Nsteps_zp;i++){  // New
+#ifdef INHOMO_FEEDBACK
+    SFRD_z_high_table[i] = (float *)calloc(NSFR_high*NMTURN,sizeof(float));
+    SFRD_z_high_tablem[i] = (float *)calloc(NSFR_high*NMTURN,sizeof(float));
+#else
     SFRD_z_high_table[i] = (float *)calloc(NSFR_high,sizeof(float));
 #ifdef MINI_HALO
-#ifndef INHOMO_FEEDBACK
     SFRD_z_high_tablem[i] = (float *)calloc(NSFR_high,sizeof(float));
 #endif
 #endif
@@ -89,49 +103,50 @@ void destroy_21cmMC_arrays() {
   free(redshift_interp_table);
 
   for(i=0;i<NUM_FILTER_STEPS_FOR_Ts*Nsteps_zp;i++) {
-      free(log10_SFRD_z_low_table[i]);
+    free(log10_SFRD_z_low_table[i]);
 #ifdef MINI_HALO
-#ifndef INHOMO_FEEDBACK
-      free(log10_SFRD_z_low_tablem[i]);
-#endif
+    free(log10_SFRD_z_low_tablem[i]);
 #endif
   }
   free(log10_SFRD_z_low_table);
 #ifdef MINI_HALO
-#ifndef INHOMO_FEEDBACK
   free(log10_SFRD_z_low_tablem);
-#endif
 #endif
 
   free(log10_overdense_low_table);
+#ifdef INHOMO_FEEDBACK
+  free(log10_overdense_low_table_Mturn);
+#endif
 
   for(i=0;i<NUM_FILTER_STEPS_FOR_Ts*Nsteps_zp;i++) {
       free(SFRD_z_high_table[i]);
 #ifdef MINI_HALO
-#ifndef INHOMO_FEEDBACK
       free(SFRD_z_high_tablem[i]);
-#endif
 #endif
   }
   free(SFRD_z_high_table);
 #ifdef MINI_HALO
-#ifndef INHOMO_FEEDBACK
   free(SFRD_z_high_tablem);
-#endif
 #endif
 
   free(Overdense_high_table);
+#ifdef INHOMO_FEEDBACK
+  free(Overdense_high_table_Mturn);
+#endif
   
   for (i=0; i < NUM_FILTER_STEPS_FOR_Ts; i++){
     gsl_spline_free (SFRDLow_zpp_spline[i]);
     gsl_interp_accel_free (SFRDLow_zpp_spline_acc[i]);
     free(second_derivs_Nion_zpp[i]);
 #ifdef MINI_HALO
-#ifndef INHOMO_FEEDBACK
+#ifdef INHOMO_FEEDBACK
+    gsl_spline2d_free (SFRDLow_zpp_splinem[i]);
+    gsl_interp_accel_free (SFRDLow_zpp_spline_accm_Mturn[i]);
+#else
     gsl_spline_free (SFRDLow_zpp_splinem[i]);
+#endif
     gsl_interp_accel_free (SFRDLow_zpp_spline_accm[i]);
     free(second_derivs_Nion_zppm[i]);
-#endif
 #endif
   }
   gsl_spline_free (SFRD_ST_z_spline);
@@ -139,12 +154,16 @@ void destroy_21cmMC_arrays() {
   gsl_spline_free (Nion_z_spline);
   gsl_interp_accel_free (Nion_z_spline_acc);
 #ifdef MINI_HALO
-#ifndef INHOMO_FEEDBACK
+#ifdef INHOMO_FEEDBACK
+  gsl_spline2d_free (SFRD_ST_z_splinem);
+  gsl_interp_accel_free (SFRD_ST_z_spline_accm_Mturn);
+  gsl_spline2d_free (Nion_z_splinem);
+  gsl_interp_accel_free (Nion_z_spline_accm_Mturn);
+#else
   gsl_spline_free (SFRD_ST_z_splinem);
-  gsl_interp_accel_free (SFRD_ST_z_spline_accm);
-  gsl_spline_free (Nion_z_splinem);
-  gsl_interp_accel_free (Nion_z_spline_accm);
 #endif
+  gsl_interp_accel_free (SFRD_ST_z_spline_accm);
+  gsl_interp_accel_free (Nion_z_spline_accm);
 #endif
 }
 
@@ -185,7 +204,7 @@ int main(int argc, char ** argv){
   double nuprime, fcoll_R, Ts_ave;
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-  float *Mcrit_LW=NULL, *J_21_LW=NULL, Mcrit_atom;
+  float *Mcrit_LW=NULL, *J_21_LW=NULL, logMcrit_LW;
 #endif
   double fcoll_Rm;
 #ifdef REION_SM
@@ -903,8 +922,9 @@ int main(int argc, char ** argv){
 #ifdef MINI_HALO
     Mcrit_atom_interp_table[i] = atomic_cooling_threshold(zpp_interp_table[i]);
 #ifdef INHOMO_FEEDBACK
+    // NOTE: in Ts.c reionization feedback is ignored ifdef INHOMO_FEEDBACK
     Mcrit_RE_interp_table[i]   = 0.;
-    M_MINa_interp_table[i] = Mcrit_atom_interp_table[i];
+    M_MINa_interp_table[i]     = Mcrit_atom_interp_table[i];
 #else //INHOMO_FEEDBACK
 #ifdef REION_SM
     if(F = fopen("../Parameter_files/REION_SM.H", "r"))
@@ -936,6 +956,8 @@ int main(int argc, char ** argv){
 
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
+  for (i=0; i<NMTURN; i++)
+    log10_Mturn_interp_table[i] = 5 + (double)i/((double)NMTURN-1.)*5;
   M_MIN  = 1e5;
 #else //INHOMO_FEEDBACK
   M_MIN /= 50;
@@ -956,10 +978,12 @@ int main(int argc, char ** argv){
   initialise_Nion_ST_spline(zpp_interp_points, zpp_interp_table, M_MIN, M_MINa_interp_table, ALPHA_STAR, ALPHA_ESC, F_STAR10, F_ESC10);
   fprintf(stderr, "\n Completed initialise Nion_ST, Time = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
 #ifdef MINI_HALO
-#ifndef INHOMO_FEEDBACK
+#ifdef INHOMO_FEEDBACK
+  initialise_Nion_ST_splinem(zpp_interp_points, zpp_interp_table, M_MIN, log10_Mturn_interp_table, Mcrit_atom_interp_table, ALPHA_STAR, F_STAR10m);
+#else
   initialise_Nion_ST_splinem(zpp_interp_points, zpp_interp_table, M_MIN, M_MINm_interp_table, Mcrit_atom_interp_table, ALPHA_STAR, F_STAR10m);
-  fprintf(stderr, "\n Completed initialise Nion_ST for mini halos, Time = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
 #endif
+  fprintf(stderr, "\n Completed initialise Nion_ST for mini halos, Time = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
 #endif //MINI_HALO
   
   /* initialise interpolation of the mean SFRD.
@@ -967,10 +991,12 @@ int main(int argc, char ** argv){
   initialise_SFRD_ST_spline(zpp_interp_points, zpp_interp_table, M_MIN, M_MINa_interp_table, ALPHA_STAR, F_STAR10);
   fprintf(stderr, "\n Completed initialise SFRD using Sheth-Tormen halo mass function, Time = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
 #ifdef MINI_HALO
-#ifndef INHOMO_FEEDBACK
+#ifdef INHOMO_FEEDBACK
+  initialise_SFRD_ST_splinem(zpp_interp_points, zpp_interp_table, M_MIN, log10_Mturn_interp_table, Mcrit_atom_interp_table, ALPHA_STAR, F_STAR10m);
+#else
   initialise_SFRD_ST_splinem(zpp_interp_points, zpp_interp_table, M_MIN, M_MINm_interp_table, Mcrit_atom_interp_table, ALPHA_STAR, F_STAR10m);
-  fprintf(stderr, "\n Completed initialise SFRD for mini halos using Sheth-Tormen halo mass function, Time = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
 #endif
+  fprintf(stderr, "\n Completed initialise SFRD for mini halos using Sheth-Tormen halo mass function, Time = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
 #endif //MINI_HALO
   
   // initialise redshift table corresponding to all the redshifts to initialise interpolation for the conditional mass function.
@@ -1002,12 +1028,13 @@ int main(int argc, char ** argv){
   // Note from YQ: due to the initial configuration left from v2, I will construct M_MINa_interp_table and M_MINm_interp_table inside these two
   // functions (which is fine because we are only going to use them once, although there are unnecessary duplicated calculations...)
 #ifdef REION_SM
-  initialise_SFRD_Conditional_table(Nsteps_zp,NUM_FILTER_STEPS_FOR_Ts,redshift_interp_table,R_values, M_MIN, M_TURN, ALPHA_STAR, F_STAR10, REION_SM13_Z_RE, REION_SM13_DELTA_Z_RE, REION_SM13_DELTA_Z_SC);
+  initialise_SFRD_Conditional_table(Nsteps_zp,NUM_FILTER_STEPS_FOR_Ts,redshift_interp_table,R_values, M_MIN, ALPHA_STAR, F_STAR10, REION_SM13_Z_RE, REION_SM13_DELTA_Z_RE, REION_SM13_DELTA_Z_SC);
 #else
   initialise_SFRD_Conditional_table(Nsteps_zp,NUM_FILTER_STEPS_FOR_Ts,redshift_interp_table,R_values, M_MIN, M_TURN, ALPHA_STAR, F_STAR10);
 #endif
   fprintf(stderr, "\n Generated the table of SFRD using conditional mass function = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
 
+#ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
   Mcrit_LW = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);
   J_21_LW  = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);
@@ -1015,14 +1042,18 @@ int main(int argc, char ** argv){
     fprintf(stderr, "Ts.c: Error allocating memory for feedback boxes\nAborting...\n");
     return -1;
   }
-#else //INHOMO_FEEDBACK
+  initialise_SFRD_Conditional_tablem(Nsteps_zp,NUM_FILTER_STEPS_FOR_Ts,redshift_interp_table,R_values, M_MIN, log10_Mturn_interp_table, ALPHA_STAR, F_STAR10m);
+#else
 #ifdef REION_SM
-  initialise_SFRD_Conditional_tablem(Nsteps_zp,NUM_FILTER_STEPS_FOR_Ts,redshift_interp_table,R_values, M_MIN, M_TURN, ALPHA_STAR, F_STAR10m, REION_SM13_Z_RE, REION_SM13_DELTA_Z_RE, REION_SM13_DELTA_Z_SC);
+  initialise_SFRD_Conditional_tablem(Nsteps_zp,NUM_FILTER_STEPS_FOR_Ts,redshift_interp_table,R_values, M_MIN, ALPHA_STAR, F_STAR10m, REION_SM13_Z_RE, REION_SM13_DELTA_Z_RE, REION_SM13_DELTA_Z_SC);
 #else
   initialise_SFRD_Conditional_tablem(Nsteps_zp,NUM_FILTER_STEPS_FOR_Ts,redshift_interp_table,R_values, M_MIN, M_TURN, ALPHA_STAR, F_STAR10m);
 #endif
-  fprintf(stderr, "\n Generated the table of SFRD using conditional mass function for mini halos = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
 #endif
+
+#endif
+
+  fprintf(stderr, "\n Generated the table of SFRD using conditional mass function for mini halos = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
 #endif //SHARP_CUTOFF
 
   if (RESTART == 1){
@@ -1040,7 +1071,10 @@ int main(int argc, char ** argv){
       gsl_spline_init(SFRDLow_zpp_spline[i], log10_overdense_low_table, log10_SFRD_z_low_table[arr_num + i], NSFR_low);
       spline(Overdense_high_table-1,SFRD_z_high_table[arr_num + i]-1,NSFR_high,0,0,second_derivs_Nion_zpp[i]-1); 
 #ifdef MINI_HALO
-#ifndef INHOMO_FEEDBACK
+#ifdef INHOMO_FEEDBACK
+      gsl_spline2d_init(SFRDLow_zpp_splinem[i], log10_overdense_low_table, log10_overdense_low_table_Mturn, log10_SFRD_z_low_tablem[arr_num + i], NSFR_low, NMTURN);
+      spline2d(Overdense_high_table-1,Overdense_high_table_Mturn-1,SFRD_z_high_tablem[arr_num + i]-1,NSFR_high,NMTURN,0,0,second_derivs_Nion_zppm[i]-1); 
+#else
       gsl_spline_init(SFRDLow_zpp_splinem[i], log10_overdense_low_table, log10_SFRD_z_low_tablem[arr_num + i], NSFR_low);
       spline(Overdense_high_table-1,SFRD_z_high_tablem[arr_num + i]-1,NSFR_high,0,0,second_derivs_Nion_zppm[i]-1); 
 #endif
@@ -1076,15 +1110,14 @@ int main(int argc, char ** argv){
       for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
         J_21_LW[ct] = 0.0;
     }
-    M_MINm_ave = 0;
+    logMcrit_LW_ave = 0;
     for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++){
       Mcrit_LW[ct]  = lyman_werner_threshold(zp, J_21_LW[ct]);
-      M_MINm_ave += log10(Mcrit_LW[ct]);
+      logMcrit_LW_ave += log10(Mcrit_LW[ct]);
     }
-    M_MINm_ave   /= HII_TOT_NUM_PIXELS;
-    M_MINm_ave    = pow(10, M_MINm_ave);
-    Mcrit_atom    = atomic_cooling_threshold(zp);
-    Splined_Nion_ST_zpm = Nion_STm(zp, M_MIN, M_MINm_ave, Mcrit_atom, ALPHA_STAR, F_STAR10m, Mlim_Fstarm);
+    logMcrit_LW_ave /= HII_TOT_NUM_PIXELS;
+    Mcrit_atom_glob  = atomic_cooling_threshold(zp);
+    Nion_ST_zm(zp,logMcrit_LW_ave,&(Splined_Nion_ST_zpm));
 #else //INHOMO_FEEDBACK
     Nion_ST_zm(zp,&(Splined_Nion_ST_zpm));
 #endif //INHOMO_FEEDBACK
@@ -1139,9 +1172,6 @@ int main(int argc, char ** argv){
       fcoll_R = 0;
 #ifdef MINI_HALO
       fcoll_Rm = 0;
-#ifdef INHOMO_FEEDBACK
-      Mcrit_atom = atomic_cooling_threshold(zpp);
-#endif
 #endif
       sample_ct=0;
       for (box_ct=0; box_ct<HII_TOT_NUM_PIXELS; box_ct+=(HII_TOT_NUM_PIXELS/1e5+1)){
@@ -1153,6 +1183,13 @@ int main(int argc, char ** argv){
         delNL_zpp    = delNL0[R_ct][box_ct]*dicke(zpp);
         //---------- interpolation for fcoll starts ----------
         // Here 'fcoll' is not the collpased fraction, but leave this name as is to simplify the variable name.
+#ifdef INHOMO_FEEDBACK
+		logMcrit_LW = log10(Mcrit_LW[box_ct]);
+		if (logMcrit_LW < 5)
+			logMcrit_LW = 5.;
+		if (logMcrit_LW >10)
+			logMcrit_LW = 10.;
+#endif
         if (delNL_zpp < 1.5){
           if (delNL_zpp < -1.) {
             fcoll = 0;
@@ -1165,12 +1202,11 @@ int main(int argc, char ** argv){
             fcoll = pow(10., fcoll);
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-            // TODO: here we assume Mcrit_LW does not vary significantly between prev_zp and zpp
-            fcollm = GaussLegendreQuad_Nionm(NGL_SFR,zpp, log(RtoM(R_values[R_ct])), Deltac, delNL_zpp, ALPHA_STAR, Mcrit_LW[box_ct], Mcrit_atom, F_STAR10m, Mlim_Fstarm);
+            fcollm = gsl_spline2d_eval(SFRDLow_zpp_splinem[R_ct], delNL_zpp, logMcrit_LW, SFRDLow_zpp_spline_accm[R_ct], SFRDLow_zpp_spline_accm_Mturn[R_ct]);
 #else 
             fcollm = gsl_spline_eval(SFRDLow_zpp_splinem[R_ct], delNL_zpp, SFRDLow_zpp_spline_accm[R_ct]);
-            fcollm = pow(10., fcollm);
 #endif //INHOMO_FEEDBACK
+            fcollm = pow(10., fcollm);
 #endif //MINI_HALO
           }    
         }
@@ -1182,7 +1218,7 @@ int main(int argc, char ** argv){
             splint(Overdense_high_table-1,SFRD_z_high_table[R_ct]-1,second_derivs_Nion_zpp[R_ct]-1,NSFR_high,delNL_zpp,&(fcoll));
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-            fcollm = Nion_ConditionalMm(zpp, log(M_MIN), log(RtoM(R_values[R_ct])), Deltac, delNL_zpp, ALPHA_STAR, Mcrit_LW[box_ct], Mcrit_atom, F_STAR10m, Mlim_Fstarm);
+            splint2d(Overdense_high_table-1,Overdense_high_table_Mturn-1,SFRD_z_high_tablem[R_ct]-1,second_derivs_Nion_zppm[R_ct]-1,NSFR_high,NMTURN,delNL_zpp,logMcrit_LW,&(fcollm));
 #else //INHOMO_FEEDBACK
             splint(Overdense_high_table-1,SFRD_z_high_tablem[R_ct]-1,second_derivs_Nion_zppm[R_ct]-1,NSFR_high,delNL_zpp,&(fcollm));
 #endif //INHOMO_FEEDBACK
@@ -1224,12 +1260,11 @@ int main(int argc, char ** argv){
       // This means that it might not be as good as in previous versions, because now the fluctuation in fcoll is also 
       // due to feedbacks in M_MINm. e.g. if the distribution of Mcrit_LW is too large
       // this is not interpolated value
-      Splined_SFRD_ST_zppm = Nion_STm(zpp, M_MIN, M_MINm_ave, Mcrit_atom, ALPHA_STAR, F_STAR10m, Mlim_Fstarm);
-      ST_over_PSm[R_ct]    = Splined_SFRD_ST_zppm / fcoll_Rm; 
+      SFRD_ST_zm(zpp,logMcrit_LW,&(Splined_SFRD_ST_zppm));
 #else
       SFRD_ST_zm(zpp,&(Splined_SFRD_ST_zppm));
-      ST_over_PSm[R_ct] = Splined_SFRD_ST_zppm / fcoll_Rm; 
 #endif //INHOMO_FEEDBACK
+      ST_over_PSm[R_ct] = Splined_SFRD_ST_zppm / fcoll_Rm; 
 #endif //MINI_HALO
 #endif //SHARP_CUTOFF
 
@@ -1383,7 +1418,7 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
     /***************  PARALLELIZED LOOP ******************************************************************/
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-#pragma omp parallel shared(COMPUTE_Ts, Tk_box, x_e_box, x_e_ave, delNL0, freq_int_heat_tbl, freq_int_ion_tbl, freq_int_lya_tbl,freq_int_heat_tblm, freq_int_ion_tblm, freq_int_lya_tblm, zp, dzp, Ts, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, growth_factor_zp, dgrowth_factor_dzp, NO_LIGHT, zpp_edge, sigma_atR, sigma_Tmin, ST_over_PS, ST_over_PSm, sum_lyn,sum_lynm,sum_lyLWn, sum_lyLWnm, const_zp_prefactor, const_zp_prefactorm, M_MIN_at_z, M_MIN_at_zp, dt_dzp, J_alpha_threads, J_LW_threads, xalpha_threads, Xheat_threads, Xion_threads, M_MIN, R_values, M_MINm_ave, Mcrit_atom) private(box_ct, ans, xHII_call, R_ct, curr_delNL0, m_xHII_low, m_xHII_high, freq_int_heat, freq_int_ion, freq_int_lya, freq_int_heatm, freq_int_ionm, freq_int_lyam, dansdz, J_alpha_tot, J_LW_tot, curr_xalpha)
+#pragma omp parallel shared(COMPUTE_Ts, Tk_box, x_e_box, x_e_ave, delNL0, freq_int_heat_tbl, freq_int_ion_tbl, freq_int_lya_tbl,freq_int_heat_tblm, freq_int_ion_tblm, freq_int_lya_tblm, zp, dzp, Ts, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, growth_factor_zp, dgrowth_factor_dzp, NO_LIGHT, zpp_edge, sigma_atR, sigma_Tmin, ST_over_PS, ST_over_PSm, sum_lyn,sum_lynm,sum_lyLWn, sum_lyLWnm, const_zp_prefactor, const_zp_prefactorm, M_MIN_at_z, M_MIN_at_zp, dt_dzp, J_alpha_threads, J_LW_threads, xalpha_threads, Xheat_threads, Xion_threads, M_MIN, R_values, Mcrit_atom_glob,logMcrit_LW_ave) private(box_ct, ans, xHII_call, R_ct, curr_delNL0, m_xHII_low, m_xHII_high, freq_int_heat, freq_int_ion, freq_int_lya, freq_int_heatm, freq_int_ionm, freq_int_lyam, dansdz, J_alpha_tot, J_LW_tot, curr_xalpha)
 #else
 #pragma omp parallel shared(COMPUTE_Ts, Tk_box, x_e_box, x_e_ave, delNL0, freq_int_heat_tbl, freq_int_ion_tbl, freq_int_lya_tbl,freq_int_heat_tblm, freq_int_ion_tblm, freq_int_lya_tblm, zp, dzp, Ts, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, growth_factor_zp, dgrowth_factor_dzp, NO_LIGHT, zpp_edge, sigma_atR, sigma_Tmin, ST_over_PS, ST_over_PSm, sum_lyn,sum_lynm, const_zp_prefactor, const_zp_prefactorm, M_MIN_at_z, M_MIN_at_zp, dt_dzp, J_alpha_threads, xalpha_threads, Xheat_threads, Xion_threads) private(box_ct, ans, xHII_call, R_ct, curr_delNL0, m_xHII_low, m_xHII_high, freq_int_heat, freq_int_ion, freq_int_lya, freq_int_heatm, freq_int_ionm, freq_int_lyam, dansdz, J_alpha_tot, curr_xalpha)
 #endif

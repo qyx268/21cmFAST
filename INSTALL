@@ -3,6 +3,8 @@
 before compiling these files.  Download and unpack fftw:
 http://www.fftw.org/download.html
 
+You must have gsl>1.15
+
 then install:
 
    `./configure --enable-float  --enable-openmp`

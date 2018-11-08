@@ -35,25 +35,35 @@ double X_LUMINOSITY;
 double X_LUMINOSITYm;
 #endif
 static float determine_zpp_max, determine_zpp_min; // new in v2
+
 float *second_derivs_Nion_zpp[NUM_FILTER_STEPS_FOR_Ts]; // New
 #ifdef MINI_HALO
 float *second_derivs_Nion_zppm[NUM_FILTER_STEPS_FOR_Ts]; // New
 #endif
+
 float *redshift_interp_table;
 int Nsteps_zp; //New in v2 
 static double zpp_interp_table[zpp_interp_points], M_MINa_interp_table[zpp_interp_points]; //New in v2
 #ifdef MINI_HALO
 double Mcrit_atom_interp_table[zpp_interp_points], Mcrit_RE_interp_table[zpp_interp_points];
 #ifdef INHOMO_FEEDBACK
-double Mcrit_LW, M_MINm_ave, Mcrit_atom;
+double Mcrit_atom_glob, logMcrit_LW_ave;
+static double log10_Mturn_interp_table[NMTURN];
 #else
 double Mcrit_LW_interp_table[zpp_interp_points], M_MINm_interp_table[zpp_interp_points];//New in v2.1
 #endif
 #endif
-gsl_interp_accel *SFRDLow_zpp_spline_acc[NUM_FILTER_STEPS_FOR_Ts];
+
 gsl_spline *SFRDLow_zpp_spline[NUM_FILTER_STEPS_FOR_Ts];
+#ifdef INHOMO_FEEDBACK
+gsl_interp_accel *SFRDLow_zpp_spline_acc[NUM_FILTER_STEPS_FOR_Ts];
+gsl_interp_accel *SFRDLow_zpp_spline_acc_Mturn[NUM_FILTER_STEPS_FOR_Ts];
+gsl_interp_accel *SFRDLow_zpp_spline_accm[NUM_FILTER_STEPS_FOR_Ts];
+gsl_interp_accel *SFRDLow_zpp_spline_accm_Mturn[NUM_FILTER_STEPS_FOR_Ts];
+gsl_spline2d *SFRDLow_zpp_splinem[NUM_FILTER_STEPS_FOR_Ts];
+#else
+gsl_interp_accel *SFRDLow_zpp_spline_acc[NUM_FILTER_STEPS_FOR_Ts];
 #ifdef MINI_HALO
-#ifndef INHOMO_FEEDBACK
 gsl_interp_accel *SFRDLow_zpp_spline_accm[NUM_FILTER_STEPS_FOR_Ts];
 gsl_spline *SFRDLow_zpp_splinem[NUM_FILTER_STEPS_FOR_Ts];
 #endif
@@ -462,11 +472,11 @@ void evolveInt(float zp, float curr_delNL0[], double freq_int_heat[],
         fcoll = pow(10., fcoll);
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-        fcollm = GaussLegendreQuad_Nionm(NGL_SFR, zpp, log(RtoM(R_values[zpp_ct])), Deltac, delNL_zpp, ALPHA_STAR, M_MINm_ave, Mcrit_atom, F_STAR10m, Mlim_Fstarm);
+        fcollm = gsl_spline2d_eval(SFRDLow_zpp_splinem[zpp_ct], log10(delNL_zpp+1.), logMcrit_LW_ave, SFRDLow_zpp_spline_accm[zpp_ct], SFRDLow_zpp_spline_accm_Mturn[zpp_ct]);
 #else
         fcollm = gsl_spline_eval(SFRDLow_zpp_splinem[zpp_ct], log10(delNL_zpp+1.), SFRDLow_zpp_spline_accm[zpp_ct]);
-        fcollm = pow(10., fcollm);
 #endif
+        fcollm = pow(10., fcollm);
 #endif
       }
     }
@@ -478,7 +488,7 @@ void evolveInt(float zp, float curr_delNL0[], double freq_int_heat[],
         splint(Overdense_high_table-1,SFRD_z_high_table[zpp_ct]-1,second_derivs_Nion_zpp[zpp_ct]-1,NSFR_high,delNL_zpp,&(fcoll));
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-        fcollm = Nion_ConditionalMm(zpp, log(M_MIN), log(RtoM(R_values[zpp_ct])), Deltac, delNL_zpp, ALPHA_STAR, M_MINm_ave, Mcrit_atom, F_STAR10m, Mlim_Fstarm);
+        splint2d(Overdense_high_table-1,Overdense_high_table_Mturn-1,SFRD_z_high_tablem[zpp_ct]-1,second_derivs_Nion_zppm[zpp_ct]-1,NSFR_high,NMTURN,delNL_zpp,logMcrit_LW_ave,&(fcollm));
 #else
         splint(Overdense_high_table-1,SFRD_z_high_tablem[zpp_ct]-1,second_derivs_Nion_zppm[zpp_ct]-1,NSFR_high,delNL_zpp,&(fcollm));
 #endif
@@ -895,11 +905,11 @@ double tauX_integrand(double zhat, void *params){
   fcoll = Splined_ans;
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-  fcollm = Nion_STm(zhat, M_MIN, M_MINm_ave, Mcrit_atom, ALPHA_STAR, F_STAR10m, Mlim_Fstarm);
+  Nion_ST_zm(zhat,logMcrit_LW_ave,&(Splined_ansm));
 #else
   Nion_ST_zm(zhat,&(Splined_ansm));
-  fcollm = Splined_ansm;
 #endif
+  fcollm = Splined_ansm;
 #endif
 #endif
 

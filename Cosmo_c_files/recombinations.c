@@ -11,6 +11,10 @@
 #include "../Parameter_files/INIT_PARAMS.H"
 #include <gsl/gsl_interp.h>
 #include <gsl/gsl_spline.h>
+#ifdef INHOMO_FEEDBACK
+#include <gsl/gsl_interp2d.h>
+#include <gsl/gsl_spline2d.h>
+#endif
 #include "cosmo_progs.c"
 #include "misc.c"
 #include "ps.c"
