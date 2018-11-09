@@ -2489,6 +2489,7 @@ void DeltaNion_Spline_density(float Overdensity, float *splined_value)
             returned_value = 0.;
         }
     }
+    *splined_value = returned_value;
 }
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
@@ -2534,6 +2535,7 @@ void DeltaNion_Spline_densitym(float Overdensity, float *splined_value)
             returned_value = 0.;
         }
     }
+    *splined_value = returned_value;
 }
 #endif //MINI_HALO
 #endif //CONTEMPORANEOUS_DUTYCYCLE
@@ -2552,6 +2554,7 @@ void initialise_Nion_ST_spline(int Nbin, double z_val[], float Mmin, double M_MI
       Nion_z_val[i] = Nion_ST(z_val[i], Mmin, M_MINa_interp_table[i], Alpha_star, Alpha_esc, Fstar10, Fesc10, Mlim_Fstar, Mlim_Fesc);
     gsl_spline_init(Nion_z_spline, z_val, Nion_z_val, Nbin);
 }
+
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
 void initialise_Nion_ST_splinem(int Nbin, double z_val[], float Mmin, double log10_Mturn[], double Mcrit_atom_interp_table[], float Alpha_star, float Fstar10m)
@@ -2598,6 +2601,7 @@ void Nion_ST_z(float z, float *splined_value){
     returned_value = gsl_spline_eval(Nion_z_spline, z, Nion_z_spline_acc);
     *splined_value = returned_value;
 }
+
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
 void Nion_ST_zm(float z, float logM_MINm_ave, float *splined_value)
@@ -2632,6 +2636,7 @@ void initialise_SFRD_ST_spline(int Nbin, double z_val[], float Mmin, double M_MI
         SFRD_val[i] = Nion_ST(z_val[i], Mmin, M_MINa_interp_table[i], Alpha_star, 0., Fstar10, 1.,Mlim_Fstar,0.);
     gsl_spline_init(SFRD_ST_z_spline, z_val, SFRD_val, Nbin);
 }
+
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
 void initialise_SFRD_ST_splinem(int Nbin, double z_val[], float Mmin, double log10_Mturn[], double Mcrit_atom_interp_table[], float Alpha_star, float Fstar10m)
@@ -2678,6 +2683,7 @@ void SFRD_ST_z(float z, float *splined_value){
     returned_value = gsl_spline_eval(SFRD_ST_z_spline, z, SFRD_ST_z_spline_acc);
     *splined_value = returned_value;
 }
+
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
 void SFRD_ST_zm(float z, float logM_MINm_ave, float *splined_value)
@@ -2700,7 +2706,6 @@ void SFRD_ST_zm(float z, float *splined_value)
     *splined_value = returned_value;
 }
 #endif
-
 
 #ifdef REION_SM
 void initialise_SFRD_Conditional_table(int Nsteps_zp, int Nfilter, float z[], double R[], float Mmin, float Alpha_star, float Fstar10, double REION_SM13_Z_RE, double REION_SM13_DELTA_Z_RE, double REION_SM13_DELTA_Z_SC)
