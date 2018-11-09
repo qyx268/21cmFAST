@@ -25,7 +25,7 @@
 // New in v2
 void init_21cmMC_arrays() { 
 
-  int i,j;
+  int i;
 
   xi_SFR = calloc((NGL_SFR+1),sizeof(float));
   wi_SFR = calloc((NGL_SFR+1),sizeof(float));
@@ -40,7 +40,9 @@ void init_21cmMC_arrays() {
 #ifdef INHOMO_FEEDBACK
     SFRDLow_zpp_spline_accm_Mturn[i] = gsl_interp_accel_alloc ();
     SFRDLow_zpp_splinem[i] = gsl_spline2d_alloc (gsl_interp2d_bicubic, NSFR_low, NMTURN);
-    second_derivs_Nion_zppm[i] = calloc(NSFR_high*NMTURN,sizeof(float));
+	second_derivs_Nion_zppm[i][0] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
+	second_derivs_Nion_zppm[i][1] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
+	second_derivs_Nion_zppm[i][2] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
 #else
     SFRDLow_zpp_splinem[i] = gsl_spline_alloc (gsl_interp_cspline, NSFR_low);
     second_derivs_Nion_zppm[i] = calloc(NSFR_high,sizeof(float));
@@ -96,7 +98,7 @@ void init_21cmMC_arrays() {
 
 void destroy_21cmMC_arrays() {
 
-  int i,j,ithread;
+  int i,ithread;
 
   free(xi_SFR);
   free(wi_SFR);
@@ -146,7 +148,9 @@ void destroy_21cmMC_arrays() {
     gsl_spline_free (SFRDLow_zpp_splinem[i]);
 #endif
     gsl_interp_accel_free (SFRDLow_zpp_spline_accm[i]);
-    free(second_derivs_Nion_zppm[i]);
+    free(second_derivs_Nion_zppm[i][0]);
+    free(second_derivs_Nion_zppm[i][1]);
+    free(second_derivs_Nion_zppm[i][2]);
 #endif
   }
   gsl_spline_free (SFRD_ST_z_spline);
@@ -1073,7 +1077,7 @@ int main(int argc, char ** argv){
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
       gsl_spline2d_init(SFRDLow_zpp_splinem[i], log10_overdense_low_table, log10_overdense_low_table_Mturn, log10_SFRD_z_low_tablem[arr_num + i], NSFR_low, NMTURN);
-      spline2d(Overdense_high_table-1,Overdense_high_table_Mturn-1,SFRD_z_high_tablem[arr_num + i]-1,NSFR_high,NMTURN,0,0,second_derivs_Nion_zppm[i]-1); 
+      spline2d(Overdense_high_table,(float *)Overdense_high_table_Mturn,SFRD_z_high_tablem[arr_num + i],NSFR_high,NMTURN,second_derivs_Nion_zppm[i]); 
 #else
       gsl_spline_init(SFRDLow_zpp_splinem[i], log10_overdense_low_table, log10_SFRD_z_low_tablem[arr_num + i], NSFR_low);
       spline(Overdense_high_table-1,SFRD_z_high_tablem[arr_num + i]-1,NSFR_high,0,0,second_derivs_Nion_zppm[i]-1); 
@@ -1218,7 +1222,7 @@ int main(int argc, char ** argv){
             splint(Overdense_high_table-1,SFRD_z_high_table[R_ct]-1,second_derivs_Nion_zpp[R_ct]-1,NSFR_high,delNL_zpp,&(fcoll));
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-            splint2d(Overdense_high_table-1,Overdense_high_table_Mturn-1,SFRD_z_high_tablem[R_ct]-1,second_derivs_Nion_zppm[R_ct]-1,NSFR_high,NMTURN,delNL_zpp,logMcrit_LW,&(fcollm));
+            splint2d(Overdense_high_table,Overdense_high_table_Mturn,SFRD_z_high_tablem[R_ct],second_derivs_Nion_zppm[R_ct],NSFR_high,NMTURN,delNL_zpp,logMcrit_LW,&(fcollm));
 #else //INHOMO_FEEDBACK
             splint(Overdense_high_table-1,SFRD_z_high_tablem[R_ct]-1,second_derivs_Nion_zppm[R_ct]-1,NSFR_high,delNL_zpp,&(fcollm));
 #endif //INHOMO_FEEDBACK

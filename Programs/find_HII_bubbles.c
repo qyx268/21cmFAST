@@ -39,7 +39,9 @@ void init_21cmMC_arrays() { // defined in Cosmo_c_files/ps.c
     Overdense_spline_SFR = calloc(NSFR_high,sizeof(float)); // New in v2
 #ifdef INHOMO_FEEDBACK
     Nion_spline = calloc(NSFR_high*NMTURN,sizeof(float));
-    second_derivs_Nion = calloc(NSFR_high*NMTURN,sizeof(float));
+	second_derivs_Nion[0] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
+	second_derivs_Nion[1] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
+	second_derivs_Nion[2] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
 #else //INHOMO_FEEDBACK
     Nion_spline = calloc(NSFR_high,sizeof(float));
     second_derivs_Nion = calloc(NSFR_high,sizeof(float));
@@ -47,7 +49,9 @@ void init_21cmMC_arrays() { // defined in Cosmo_c_files/ps.c
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
     Nion_splinem = calloc(NSFR_high*NMTURN,sizeof(float));
-    second_derivs_Nionm = calloc(NSFR_high*NMTURN,sizeof(float));
+	second_derivs_Nionm[0] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
+	second_derivs_Nionm[1] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
+	second_derivs_Nionm[2] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
 #else //INHOMO_FEEDBACK
     Nion_splinem = calloc(NSFR_high,sizeof(float));
     second_derivs_Nionm = calloc(NSFR_high,sizeof(float));
@@ -67,11 +71,20 @@ void destroy_21cmMC_arrays() {
 
     free(Overdense_spline_SFR); // New in v2
     free(Nion_spline);
+#ifdef INHOMO_FEEDBACK
+    free(second_derivs_Nion[0]);
+    free(second_derivs_Nion[1]);
+    free(second_derivs_Nion[2]);
+    free(second_derivs_Nionm[0]);
+    free(second_derivs_Nionm[1]);
+    free(second_derivs_Nionm[2]);
+#else
     free(second_derivs_Nion);
 #ifdef MINI_HALO
     free(Nion_splinem);
     free(second_derivs_Nionm);
 #endif //MINI_HALO
+#endif
     free(xi_SFR);
     free(wi_SFR);
 #ifdef INHOMO_FEEDBACK

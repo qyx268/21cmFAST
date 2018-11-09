@@ -38,7 +38,11 @@ static float determine_zpp_max, determine_zpp_min; // new in v2
 
 float *second_derivs_Nion_zpp[NUM_FILTER_STEPS_FOR_Ts]; // New
 #ifdef MINI_HALO
+#ifdef INHOMO_FEEDBACK
+float *second_derivs_Nion_zppm[NUM_FILTER_STEPS_FOR_Ts][3]; // New
+#else
 float *second_derivs_Nion_zppm[NUM_FILTER_STEPS_FOR_Ts]; // New
+#endif
 #endif
 
 float *redshift_interp_table;
@@ -488,7 +492,7 @@ void evolveInt(float zp, float curr_delNL0[], double freq_int_heat[],
         splint(Overdense_high_table-1,SFRD_z_high_table[zpp_ct]-1,second_derivs_Nion_zpp[zpp_ct]-1,NSFR_high,delNL_zpp,&(fcoll));
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-        splint2d(Overdense_high_table-1,Overdense_high_table_Mturn-1,SFRD_z_high_tablem[zpp_ct]-1,second_derivs_Nion_zppm[zpp_ct]-1,NSFR_high,NMTURN,delNL_zpp,logMcrit_LW_ave,&(fcollm));
+        splint2d(Overdense_high_table,Overdense_high_table_Mturn,SFRD_z_high_tablem[zpp_ct],second_derivs_Nion_zppm[zpp_ct],NSFR_high,NMTURN,delNL_zpp,logMcrit_LW_ave,&(fcollm));
 #else
         splint(Overdense_high_table-1,SFRD_z_high_tablem[zpp_ct]-1,second_derivs_Nion_zppm[zpp_ct]-1,NSFR_high,delNL_zpp,&(fcollm));
 #endif
