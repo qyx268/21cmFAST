@@ -2145,6 +2145,8 @@ float GaussLegendreQuad_DeltaNion(int n, float z, float zp, float M2, float delt
   for(i=1; i<(n+1); i++)
     integrand += wi_SFR[i]*(Nion_ConditionallnM_GL(xi_SFR[i],parameters_gsl_SFR_con) - Nion_ConditionallnM_GL(xi_SFR[i],parameters_gsl_SFR_conp));
 
+	if (integrand<=0)
+	  integrand = 1e-40;
   return integrand;
 
 }
@@ -2183,6 +2185,9 @@ float GaussLegendreQuad_DeltaNionm(int n, float z, float zp, float M2, float del
     for(i=1; i<(n+1); i++)
       integrand += wi_SFR[i]*(Nion_ConditionallnM_GLm(xi_SFR[i],parameters_gsl_SFR_con) - Nion_ConditionallnM_GLm(xi_SFR[i],parameters_gsl_SFR_conp));
 
+	// TODO: Sometimes this happens, need to get back and check what is going on here
+	if (integrand<=0)
+	  integrand = 1e-40;
     return integrand;
 
 }
