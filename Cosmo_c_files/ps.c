@@ -52,7 +52,7 @@ static gsl_spline *erfc_spline;
 #define NSFR_low 250
 #define NGL_SFR 100 
 #ifdef INHOMO_FEEDBACK
-#define NMTURN 200
+#define NMTURN 100
 #endif //INHOMO_FEEDBACK
 /* Number of interpolation points for the interpolation table for z'' 
                 This is the same parameter in 21CMMC */

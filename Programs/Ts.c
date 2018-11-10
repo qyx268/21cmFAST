@@ -987,7 +987,7 @@ int main(int argc, char ** argv){
 #else
   initialise_Nion_ST_splinem(zpp_interp_points, zpp_interp_table, M_MIN, M_MINm_interp_table, Mcrit_atom_interp_table, ALPHA_STAR, F_STAR10m);
 #endif
-  fprintf(stderr, "\n Completed initialise Nion_ST for mini halos, Time = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
+  fprintf(stderr, "\n Completed initialise Nion_STm for mini halos, Time = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
 #endif //MINI_HALO
   
   /* initialise interpolation of the mean SFRD.
