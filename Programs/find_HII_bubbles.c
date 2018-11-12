@@ -553,8 +553,12 @@ int main(int argc, char ** argv){
     }
   }
   else{ // this is the first call (highest redshift)
+#pragma omp parallel shared(z_re) private(ct)
+{
+#pragma omp for
     for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
       z_re[ct] = -1.0;
+}
   }
   sprintf(filename, "../Boxes/Nrec_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", PREV_REDSHIFT, HII_FILTER, MFP, HII_DIM, BOX_LEN);
   if (F=fopen(filename, "rb")){ // we had prvious boxes
@@ -573,6 +577,9 @@ int main(int argc, char ** argv){
   else{
     fprintf(stderr, "Earliest redshift call, initializing Nrec to zeros\n");
     // initialize N_rec
+#pragma omp parallel shared(N_rec_unfiltered) private(i,j,k)
+{
+#pragma omp for
     for (i=0; i<HII_DIM; i++){
       for (j=0; j<HII_DIM; j++){
         for (k=0; k<HII_DIM; k++){
@@ -580,6 +587,7 @@ int main(int argc, char ** argv){
         }
       }
     }
+}
   }
 #ifdef INHOMO_FEEDBACK
   // Gamma12 box
@@ -630,10 +638,14 @@ int main(int argc, char ** argv){
   Mcrit_atom          = atomic_cooling_threshold(REDSHIFT);
 #ifdef INHOMO_FEEDBACK
   // use the average for check dark ages and do the ST/PS renormalization
+#pragma omp parallel shared(REDSHIFT,J_21_LW, Gamma12, z_re) private(ct) reduction(+: Mcrit_LW, Mcrit_RE)
+{
+#pragma omp for
   for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++){
     Mcrit_LW += log10(lyman_werner_threshold(REDSHIFT, J_21_LW[ct]));
     Mcrit_RE += log10(reionization_feedback(REDSHIFT, Gamma12[ct], z_re[ct]));
   }
+}
   Mcrit_LW   /= HII_TOT_NUM_PIXELS;
   Mcrit_RE   /= HII_TOT_NUM_PIXELS;
   Mcrit_LW    = pow(10, Mcrit_LW);
@@ -720,7 +732,11 @@ int main(int argc, char ** argv){
     strcpy(error_message, "find_HII_bubbles.c: Error allocating memory for xH box\nAborting...\n");
     goto CLEANUP;
   }
+#pragma omp parallel shared(xH) private(ct)
+{
+#pragma omp for
   for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++){    xH[ct] = 1;  }
+}
 
   // compute the mean collpased fraction at this redshift
 #ifdef SHARP_CUTOFF
@@ -844,9 +860,13 @@ int main(int argc, char ** argv){
     init_heat();
     global_xH = 1 - xion_RECFAST(REDSHIFT, 0);;
     destruct_heat();
+#pragma omp parallel shared(xH) private(ct)
+{
+#pragma omp for
     for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++){
       xH[ct] = global_xH;
     }
+}
 #endif //USE_TS_IN_21CM
   
     // print out the xH box
@@ -1005,7 +1025,11 @@ int main(int argc, char ** argv){
     strcpy(error_message, "find_HII_bubbles.c: Error allocating memory for M_coll boxes\nAborting...\n");
     goto CLEANUP;
   }
+#pragma omp parallel shared(M_coll_unfiltered) private(ct)
+{
+#pragma omp for
   for (ct=0; ct<HII_TOT_FFT_NUM_PIXELS; ct++){    *((float *)M_coll_unfiltered + ct) = 0;  }
+}
     
   // read in the halo list
   sprintf(filename, "../Output_files/Halo_lists/updated_halos_z%06.2f_%i_%.0fMpc", REDSHIFT, DIM, BOX_LEN);
@@ -1083,18 +1107,36 @@ int main(int argc, char ** argv){
   // remember to add the factor of VOLUME/TOT_NUM_PIXELS when converting from
   //  real space to k-space
   // Note: we will leave off factor of VOLUME, in anticipation of the inverse FFT below
-  for (ct=0; ct<HII_KSPACE_NUM_PIXELS; ct++){
 #ifdef USE_HALO_FIELD
+#pragma omp parallel shared(M_coll_unfiltered) private(ct)
+{
+#pragma omp for
+  for (ct=0; ct<HII_KSPACE_NUM_PIXELS; ct++)
     M_coll_unfiltered[ct] /= (double)HII_TOT_NUM_PIXELS;
+}
 #endif //USE_HALO_FIELD
 #ifdef USE_TS_IN_21CM
+#pragma omp parallel shared(xe_unfiltered) private(ct)
+{
+#pragma omp for
+  for (ct=0; ct<HII_KSPACE_NUM_PIXELS; ct++)
     xe_unfiltered[ct] /= (double)HII_TOT_NUM_PIXELS;
+}
 #endif //USE_TS_IN_21CM
 #ifdef INHOMO_RECO
+#pragma omp parallel shared(N_rec_unfiltered) private(ct)
+{
+#pragma omp for
+  for (ct=0; ct<HII_KSPACE_NUM_PIXELS; ct++)
     N_rec_unfiltered[ct] /= (double)HII_TOT_NUM_PIXELS;
+}
 #endif //INHOMO_RECO
+#pragma omp parallel shared(deltax_unfiltered) private(ct)
+{
+#pragma omp for
+  for (ct=0; ct<HII_KSPACE_NUM_PIXELS; ct++)
     deltax_unfiltered[ct] /= (HII_TOT_NUM_PIXELS+0.0);
-  }
+}
   fprintf(LOG, "end initial ffts, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
   fflush(LOG);
 
@@ -1212,34 +1254,67 @@ int main(int argc, char ** argv){
 
 
     // perform sanity checks to account for aliasing effects
+#pragma omp parallel shared(deltax_filtered) private(x, y, z)
+{
+#pragma omp for
     for (x=0; x<HII_DIM; x++){
       for (y=0; y<HII_DIM; y++){
         for (z=0; z<HII_DIM; z++){
-      
           // delta cannot be less than -1
           *((float *)deltax_filtered + HII_R_FFT_INDEX(x,y,z)) = 
             FMAX(*((float *)deltax_filtered + HII_R_FFT_INDEX(x,y,z)) , -1+FRACT_FLOAT_ERR);
+		}
+	  }
+	}
+}
 
-          // <N_rec> cannot be less than zero
 #ifdef INHOMO_RECO
+#pragma omp parallel shared(N_rec_filtered) private(x, y, z)
+{
+#pragma omp for
+    for (x=0; x<HII_DIM; x++){
+      for (y=0; y<HII_DIM; y++){
+        for (z=0; z<HII_DIM; z++){
+          // <N_rec> cannot be less than zero
           *((float *)N_rec_filtered + HII_R_FFT_INDEX(x,y,z)) = 
           FMAX(*((float *)N_rec_filtered + HII_R_FFT_INDEX(x,y,z)) , 0.0);
+		}
+	  }
+	}
+}
 #endif //INHOMO_RECO
         
-          // collapsed mass cannot be less than zero
 #ifdef USE_HALO_FIELD
+#pragma omp parallel shared(M_coll_filtered) private(x, y, z)
+{
+#pragma omp for
+    for (x=0; x<HII_DIM; x++){
+      for (y=0; y<HII_DIM; y++){
+        for (z=0; z<HII_DIM; z++){
+          // collapsed mass cannot be less than zero
           *((float *)M_coll_filtered + HII_R_FFT_INDEX(x,y,z)) = 
             FMAX(*((float *)M_coll_filtered + HII_R_FFT_INDEX(x,y,z)) , 0.0);
+		}
+	  }
+	}
+}
 #endif //USE_HALO_FIELD
 
-          // x_e has to be between zero and unity
 #ifdef USE_TS_IN_21CM
+#pragma omp parallel shared(xe_filtered) private(x, y, z)
+{
+#pragma omp for
+    for (x=0; x<HII_DIM; x++){
+      for (y=0; y<HII_DIM; y++){
+        for (z=0; z<HII_DIM; z++){
+          // x_e has to be between zero and unity
           *((float *)xe_filtered + HII_R_FFT_INDEX(x,y,z)) = FMAX(*((float *)xe_filtered + HII_R_FFT_INDEX(x,y,z)) , 0);
           *((float *)xe_filtered + HII_R_FFT_INDEX(x,y,z)) = FMIN(*((float *)xe_filtered + HII_R_FFT_INDEX(x,y,z)) , 0.999);
-#endif //USE_TS_IN_21CM
         }
       }
     } //  end sanity check in box
+}
+#endif //USE_TS_IN_21CM
     
     // normalize the analytic collapse fractions if we operating on the density field
     f_coll = 0.0;
@@ -1268,8 +1343,12 @@ int main(int argc, char ** argv){
         goto CLEANUP;
       }
       Fcoll_prev_ave = 0.;
+#pragma omp parallel shared(Fcoll_prev) private(ct) reduction(+:Fcoll_prev_ave)
+{
+#pragma omp for
       for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
         Fcoll_prev_ave += Fcoll_prev[ct];
+}
       Fcoll_prev_ave   /= HII_TOT_NUM_PIXELS;
 #ifdef INHOMO_FEEDBACK
       initialise_DeltaNion_spline(REDSHIFT, PREV_REDSHIFT, massofscaleR,M_MIN,Mcrit_atom,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
@@ -1279,8 +1358,12 @@ int main(int argc, char ** argv){
     }
     else{ // this is the first call (highest redshift)
       flag_first_reionization = 1;
+#pragma omp parallel shared(Fcoll_prev) private(ct)
+{
+#pragma omp for
       for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
         Fcoll_prev[ct] = 0.0;
+}
       Fcoll_prev_ave   = 0;
       // so we calculation Nion instead of Delta Nion
 #ifdef INHOMO_FEEDBACK
@@ -1302,8 +1385,12 @@ int main(int argc, char ** argv){
         goto CLEANUP;
       }
       Fcoll_prev_avem = 0.;
+#pragma omp parallel shared(Fcollm_prev) private(ct) reduction(+:Fcoll_prev_avem)
+{
+#pragma omp for
       for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
         Fcoll_prev_avem += Fcollm_prev[ct];
+}
       Fcoll_prev_avem   /= HII_TOT_NUM_PIXELS;
 #ifdef INHOMO_FEEDBACK
       initialise_DeltaNion_splinem(REDSHIFT, PREV_REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,lyman_werner_threshold(REDSHIFT,0),Mcrit_atom,F_STAR10m,Mlim_Fstarm);
@@ -1316,8 +1403,12 @@ int main(int argc, char ** argv){
         strcpy(error_message, "find_HII_bubbles.c: read Nion box but not Nionm box???\n");
         goto CLEANUP;
       }
+#pragma omp parallel shared(Fcollm_prev) private(ct)
+{
+#pragma omp for
       for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
         Fcollm_prev[ct] = 0.0;
+}
       Fcoll_prev_avem   = 0;
       // so we calculation Nion instead of Delta Nion
 #ifdef INHOMO_FEEDBACK
@@ -1340,6 +1431,33 @@ int main(int argc, char ** argv){
 #endif //SHARP_CUTOFF
 #endif //USE_HALO_FIELD
 
+#ifdef USE_HALO_FIELD
+#pragma omp parallel shared(M_coll_filtered, massofscaleR, density_over_mean, R, pixel_volume) private(x,y,z,Splined_Fcoll)
+#else
+#ifdef SHARP_CUTOFF
+#pragma omp parallel shared(deltax_filtered,growth_factor,erfc_denom) private(x,y,z,density_over_mean, erfc_num)
+#else
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
+#ifdef INHOMO_FEEDBACK
+#pragma omp parallel shared(deltax_filtered,  REDSHIFT, Gamma12, z_re, J_21_LW, Mcrit_atom, flag_first_reionization, Fcoll, Fcollm, Fcoll_prev, Fcollm_prev) private(x,y,z, density_over_mean, Mcrit_RE, Mcrit_LW, M_MINa, M_MINm, Splined_Fcoll, Splined_Fcollm) reduction(+:f_coll, f_collm)
+#else
+#pragma omp parallel shared(deltax_filtered,  flag_first_reionization, Fcoll, Fcollm) private(x,y,z, density_over_mean, Splined_Fcoll, Splined_Fcollm) reduction(+:f_coll, f_collm)
+#endif
+#else//CONTEMPORANEOUS_DUTYCYCLE
+#ifdef INHOMO_FEEDBACK
+#pragma omp parallel shared(deltax_filtered,  REDSHIFT, Gamma12, z_re, J_21_LW, Mcrit_atom, Fcoll, Fcollm) private(x,y,z, density_over_mean, Mcrit_RE, Mcrit_LW, M_MINa, M_MINm, Splined_Fcoll, Splined_Fcollm) reduction(+:f_coll, f_collm)
+#else
+#ifdef MINI_HALO
+#pragma omp parallel shared(deltax_filtered,  Fcoll, Fcollm) private(x,y,z, density_over_mean, Splined_Fcoll, Splined_Fcollm) reduction(+:f_coll, f_collm)
+#else
+#pragma omp parallel shared(deltax_filtered,  Fcoll) private(x,y,z, density_over_mean, Splined_Fcoll) reduction(+:f_coll)
+#endif
+#endif //INHOMO_FEEDBACK
+#endif
+#endif
+#endif
+{
+#pragma omp for
     for (x=0; x<HII_DIM; x++){
       for (y=0; y<HII_DIM; y++){
         for (z=0; z<HII_DIM; z++){
@@ -1375,11 +1493,15 @@ int main(int argc, char ** argv){
 #else //INHOMO_FEEDBACK
             if (flag_first_reionization == 0){
               DeltaNion_Spline_density(density_over_mean - 1,&(Splined_Fcoll));
+#ifdef MINI_HALO
               DeltaNion_Spline_densitym(density_over_mean - 1,&(Splined_Fcollm));
+#endif
             }
             else{
               Nion_Spline_density(density_over_mean - 1,&(Splined_Fcoll));
+#ifdef MINI_HALO
               Nion_Spline_densitym(density_over_mean - 1,&(Splined_Fcollm));
+#endif
             }
 #endif //INHOMO_FEEDBACK
 #else //CONTEMPORANEOUS_DUTYCYCLE
@@ -1440,6 +1562,7 @@ int main(int argc, char ** argv){
         }
       }
     } //  end loop through Fcoll box
+}
 
     f_coll  /= (double) HII_TOT_NUM_PIXELS; // ave PS fcoll for this filter scale
     ST_over_PS = mean_f_coll_st/f_coll; // normalization ratio used to adjust the PS conditional collapsed fraction
@@ -1493,6 +1616,38 @@ int main(int argc, char ** argv){
     Gamma_R_prefactorm = Gamma_R_prefactor / ION_EFF_FACTOR * ION_EFF_FACTOR_MINI;
 #endif //MINI_HALO
 
+
+#ifdef INHOMO_RECO
+#ifdef MINI_HALO
+#ifdef USE_TS_IN_21CM
+#pragma omp parallel shared(LAST_FILTER_STEP, deltax_filtered, ST_over_PS, Fcoll, ST_over_PSm, Fcollm, pixel_mass, M_MIN, r, ION_EFF_FACTOR, ION_EFF_FACTOR_MINI, xH, R,  N_rec_filtered, t_ast, Gamma12, z_re,  Gamma_R_prefactor, Gamma_R_prefactorm, xe_filtered, REDSHIFT) private(x,y,z, density_over_mean, f_coll, ave_M_coll_cell, ave_N_min_cell, N_halos_in_cell, res_xH, xHI_from_xrays, f_collm, dfcolldt, Gamma_R, rec, dfcolldtm) reduction(+:Rct, aveR)
+#else
+#pragma omp parallel shared(LAST_FILTER_STEP, deltax_filtered, ST_over_PS, Fcoll, ST_over_PSm, Fcollm, pixel_mass, M_MIN, r, ION_EFF_FACTOR, ION_EFF_FACTOR_MINI, xHI_from_xrays, xH, R,  N_rec_filtered, t_ast, Gamma12, z_re,  Gamma_R_prefactor, Gamma_R_prefactorm, REDSHIFT) private(x,y,z, density_over_mean, f_coll, ave_M_coll_cell, ave_N_min_cell, N_halos_in_cell, res_xH, f_collm,  dfcolldt, Gamma_R, rec, dfcolldtm) reduction(+:Rct, aveR)
+#endif
+#else
+#ifdef USE_TS_IN_21CM
+#pragma omp parallel shared(LAST_FILTER_STEP, deltax_filtered, ST_over_PS, Fcoll, pixel_mass, M_MIN, r, ION_EFF_FACTOR, xH, R,  N_rec_filtered, t_ast, Gamma12, z_re,  Gamma_R_prefactor, xe_filtered, REDSHIFT) private(x,y,z, density_over_mean, f_coll, ave_M_coll_cell, ave_N_min_cell, N_halos_in_cell, res_xH, xHI_from_xrays, dfcolldt, Gamma_R, rec) reduction(+:Rct, aveR)
+#else
+#pragma omp parallel shared(LAST_FILTER_STEP, deltax_filtered, ST_over_PS, Fcoll, pixel_mass, M_MIN, r, ION_EFF_FACTOR, xHI_from_xrays, xH, R,  N_rec_filtered, t_ast, Gamma12, z_re, Gamma_R_prefactor, REDSHIFT) private(x,y,z, density_over_mean, f_coll, ave_M_coll_cell, ave_N_min_cell, N_halos_in_cell, res_xH, dfcolldt, Gamma_R, rec) reduction(+:Rct, aveR)
+#endif
+#endif
+#else
+#ifdef MINI_HALO
+#ifdef USE_TS_IN_21CM
+#pragma omp parallel shared(LAST_FILTER_STEP, deltax_filtered, ST_over_PS, Fcoll, ST_over_PSm, Fcollm, pixel_mass, M_MIN, r, ION_EFF_FACTOR, ION_EFF_FACTOR_MINI, xH, R,  rec, xe_filtered) private(x,y,z, density_over_mean, f_coll, ave_M_coll_cell, ave_N_min_cell, N_halos_in_cell, res_xH, xHI_from_xrays, f_collm)
+#else
+#pragma omp parallel shared(LAST_FILTER_STEP, deltax_filtered, ST_over_PS, Fcoll, ST_over_PSm, Fcollm, pixel_mass, M_MIN, r, ION_EFF_FACTOR, ION_EFF_FACTOR_MINI, xHI_from_xrays, xH, R,  rec) private(x,y,z, density_over_mean, f_coll, ave_M_coll_cell, ave_N_min_cell, N_halos_in_cell, res_xH, f_collm)
+#endif
+#else
+#ifdef USE_TS_IN_21CM
+#pragma omp parallel shared(LAST_FILTER_STEP, deltax_filtered, ST_over_PS, Fcoll, pixel_mass, M_MIN, r, ION_EFF_FACTOR, xH, R,  rec, xe_filtered) private(x,y,z, density_over_mean, f_coll, ave_M_coll_cell, ave_N_min_cell, N_halos_in_cell, res_xH, xHI_from_xrays)
+#else
+#pragma omp parallel shared(LAST_FILTER_STEP, deltax_filtered, ST_over_PS, Fcoll, pixel_mass, M_MIN, r, ION_EFF_FACTOR, xHI_from_xrays, xH, R,  rec) private(x,y,z, density_over_mean, f_coll, ave_M_coll_cell, ave_N_min_cell, N_halos_in_cell, res_xH)
+#endif
+#endif
+#endif
+{
+#pragma omp for
     for (x=0; x<HII_DIM; x++){
       for (y=0; y<HII_DIM; y++){
         for (z=0; z<HII_DIM; z++){
@@ -1612,13 +1767,18 @@ int main(int argc, char ** argv){
         } // z
       } // y
     } // x
+}
     R /= DELTA_R_HII_FACTOR;
   } // END OF LOOP THROUGH FILTER RADII
 
   // find the neutral fraction
   global_xH = 0;
+#pragma omp parallel shared(xH) private(ct) reduction(+:global_xH)
+{
+#pragma omp for
   for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
     global_xH += xH[ct];
+}
   global_xH /= (float)HII_TOT_NUM_PIXELS;
 
 
@@ -1631,6 +1791,10 @@ int main(int argc, char ** argv){
   fftwf_execute(plan);
   fftwf_destroy_plan(plan);
   fftwf_cleanup();
+
+#pragma omp parallel shared(deltax_unfiltered, REDSHIFT, Gamma12, fabs_dtdz, ZSTEP, xH) private(x,y,z, density_over_mean, z_eff, dNrec)
+{
+#pragma omp for
   for (x=0; x<HII_DIM; x++){
     for (y=0; y<HII_DIM; y++){
       for (z=0; z<HII_DIM; z++){
@@ -1651,6 +1815,7 @@ int main(int argc, char ** argv){
       }
     }
   }
+}
 #endif  //INHOMO_RECO
 
   /*********************************************************************************************/

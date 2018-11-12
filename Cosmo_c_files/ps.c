@@ -135,7 +135,7 @@ double *log10_overdense_low_table;
 float *Overdense_high_table;
 #ifdef INHOMO_FEEDBACK
 double *log10_overdense_low_table_Mturn;
-double *Overdense_high_table_Mturn;
+float *Overdense_high_table_Mturn;
 #endif
 float **SFRD_z_high_table;
 double **log10_SFRD_z_low_table;
@@ -1283,7 +1283,7 @@ void spline2d(float x[], float y[], float z[], int nx, int ny, float *z2[])
   free(w);
 }
 
-void splint2d(float x[], double y[], float z[], float *z2[], int nx, int ny, float xx, float yy, float *zz)
+void splint2d(float x[], float y[], float z[], float *z2[], int nx, int ny, float xx, float yy, float *zz)
 {
   void nrerror(char error_text[]);
   double a, b, g, c, d;
@@ -1864,10 +1864,13 @@ void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover,
     int j;
     NionLow_spline_acc_Mturn = gsl_interp_accel_alloc ();
     NionLow_spline = gsl_spline2d_alloc (gsl_interp2d_bicubic, NSFR_low, NMTURN);
+#pragma omp parallel shared(overdense_small_low, overdense_small_high, log10_overdense_spline_SFR, log10_Mturn_spline_SFR, LogMassTurnover_low, LogMassTurnover_high, log10_Nion_spline, z,Mmax, Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc) private(i, overdense_val, j, MassTurnover)
 #else //INHOMO_FEEDBACK
     NionLow_spline = gsl_spline_alloc (gsl_interp_cspline, NSFR_low);
+#pragma omp parallel shared(overdense_small_low, overdense_small_high, log10_overdense_spline_SFR, log10_Nion_spline, z,Mmax, MassTurnover,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc) private(i, overdense_val)
 #endif //INHOMO_FEEDBACK
-
+{
+#pragma omp for
     for (i=0; i<NSFR_low; i++){
         overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low-1.)*(log10(1.+overdense_small_high)-log10(1.+overdense_small_low));
         log10_overdense_spline_SFR[i] = overdense_val;
@@ -1886,13 +1889,20 @@ void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover,
             log10_Nion_spline[i] = -40.;
 #endif
     }
+}
 #ifdef INHOMO_FEEDBACK
     gsl_spline2d_init(NionLow_spline, log10_overdense_spline_SFR, log10_Mturn_spline_SFR, log10_Nion_spline, NSFR_low, NMTURN);
 #else //INHOMO_FEEDBACK
     gsl_spline_init(NionLow_spline, log10_overdense_spline_SFR, log10_Nion_spline, NSFR_low);
 #endif //INHOMO_FEEDBACK
 
-
+#ifdef INHOMO_FEEDBACK
+#pragma omp parallel shared(Overdense_spline_SFR, overdense_large_low, overdense_large_high, log10_Mturn_spline_SFR, Nion_spline, z,Mmin,Mmax, Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc) private(i, j, MassTurnover)
+#else
+#pragma omp parallel shared(Overdense_spline_SFR, overdense_large_low, overdense_large_high, Nion_spline, z,Mmin,Mmax, MassTurnover,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc) private(i)
+#endif
+{
+#pragma omp for
     for(i=0;i<NSFR_high;i++) {
         Overdense_spline_SFR[i] = overdense_large_low + (float)i/((float)NSFR_high-1.)*(overdense_large_high - overdense_large_low);
 
@@ -1910,6 +1920,7 @@ void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover,
           Nion_spline[i]=pow(10.,-40.0);
 #endif //INHOMO_FEEDBACK
     }
+}
 #ifdef INHOMO_FEEDBACK
     spline2d(Overdense_spline_SFR,(float *)log10_Mturn_spline_SFR, Nion_spline,NSFR_high, NMTURN,second_derivs_Nion);
 #else //INHOMO_FEEDBACK
@@ -1941,6 +1952,13 @@ void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, 
     NionLow_splinem = gsl_spline_alloc (gsl_interp_cspline, NSFR_low);
 #endif //INHOMO_FEEDBACK
 
+#ifdef INHOMO_FEEDBACK
+#pragma omp parallel shared(log10_Mturn_spline_SFRm, LogMassTurnover_low, LogMassTurnover_high, log10_Nion_splinem, z,Mmax, log10_overdense_spline_SFR, Alpha_star, Mcrit_atom,Fstar10m,Mlim_Fstarm) private(i, j, MassTurnoverm)
+#else
+#pragma omp parallel shared(log10_Nion_splinem, z,Mmax, log10_overdense_spline_SFR, Alpha_star, MassTurnoverm, Mcrit_atom,Fstar10m,Mlim_Fstarm) private(i)
+#endif
+{
+#pragma omp for
     for (i=0; i<NSFR_low; i++){
         //overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low-1.)*(log10(1.+overdense_small_high)-log10(1.+overdense_small_low));
         //log10_overdense_spline_SFR[i] = overdense_val;
@@ -1959,13 +1977,20 @@ void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, 
             log10_Nion_splinem[i] = -40.;
 #endif
     }
+}
 #ifdef INHOMO_FEEDBACK
     gsl_spline2d_init(NionLow_splinem, log10_overdense_spline_SFR, log10_Mturn_spline_SFRm, log10_Nion_splinem, NSFR_low, NMTURN);
 #else //INHOMO_FEEDBACK
     gsl_spline_init(NionLow_splinem, log10_overdense_spline_SFR, log10_Nion_splinem, NSFR_low);
 #endif //INHOMO_FEEDBACK
 
-
+#ifdef INHOMO_FEEDBACK
+#pragma omp parallel shared(log10_Mturn_spline_SFR, Nion_splinem, z, Mmin, Mmax, Overdense_spline_SFR, Alpha_star, Mcrit_atom,Fstar10m,Mlim_Fstarm) private(i, j, MassTurnoverm)
+#else
+#pragma omp parallel shared(Nion_splinem, z, Mmin, Mmax, Overdense_spline_SFR, Alpha_star,MassTurnoverm, Mcrit_atom,Fstar10m,Mlim_Fstarm) private(i, j, MassTurnoverm)
+#endif
+{
+#pragma omp for
     for(i=0;i<NSFR_high;i++) {
         //Overdense_spline_SFR[i] = overdense_large_low + (float)i/((float)NSFR_high-1.)*(overdense_large_high - overdense_large_low);
 
@@ -1983,6 +2008,7 @@ void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, 
           Nion_splinem[i]=pow(10.,-40.0);
 #endif //INHOMO_FEEDBACK
     }
+}
 #ifdef INHOMO_FEEDBACK
     spline2d(Overdense_spline_SFR,(float *)log10_Mturn_spline_SFRm, Nion_splinem,NSFR_high, NMTURN,second_derivs_Nionm);
 #else //INHOMO_FEEDBACK
@@ -2025,9 +2051,9 @@ void Nion_Spline_density(float Overdensity, float *splined_value)
         // Additionally, the fraction of points in this regime relative to the entire simulation volume is extremely small.
 #ifdef INHOMO_FEEDBACK
           if (M_MINa>1e10) 
-            splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFR,Nion_spline,second_derivs_Nion,NSFR_high,NMTURN,Overdensity,10,&(returned_value));
+            splint2d(Overdense_spline_SFR,(float *)log10_Mturn_spline_SFR,Nion_spline,second_derivs_Nion,NSFR_high,NMTURN,Overdensity,10,&(returned_value));
           else
-            splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFR,Nion_spline,second_derivs_Nion,NSFR_high,NMTURN,Overdensity,log10(M_MINa),&(returned_value));
+            splint2d(Overdense_spline_SFR,(float *)log10_Mturn_spline_SFR,Nion_spline,second_derivs_Nion,NSFR_high,NMTURN,Overdensity,log10(M_MINa),&(returned_value));
 #else //INHOMO_FEEDBACK
           splint(Overdense_spline_SFR-1,Nion_spline-1,second_derivs_Nion-1,NSFR_high,Overdensity,&(returned_value));
 #endif //INHOMO_FEEDBACK
@@ -2072,9 +2098,9 @@ void Nion_Spline_densitym(float Overdensity, float *splined_value)
         // Additionally, the fraction of points in this regime relative to the entire simulation volume is extremely small.
 #ifdef INHOMO_FEEDBACK
             if (M_MINm>1e10)
-              splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFRm,Nion_splinem,second_derivs_Nionm,NSFR_high,NMTURN,Overdensity,10,&(returned_value));
+              splint2d(Overdense_spline_SFR,(float *)log10_Mturn_spline_SFRm,Nion_splinem,second_derivs_Nionm,NSFR_high,NMTURN,Overdensity,10,&(returned_value));
             else
-              splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFRm,Nion_splinem,second_derivs_Nionm,NSFR_high,NMTURN,Overdensity,log10(M_MINm),&(returned_value));
+              splint2d(Overdense_spline_SFR,(float *)log10_Mturn_spline_SFRm,Nion_splinem,second_derivs_Nionm,NSFR_high,NMTURN,Overdensity,log10(M_MINm),&(returned_value));
 #else //INHOMO_FEEDBACK
             splint(Overdense_spline_SFR-1,Nion_splinem-1,second_derivs_Nionm-1,NSFR_high,Overdensity,&(returned_value));
 #endif //INHOMO_FEEDBACK
@@ -2427,6 +2453,13 @@ void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, floa
     NionLow_spline = gsl_spline_alloc (gsl_interp_cspline, NSFR_low);
 #endif //INHOMO_FEEDBACK
 
+#ifdef INHOMO_FEEDBACK
+#pragma omp parallel shared(overdense_small_low, overdense_small_high, log10_overdense_spline_SFR, log10_Mturn_spline_SFR, LogMassTurnover_low, LogMassTurnover_high, log10_Nion_spline, z,zp,Mmax, Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc) private(i, overdense_val, j, MassTurnover)
+#else
+#pragma omp parallel shared(overdense_small_low, overdense_small_high, log10_overdense_spline_SFR, log10_Nion_spline, z,zp,Mmax,MassTurnover, Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc) private(i, overdense_val)
+#endif
+{
+#pragma omp for
     for (i=0; i<NSFR_low; i++){
         overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low-1.)*(log10(1.+overdense_small_high)-log10(1.+overdense_small_low));
         log10_overdense_spline_SFR[i] = overdense_val;
@@ -2445,13 +2478,20 @@ void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, floa
             log10_Nion_spline[i] = -40.;
 #endif //INHOMO_FEEDBACK
     }
+}
 #ifdef INHOMO_FEEDBACK
     gsl_spline2d_init(NionLow_spline, log10_overdense_spline_SFR, log10_Mturn_spline_SFR, log10_Nion_spline, NSFR_low, NMTURN);
 #else //INHOMO_FEEDBACK
     gsl_spline_init(NionLow_spline, log10_overdense_spline_SFR, log10_Nion_spline, NSFR_low);
 #endif //INHOMO_FEEDBACK
 
-
+#ifdef INHOMO_FEEDBACK
+#pragma omp parallel shared(Overdense_spline_SFR, overdense_large_low, overdense_large_high, log10_Mturn_spline_SFR, Nion_spline, z,zp,Mmin,Mmax,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc) private(i, j, MassTurnover)
+#else
+#pragma omp parallel shared(Overdense_spline_SFR, overdense_large_low, overdense_large_high, Nion_spline, z,zp,Mmin,Mmax,MassTurnover,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc) private(i, j, MassTurnover)
+#endif
+{
+#pragma omp for
     for(i=0;i<NSFR_high;i++) {
         Overdense_spline_SFR[i] = overdense_large_low + (float)i/((float)NSFR_high-1.)*(overdense_large_high - overdense_large_low);
 
@@ -2469,6 +2509,7 @@ void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, floa
             Nion_spline[i]=pow(10.,-40.0);
 #endif //INHOMO_FEEDBACK
     }
+}
 #ifdef INHOMO_FEEDBACK
     spline2d(Overdense_spline_SFR,(float *)log10_Mturn_spline_SFR, Nion_spline,NSFR_high, NMTURN,second_derivs_Nion);
 #else //INHOMO_FEEDBACK
@@ -2500,6 +2541,13 @@ void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, flo
     NionLow_splinem = gsl_spline_alloc (gsl_interp_cspline, NSFR_low);
 #endif //INHOMO_FEEDBACK
 
+#ifdef INHOMO_FEEDBACK
+#pragma omp parallel shared(log10_Mturn_spline_SFRm, LogMassTurnover_low, LogMassTurnover_high, log10_Nion_splinem, z,zp,Mmax, log10_overdense_spline_SFR, Alpha_star, Mcrit_atom,Fstar10m,Mlim_Fstarm) private(i, j, MassTurnoverm)
+#else
+#pragma omp parallel shared(log10_Nion_splinem, z,zp,Mmax,  log10_overdense_spline_SFR, Alpha_star,MassTurnoverm, Mcrit_atom,Fstar10m,Mlim_Fstarm) private(i)
+#endif
+{
+#pragma omp for
     for (i=0; i<NSFR_low; i++){
         //overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low-1.)*(log10(1.+overdense_small_high)-log10(1.+overdense_small_low));
         //log10_overdense_spline_SFR[i] = overdense_val;
@@ -2518,6 +2566,7 @@ void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, flo
             log10_Nion_splinem[i] = -40.;
 #endif
     }
+}
 #ifdef INHOMO_FEEDBACK
     gsl_spline2d_init(NionLow_splinem, log10_overdense_spline_SFR, log10_Mturn_spline_SFRm, log10_Nion_splinem, NSFR_low, NMTURN);   
 #else //INHOMO_FEEDBACK
@@ -2557,7 +2606,6 @@ void DeltaNion_Spline_density(float Overdensity, float M_MINa, float *splined_va
 void DeltaNion_Spline_density(float Overdensity, float *splined_value)
 #endif //INHOMO_FEEDBACK
 {
-    int i;
     float returned_value;
 
     if(Overdensity<1.5) {
@@ -2583,9 +2631,9 @@ void DeltaNion_Spline_density(float Overdensity, float *splined_value)
         // Additionally, the fraction of points in this regime relative to the entire simulation volume is extremely small.
 #ifdef INHOMO_FEEDBACK
             if (M_MINa>1e10)
-                splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFR,Nion_spline,second_derivs_Nion,NSFR_high,NMTURN,Overdensity,10,&(returned_value));
+                splint2d(Overdense_spline_SFR,(float *)log10_Mturn_spline_SFR,Nion_spline,second_derivs_Nion,NSFR_high,NMTURN,Overdensity,10,&(returned_value));
             else
-                splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFR,Nion_spline,second_derivs_Nion,NSFR_high,NMTURN,Overdensity,log10(M_MINa),&(returned_value));
+                splint2d(Overdense_spline_SFR,(float *)log10_Mturn_spline_SFR,Nion_spline,second_derivs_Nion,NSFR_high,NMTURN,Overdensity,log10(M_MINa),&(returned_value));
 #else //INHOMO_FEEDBACK
             splint(Overdense_spline_SFR-1,Nion_spline-1,second_derivs_Nion-1,NSFR_high,Overdensity,&(returned_value));
 #endif //INHOMO_FEEDBACK
@@ -2596,6 +2644,7 @@ void DeltaNion_Spline_density(float Overdensity, float *splined_value)
     }
     *splined_value = returned_value;
 }
+
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
 void DeltaNion_Spline_densitym(float Overdensity, float M_MINm, float *splined_value)
@@ -2603,7 +2652,6 @@ void DeltaNion_Spline_densitym(float Overdensity, float M_MINm, float *splined_v
 void DeltaNion_Spline_densitym(float Overdensity, float *splined_value)
 #endif //INHOMO_FEEDBACK
 {
-    int i;
     float returned_value;
 
     if(Overdensity<1.5) {
@@ -2629,9 +2677,9 @@ void DeltaNion_Spline_densitym(float Overdensity, float *splined_value)
         // Additionally, the fraction of points in this regime relative to the entire simulation volume is extremely small.
 #ifdef INHOMO_FEEDBACK
             if (M_MINm>1e10)
-                splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFRm,Nion_splinem,second_derivs_Nionm,NSFR_high,NMTURN,Overdensity,10,&(returned_value));
+                splint2d(Overdense_spline_SFR,(float *)log10_Mturn_spline_SFRm,Nion_splinem,second_derivs_Nionm,NSFR_high,NMTURN,Overdensity,10,&(returned_value));
             else
-                splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFRm,Nion_splinem,second_derivs_Nionm,NSFR_high,NMTURN,Overdensity,log10(M_MINm),&(returned_value));
+                splint2d(Overdense_spline_SFR,(float *)log10_Mturn_spline_SFRm,Nion_splinem,second_derivs_Nionm,NSFR_high,NMTURN,Overdensity,log10(M_MINm),&(returned_value));
 #else //INHOMO_FEEDBACK
             splint(Overdense_spline_SFR-1,Nion_splinem-1,second_derivs_Nionm-1,NSFR_high,Overdensity,&(returned_value));
 #endif //INHOMO_FEEDBACK
@@ -2655,8 +2703,12 @@ void initialise_Nion_ST_spline(int Nbin, double z_val[], float Mmin, double M_MI
 
     Nion_z_spline_acc = gsl_interp_accel_alloc ();
     Nion_z_spline = gsl_spline_alloc (gsl_interp_cspline, Nbin);
+#pragma omp parallel shared(Nbin, Nion_z_val, z_val, Mmin, M_MINa_interp_table,  Alpha_star, Alpha_esc, Fstar10, Fesc10, Mlim_Fstar, Mlim_Fesc) private(i)
+{
+#pragma omp for    
     for (i=0; i<Nbin; i++)
       Nion_z_val[i] = Nion_ST(z_val[i], Mmin, M_MINa_interp_table[i], Alpha_star, Alpha_esc, Fstar10, Fesc10, Mlim_Fstar, Mlim_Fesc);
+}
     gsl_spline_init(Nion_z_spline, z_val, Nion_z_val, Nbin);
 }
 
@@ -2681,6 +2733,13 @@ void initialise_Nion_ST_splinem(int Nbin, double z_val[], float Mmin, double M_M
 #else
     Nion_z_splinem = gsl_spline_alloc (gsl_interp_cspline, Nbin);
 #endif
+#ifdef INHOMO_FEEDBACK
+#pragma omp parallel shared(Nbin, Nion_z_valm, z_val, Mmin, Mcrit_atom_interp_table, Alpha_star, Fstar10m, Mlim_Fstarm) private(i, j, MassTurnover)
+#else
+#pragma omp parallel shared(Nbin, Nion_z_valm, z_val, Mmin, M_MINm_interp_table, Mcrit_atom_interp_table, Alpha_star, Fstar10m, Mlim_Fstarm) private(i)
+#endif
+{
+#pragma omp for
     for (i=0; i<Nbin; i++){
 #ifdef INHOMO_FEEDBACK
         for (j=0; j<NMTURN; j++){
@@ -2691,6 +2750,7 @@ void initialise_Nion_ST_splinem(int Nbin, double z_val[], float Mmin, double M_M
         Nion_z_valm[i] = Nion_STm(z_val[i], Mmin, M_MINm_interp_table[i], Mcrit_atom_interp_table[i], Alpha_star, Fstar10m, Mlim_Fstarm);
 #endif
     }
+}
 #ifdef INHOMO_FEEDBACK
     gsl_spline2d_init(Nion_z_splinem, z_val,log10_Mturn, Nion_z_valm, Nbin, NMTURN);
 #else
@@ -2736,8 +2796,12 @@ void initialise_SFRD_ST_spline(int Nbin, double z_val[], float Mmin, double M_MI
 
     SFRD_ST_z_spline_acc = gsl_interp_accel_alloc ();
     SFRD_ST_z_spline = gsl_spline_alloc (gsl_interp_cspline, Nbin);
+#pragma omp parallel shared(Nbin, SFRD_val, z_val, Mmin, M_MINa_interp_table, Alpha_star, Fstar10, Mlim_Fstar) private(i)
+{
+#pragma omp for
     for (i=0; i<Nbin; i++)
         SFRD_val[i] = Nion_ST(z_val[i], Mmin, M_MINa_interp_table[i], Alpha_star, 0., Fstar10, 1.,Mlim_Fstar,0.);
+}
     gsl_spline_init(SFRD_ST_z_spline, z_val, SFRD_val, Nbin);
 }
 
@@ -2762,6 +2826,13 @@ void initialise_SFRD_ST_splinem(int Nbin, double z_val[], float Mmin, double M_M
 #else
     SFRD_ST_z_splinem = gsl_spline_alloc (gsl_interp_cspline, Nbin);
 #endif
+#ifdef INHOMO_FEEDBACK
+#pragma omp parallel shared(Nbin, log10_Mturn, SFRD_valm, z_val, Mmin, Mcrit_atom_interp_table, Alpha_star, Fstar10m, Mlim_Fstarm) private(i, MassTurnover, j)
+#else
+#pragma omp parallel shared(Nbin, SFRD_valm, z_val, Mmin, M_MINm_interp_table, Mcrit_atom_interp_table, Alpha_star, Fstar10m, Mlim_Fstarm) private(i)
+#endif
+{
+#pragma omp for
     for (i=0; i<Nbin; i++){
 #ifdef INHOMO_FEEDBACK
         for (j=0; j<NMTURN; j++){
@@ -2772,6 +2843,7 @@ void initialise_SFRD_ST_splinem(int Nbin, double z_val[], float Mmin, double M_M
         SFRD_valm[i] = Nion_STm(z_val[i], Mmin, M_MINm_interp_table[i], Mcrit_atom_interp_table[i], Alpha_star, Fstar10m, Mlim_Fstarm);
 #endif
     }
+}
 #ifdef INHOMO_FEEDBACK
     gsl_spline2d_init(SFRD_ST_z_splinem, z_val, log10_Mturn, SFRD_valm, Nbin, NMTURN);
 #else
@@ -2832,14 +2904,24 @@ void initialise_SFRD_Conditional_table(int Nsteps_zp, int Nfilter, float z[], do
     initialiseSplinedSigmaM(Mmin,Mmax);
     fprintf(stderr, "In initialise_Fcollz_SFR_Conditional_table: Rmin = %6.4f, Rmax = %6.4f, Mmin = %.4e, Mmax = %.4e\n",
                                                                 R[0],R[Nfilter-1],RtoM(R[0]),RtoM(R[Nfilter-1]));
+#pragma omp parallel shared(overdense_small_low, overdense_small_high, log10_overdense_low_table, overdense_low_table) private(overdense_val, i)
+{
+#pragma omp for
     for (i=0; i<NSFR_low; i++) {
       overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low-1.)*(log10(1.+overdense_small_high)-log10(1.+overdense_small_low));
       log10_overdense_low_table[i] = overdense_val;
       overdense_low_table[i] = pow(10.,log10_overdense_low_table[i]);
     }
+}
+
+#pragma omp parallel shared(Overdense_high_table, overdense_large_low, overdense_large_high) private(i)
+{
+#pragma omp for
     for (i=0; i<NSFR_high;i++) {
       Overdense_high_table[i] = overdense_large_low + (float)i/((float)NSFR_high-1.)*(overdense_large_high - overdense_large_low);
     }
+}
+
     for (k=0; k < Nsteps_zp; k++) {
       i_tot = Nfilter*k;
       for (j=0; j < Nfilter; j++) {
@@ -2856,15 +2938,24 @@ void initialise_SFRD_Conditional_table(int Nsteps_zp, int Nfilter, float z[], do
 #else // MINI_HALO
         MassTurn   = MassTurnover;
 #endif //MINI_HALO
+
+#pragma omp parallel shared(log10_SFRD_z_low_table, i_tot, j, z, Mmax, overdense_low_table, MassTurn,Alpha_star, Fstar10, Mlim_Fstar) private(i)
+{
+#pragma omp for
         for (i=0; i<NSFR_low; i++){
             log10_SFRD_z_low_table[i_tot+j][i] = log10(GaussLegendreQuad_Nion(NGL_SFR,z[i_tot+j],log(Mmax),Deltac,overdense_low_table[i]-1.,MassTurn,Alpha_star,0.,Fstar10,1.,Mlim_Fstar,0.));
             if(log10_SFRD_z_low_table[i_tot+j][i] < -40.) log10_SFRD_z_low_table[i_tot+j][i] = -40.;
         }
+}
 
+#pragma omp parallel shared(SFRD_z_high_table, i_tot, j, z, Mmin, Mmax, Overdense_high_table, MassTurn,Alpha_star,Fstar10, Mlim_Fstar) private(i)
+{
+#pragma omp for
         for(i=0;i<NSFR_high;i++) {
             SFRD_z_high_table[i_tot+j][i] = Nion_ConditionalM(z[i_tot+j],log(Mmin),log(Mmax),Deltac,Overdense_high_table[i],MassTurn,Alpha_star,0.,Fstar10,1.,Mlim_Fstar,0.);
             if(SFRD_z_high_table[i_tot+j][i]<0.) SFRD_z_high_table[i_tot+j][i]=pow(10.,-40.0);
         }
+}
       }
     }
 }
@@ -2904,6 +2995,12 @@ void initialise_SFRD_Conditional_tablem(int Nsteps_zp, int Nfilter, float z[], d
     //for (i=0; i<NSFR_high;i++) {
     //  Overdense_high_table[i] = overdense_large_low + (float)i/((float)NSFR_high-1.)*(overdense_large_high - overdense_large_low);
     //}
+#ifdef INHOMO_FEEDBACK
+    for (i=0; i<NMTURN;i++) {
+      log10_overdense_low_table_Mturn[i] = 5. + (double)i/((double)NMTURN-1.)*5.;
+      Overdense_high_table_Mturn[i] = (float)log10_overdense_low_table_Mturn[i];
+    }
+#endif
     for (k=0; k < Nsteps_zp; k++) {
       i_tot = Nfilter*k;
       for (j=0; j < Nfilter; j++) {
@@ -2913,15 +3010,23 @@ void initialise_SFRD_Conditional_tablem(int Nsteps_zp, int Nfilter, float z[], d
 #ifdef INHOMO_FEEDBACK
         for (q=0; q<NMTURN; q++){
           MassTurn = pow(10, logMturn[q]);
+#pragma omp parallel shared(log10_SFRD_z_low_tablem, i_tot, j, q, z, Mmax, overdense_low_table, Alpha_star,MassTurn,Mcrit_atom,Fstar10m,Mlim_Fstarm) private(i)
+{
+#pragma omp for
           for (i=0; i<NSFR_low; i++){
             log10_SFRD_z_low_tablem[i_tot+j][i+q*NSFR_low] = log10(GaussLegendreQuad_Nionm(NGL_SFR,z[i_tot+j],log(Mmax),Deltac,overdense_low_table[i]-1.,Alpha_star,MassTurn,Mcrit_atom,Fstar10m,Mlim_Fstarm));
             if(log10_SFRD_z_low_tablem[i_tot+j][i+q*NSFR_low] < -40.) log10_SFRD_z_low_tablem[i_tot+j][i+q*NSFR_low] = -40.;
           }
+}
 
+#pragma omp parallel shared(SFRD_z_high_tablem, i_tot, j, q, z, Mmin, Mmax, Overdense_high_table, Alpha_star,MassTurn,Mcrit_atom,Fstar10m,Mlim_Fstarm) private(i)
+{
+#pragma omp for
           for(i=0;i<NSFR_high;i++) {
             SFRD_z_high_tablem[i_tot+j][i+q*NSFR_low] = Nion_ConditionalMm(z[i_tot+j],log(Mmin),log(Mmax),Deltac,Overdense_high_table[i],Alpha_star,MassTurn,Mcrit_atom,Fstar10m,Mlim_Fstarm);
             if(SFRD_z_high_tablem[i_tot+j][i+q*NSFR_low]<0.) SFRD_z_high_tablem[i_tot+j][i+q*NSFR_low]=pow(10.,-40.0);
           }
+}
         }
 #else
         Mcrit_LW   = atomic_cooling_threshold(z[i_tot+j]);
@@ -2931,15 +3036,23 @@ void initialise_SFRD_Conditional_tablem(int Nsteps_zp, int Nfilter, float z[], d
         Mcrit_RE   = MassTurnover;
 #endif //REION_SM
         MassTurn   = Mcrit_RE > Mcrit_LW ? Mcrit_RE : Mcrit_LW;
+#pragma omp parallel shared(log10_SFRD_z_low_tablem, i_tot, j, z, Mmax, overdense_low_table, Alpha_star,MassTurn,Mcrit_atom,Fstar10m,Mlim_Fstarm) private(i)
+{
+#pragma omp for
         for (i=0; i<NSFR_low; i++){
             log10_SFRD_z_low_tablem[i_tot+j][i] = log10(GaussLegendreQuad_Nionm(NGL_SFR,z[i_tot+j],log(Mmax),Deltac,overdense_low_table[i]-1.,Alpha_star,MassTurn,Mcrit_atom,Fstar10m,Mlim_Fstarm));
             if(log10_SFRD_z_low_tablem[i_tot+j][i] < -40.) log10_SFRD_z_low_tablem[i_tot+j][i] = -40.;
         }
+}
 
+#pragma omp parallel shared(SFRD_z_high_tablem, i_tot, j, z, Mmin, Mmax, Overdense_high_table, Alpha_star,MassTurn,Mcrit_atom,Fstar10m,Mlim_Fstarm) private(i)
+{
+#pragma omp for
         for(i=0;i<NSFR_high;i++) {
             SFRD_z_high_tablem[i_tot+j][i] = Nion_ConditionalMm(z[i_tot+j],log(Mmin),log(Mmax),Deltac,Overdense_high_table[i],Alpha_star,MassTurn,Mcrit_atom,Fstar10m,Mlim_Fstarm);
             if(SFRD_z_high_tablem[i_tot+j][i]<0.) SFRD_z_high_tablem[i_tot+j][i]=pow(10.,-40.0);
         }
+}
 #endif
       }
     }
@@ -3053,9 +3166,9 @@ I am trying to estimate the redshift and duration of reionization...\n");
     params.DELTA_Z_SC = soundcrossing_timescale_inredshift(params.Z_RE);
     fprintf(stderr, "Guessing %03d...z_re = %g, Delta z_re = %g, Delta z_sc = %g\n", Ntry, params.Z_RE, params.DELTA_Z_RE, params.DELTA_Z_SC);
 
-//#pragma omp parallel shared(Nzz, Nion0, Nion1, redshifts, params, ALPHA_STAR, F_STAR10, ALPHA_ESC, F_ESC10, F_STAR10m, ION_EFF_FACTOR, ION_EFF_FACTOR_MINI) private(Mcrit_RE, Mcrit_LW, Mcrit_atom, M_MINa, M_MINm, M_MIN, Mlim_Fstar, Mlim_Fesc, Mlim_Fstarm, i)
-//    {
-//#pragma omp for
+#pragma omp parallel shared(Nzz, redshifts, params,  ALPHA_STAR, F_STAR10, ALPHA_ESC, F_ESC10, F_STAR10m, ION_EFF_FACTOR, ION_EFF_FACTOR_MINI, Nion0, Nion1) private(i, Mcrit_RE, Mcrit_LW, Mcrit_atom, M_MINa, M_MINm, M_MIN, Mlim_Fstar, Mlim_Fesc, Mlim_Fstarm)
+{
+#pragma omp for
 
     for (i=0; i<Nzz; i++){
       Mcrit_RE   = reionization_feedback(redshifts[i], params.Z_RE, params.DELTA_Z_RE, params.DELTA_Z_SC);
@@ -3077,7 +3190,7 @@ I am trying to estimate the redshift and duration of reionization...\n");
       Nion1[i]  = ION_EFF_FACTOR      * Nion_ST(redshifts_prev[i], M_MIN, M_MINa, ALPHA_STAR, ALPHA_ESC, F_STAR10, F_ESC10, Mlim_Fstar, Mlim_Fesc);
       Nion1[i] += ION_EFF_FACTOR_MINI * Nion_STm(redshifts_prev[i], M_MIN, M_MINm, Mcrit_atom, ALPHA_STAR, F_STAR10m, Mlim_Fstarm);
     }
- //   } 
+} 
 
     Q0 = 0;
     for (i=0; i<Nzz;i++){
@@ -3144,4 +3257,3 @@ void reading_reionization_SM13parameters(double *REION_SM13_Z_RE, double *REION_
 #endif //REION_SM
 
 #endif
-

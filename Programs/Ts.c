@@ -76,7 +76,7 @@ void init_21cmMC_arrays() {
 
   Overdense_high_table = calloc(NSFR_high,sizeof(float));
 #ifdef INHOMO_FEEDBACK
-  Overdense_high_table_Mturn = calloc(NMTURN,sizeof(double));
+  Overdense_high_table_Mturn = calloc(NMTURN,sizeof(float));
 #endif
 
   SFRD_z_high_table = (float **)calloc(NUM_FILTER_STEPS_FOR_Ts*Nsteps_zp,sizeof(float *)); //New
@@ -190,6 +190,7 @@ int main(int argc, char ** argv){
   char filename[500];
   float dz, zeta_ion_eff, Tk_BC, xe_BC, nu, zprev, zcurr, curr_delNL0[NUM_FILTER_STEPS_FOR_Ts];
   double *evolve_ans, ans[2], Tk_ave, J_alpha_ave, xalpha_ave, J_alpha_tot, Xheat_ave,Xion_ave;
+  int box_ct_increment = (int)(HII_TOT_NUM_PIXELS/1e5+1);
 #ifdef INHOMO_FEEDBACK
   double dansdz[6], J_LW_ave, J_LW_tot, nu_nplus1;
 #else
@@ -706,6 +707,9 @@ int main(int argc, char ** argv){
     fftwf_execute(plan);
 
     // copy over the values
+#pragma omp parallel shared(delNL0, R_ct, box, growth_factor_z) private(i, j, k)
+{
+#pragma omp for
     for (i=0; i<HII_DIM; i++){
       for (j=0; j<HII_DIM; j++){
     for (k=0; k<HII_DIM; k++){
@@ -718,6 +722,7 @@ int main(int argc, char ** argv){
     }
       }
     }
+}
 
     R *= R_factor;
   } //end for loop through the filter scales R
@@ -763,10 +768,14 @@ int main(int argc, char ** argv){
 
   // and initialize to the boundary values at Z_HEAT_END
   if (!RESTART){ // we are not restarting
+#pragma omp parallel shared(Tk_box, x_e_box, Tk_BC, xe_BC) private(ct)
+{
+#pragma omp for
     for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++){
       Tk_box[ct] = Tk_BC;
       x_e_box[ct] = xe_BC;
     }
+}
     x_e_ave = xe_BC;
     Tk_ave = Tk_BC;
 
@@ -960,8 +969,12 @@ int main(int argc, char ** argv){
 
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
+#pragma omp parallel shared(log10_Mturn_interp_table) private(i)
+{
+#pragma omp for
   for (i=0; i<NMTURN; i++)
     log10_Mturn_interp_table[i] = 5 + (double)i/((double)NMTURN-1.)*5;
+}
   M_MIN  = 1e5;
 #else //INHOMO_FEEDBACK
   M_MIN /= 50;
@@ -1071,19 +1084,30 @@ int main(int argc, char ** argv){
 #ifndef SHARP_CUTOFF
     // New in v2: initialise interpolation of SFRD over zpp and overdensity.
     arr_num = NUM_FILTER_STEPS_FOR_Ts*counter; // New
+#ifdef MINI_HALO
+#ifdef INHOMO_FEEDBACK
+#pragma omp parallel shared(log10_overdense_low_table,log10_SFRD_z_low_table,arr_num,Overdense_high_table,SFRD_z_high_table,second_derivs_Nion_zpp, log10_overdense_low_table_Mturn,Overdense_high_table_Mturn,second_derivs_Nion_zppm) private(i, SFRDLow_zpp_spline, SFRDLow_zpp_splinem)
+#else
+#pragma omp parallel shared(log10_overdense_low_table,log10_SFRD_z_low_table,arr_num,Overdense_high_table,SFRD_z_high_table,second_derivs_Nion_zpp, Overdense_high_table_Mturn,second_derivs_Nion_zppm) private(i, SFRDLow_zpp_spline, SFRDLow_zpp_splinem)
+#endif
+#pragma omp parallel shared(log10_overdense_low_table,log10_SFRD_z_low_table,arr_num,Overdense_high_table,SFRD_z_high_table,second_derivs_Nion_zpp) private(i, SFRDLow_zpp_spline)
+#endif
+{
+#pragma omp for
     for (i=0; i<NUM_FILTER_STEPS_FOR_Ts; i++) {
       gsl_spline_init(SFRDLow_zpp_spline[i], log10_overdense_low_table, log10_SFRD_z_low_table[arr_num + i], NSFR_low);
       spline(Overdense_high_table-1,SFRD_z_high_table[arr_num + i]-1,NSFR_high,0,0,second_derivs_Nion_zpp[i]-1); 
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
       gsl_spline2d_init(SFRDLow_zpp_splinem[i], log10_overdense_low_table, log10_overdense_low_table_Mturn, log10_SFRD_z_low_tablem[arr_num + i], NSFR_low, NMTURN);
-      spline2d(Overdense_high_table,(float *)Overdense_high_table_Mturn,SFRD_z_high_tablem[arr_num + i],NSFR_high,NMTURN,second_derivs_Nion_zppm[i]); 
+      spline2d(Overdense_high_table,Overdense_high_table_Mturn,SFRD_z_high_tablem[arr_num + i],NSFR_high,NMTURN,second_derivs_Nion_zppm[i]); 
 #else
       gsl_spline_init(SFRDLow_zpp_splinem[i], log10_overdense_low_table, log10_SFRD_z_low_tablem[arr_num + i], NSFR_low);
       spline(Overdense_high_table-1,SFRD_z_high_tablem[arr_num + i]-1,NSFR_high,0,0,second_derivs_Nion_zppm[i]-1); 
 #endif
 #endif
     }
+}
 #endif
 
     // check if we will next compute the spin temperature (i.e. if this is the final zp step)
@@ -1178,7 +1202,22 @@ int main(int argc, char ** argv){
       fcoll_Rm = 0;
 #endif
       sample_ct=0;
-      for (box_ct=0; box_ct<HII_TOT_NUM_PIXELS; box_ct+=(HII_TOT_NUM_PIXELS/1e5+1)){
+#ifdef SHARP_CUTOFF
+#pragma omp parallel shared(zpp, sigma_Tmin, R_ct, delNL0, sigma_atR) private(box_ct) reduction(+:sample_ct, fcoll_R)
+#else //SHARP_CUTOFF
+#ifdef MINI_HALO
+#ifdef INHOMO_FEEDBACK
+#pragma omp parallel shared(zpp, R_ct, delNL0, Overdense_high_table, SFRD_z_high_table, SFRD_z_high_tablem, second_derivs_Nion_zpp, second_derivs_Nion_zppm, Mcrit_LW, Overdense_high_table_Mturn) private(box_ct, delNL_zpp, fcoll, SFRDLow_zpp_spline, SFRDLow_zpp_spline_acc, Splined_Fcoll, fcollm, SFRDLow_zpp_splinem, SFRDLow_zpp_spline_accm, Splined_Fcollm, logMcrit_LW, SFRDLow_zpp_spline_accm_Mturn) reduction(+:sample_ct, fcoll_R, fcoll_Rm)
+#else //INHOMO_FEEDBACK
+#pragma omp parallel shared(zpp, R_ct, delNL0, Overdense_high_table, SFRD_z_high_table, SFRD_z_high_tablem, second_derivs_Nion_zpp, second_derivs_Nion_zppm, NSFR_high) private(box_ct, delNL_zpp, fcoll, SFRDLow_zpp_spline, SFRDLow_zpp_spline_acc, Splined_Fcoll, fcollm, SFRDLow_zpp_splinem, SFRDLow_zpp_spline_accm, Splined_Fcollm) reduction(+:sample_ct, fcoll_R, fcoll_Rm)
+#endif //INHOMO_FEEDBACK
+#else //MINI_HALO
+#pragma omp parallel shared(zpp, R_ct, delNL0, Overdense_high_table, SFRD_z_high_table, second_derivs_Nion_zpp, NSFR_high) private(box_ct, delNL_zpp, fcoll, SFRDLow_zpp_spline, SFRDLow_zpp_spline_acc, Splined_Fcoll) reduction(+:sample_ct, fcoll_R)
+#endif //MINI_HALO
+#endif //SHARP_CUTOFF
+{
+#pragma omp for
+      for (box_ct=0; box_ct<HII_TOT_NUM_PIXELS; box_ct+=box_ct_increment){
         sample_ct++;
         // New in v2
 #ifdef SHARP_CUTOFF
@@ -1246,6 +1285,7 @@ int main(int argc, char ** argv){
 #endif
 #endif //SHARP_CUTOFF
       }
+}
 
       fcoll_R /= (double) sample_ct;
 #ifdef MINI_HALO
