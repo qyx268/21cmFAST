@@ -2706,11 +2706,9 @@ void initialise_Nion_ST_spline(int Nbin, double z_val[], float Mmin, double M_MI
 {
 //#pragma omp for    
     for (i=0; i<Nbin; i++){
-//	  fprintf(stderr,"%i,%g,%g,%g,%g,%g,%g,%g,%g,%g\n", omp_get_thread_num(), z_val[i], Mmin, M_MINa_interp_table[i], Alpha_star, Alpha_esc, Fstar10, Fesc10, Mlim_Fstar, Mlim_Fesc);
       Nion_z_val[i] = Nion_ST(z_val[i], Mmin, M_MINa_interp_table[i], Alpha_star, Alpha_esc, Fstar10, Fesc10, Mlim_Fstar, Mlim_Fesc);
 	}
 }
-    fprintf(stderr,"done\n");
     gsl_spline_init(Nion_z_spline, z_val, Nion_z_val, Nbin);
 }
 
