@@ -383,18 +383,36 @@ int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, floa
 #else //SHARP_CUTOFF
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-   fprintf(stderr, "SHARP_CUTOFF (OFF) MINI_HALO (ON) INHOMO_FEEDBACK (ON)\n");
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
+   fprintf(stderr, "SHARP_CUTOFF (OFF) MINI_HALO (ON) CONTEMPORANEOUS_DUTYCYCLE (ON) INHOMO_FEEDBACK (ON) \n");
    fprintf(stderr, "find_HII_bubbles: command line parameters are as follows\nnum threads=%i, f_star10=%g, alpha_star=%g, f_esc10=%g, alpha_esc=%g, t_star=%g, L_X=%g, f_star10m=%g, f_esc10m=%g, L_Xm=%g, z=%g, prev z=%g\n",
       *num_th, *F_STAR10, *ALPHA_STAR, *F_ESC10, *ALPHA_ESC, *T_AST, *X_LUMINOSITY, *F_STAR10m, *F_ESC10m, *X_LUMINOSITYm, *REDSHIFT, *PREV_REDSHIFT);
+#else //CONTEMPORANEOUS_DUTYCYCLE
+   fprintf(stderr, "SHARP_CUTOFF (OFF) MINI_HALO (ON) CONTEMPORANEOUS_DUTYCYCLE (OFF) INHOMO_FEEDBACK (ON) \n");
+   fprintf(stderr, "find_HII_bubbles: command line parameters are as follows\nnum threads=%i, f_star10=%g, alpha_star=%g, f_esc10=%g, alpha_esc=%g, t_star=%g, L_X=%g, f_star10m=%g, f_esc10m=%g, L_Xm=%g, z=%g, prev z=%g\n",
+      *num_th, *F_STAR10, *ALPHA_STAR, *F_ESC10, *ALPHA_ESC, *T_AST, *X_LUMINOSITY, *F_STAR10m, *F_ESC10m, *X_LUMINOSITYm, *REDSHIFT, *PREV_REDSHIFT);
+#endif //CONTEMPORANEOUS_DUTYCYCLE
 #else //INHOMO_FEEDBACK
 #ifdef REION_SM
-   fprintf(stderr, "SHARP_CUTOFF (OFF) MINI_HALO (ON) INHOMO_FEEDBACK (OFF) REION_SM (ON)\n");
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
+   fprintf(stderr, "SHARP_CUTOFF (OFF) MINI_HALO (ON) CONTEMPORANEOUS_DUTYCYCLE (ON) INHOMO_FEEDBACK (OFF) REION_SM (ON)\n");
    fprintf(stderr, "find_HII_bubbles: command line parameters are as follows\nnum threads=%i, f_star10=%g, alpha_star=%g, f_esc10=%g, alpha_esc=%g, t_star=%g, L_X=%g, f_star10m=%g, f_esc10m=%g, L_Xm=%g, z=%g, prev z=%g\n",
       *num_th, *F_STAR10, *ALPHA_STAR, *F_ESC10, *ALPHA_ESC, *T_AST, *X_LUMINOSITY, *F_STAR10m, *F_ESC10m, *X_LUMINOSITYm, *REDSHIFT, *PREV_REDSHIFT);
+#else //CONTEMPORANEOUS_DUTYCYCLE
+   fprintf(stderr, "SHARP_CUTOFF (OFF) MINI_HALO (ON) CONTEMPORANEOUS_DUTYCYCLE (OFF) INHOMO_FEEDBACK (OFF) REION_SM (ON)\n");
+   fprintf(stderr, "find_HII_bubbles: command line parameters are as follows\nnum threads=%i, f_star10=%g, alpha_star=%g, f_esc10=%g, alpha_esc=%g, t_star=%g, L_X=%g, f_star10m=%g, f_esc10m=%g, L_Xm=%g, z=%g, prev z=%g\n",
+      *num_th, *F_STAR10, *ALPHA_STAR, *F_ESC10, *ALPHA_ESC, *T_AST, *X_LUMINOSITY, *F_STAR10m, *F_ESC10m, *X_LUMINOSITYm, *REDSHIFT, *PREV_REDSHIFT);
+#endif //CONTEMPORANEOUS_DUTYCYCLE
 #else //REION_SM
-   fprintf(stderr, "SHARP_CUTOFF (OFF) MINI_HALO (ON) INHOMO_FEEDBACK (OFF) REION_SM (OFF)\n");
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
+   fprintf(stderr, "SHARP_CUTOFF (OFF) MINI_HALO (ON) CONTEMPORANEOUS_DUTYCYCLE (ON) INHOMO_FEEDBACK (OFF) REION_SM (OFF)\n");
    fprintf(stderr, "find_HII_bubbles: command line parameters are as follows\nnum threads=%i, f_star10=%g, alpha_star=%g, f_esc10=%g, alpha_esc=%g, Mturn=%g, t_star=%g, L_X=%g, f_star10m=%g, f_esc10m=%g, L_Xm=%g, z=%g, prev z=%g\n",
       *num_th, *F_STAR10, *ALPHA_STAR, *F_ESC10, *ALPHA_ESC, *M_TURN, *T_AST, *X_LUMINOSITY, *F_STAR10m, *F_ESC10m, *X_LUMINOSITYm, *REDSHIFT, *PREV_REDSHIFT);
+#else //CONTEMPORANEOUS_DUTYCYCLE
+   fprintf(stderr, "SHARP_CUTOFF (OFF) MINI_HALO (ON) CONTEMPORANEOUS_DUTYCYCLE (OFF) INHOMO_FEEDBACK (OFF) REION_SM (OFF)\n");
+   fprintf(stderr, "find_HII_bubbles: command line parameters are as follows\nnum threads=%i, f_star10=%g, alpha_star=%g, f_esc10=%g, alpha_esc=%g, Mturn=%g, t_star=%g, L_X=%g, f_star10m=%g, f_esc10m=%g, L_Xm=%g, z=%g, prev z=%g\n",
+      *num_th, *F_STAR10, *ALPHA_STAR, *F_ESC10, *ALPHA_ESC, *M_TURN, *T_AST, *X_LUMINOSITY, *F_STAR10m, *F_ESC10m, *X_LUMINOSITYm, *REDSHIFT, *PREV_REDSHIFT);
+#endif //CONTEMPORANEOUS_DUTYCYCLE
 #endif //REION_SM
 #endif //INHOMO_FEEDBACK
 #else //MINI_HALO
