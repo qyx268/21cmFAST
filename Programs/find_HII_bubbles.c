@@ -39,9 +39,9 @@ void init_21cmMC_arrays() { // defined in Cosmo_c_files/ps.c
     Overdense_spline_SFR = calloc(NSFR_high,sizeof(float)); // New in v2
 #ifdef INHOMO_FEEDBACK
     Nion_spline = calloc(NSFR_high*NMTURN,sizeof(float));
-	second_derivs_Nion[0] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
-	second_derivs_Nion[1] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
-	second_derivs_Nion[2] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
+    second_derivs_Nion[0] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
+    second_derivs_Nion[1] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
+    second_derivs_Nion[2] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
 #else //INHOMO_FEEDBACK
     Nion_spline = calloc(NSFR_high,sizeof(float));
     second_derivs_Nion = calloc(NSFR_high,sizeof(float));
@@ -49,9 +49,9 @@ void init_21cmMC_arrays() { // defined in Cosmo_c_files/ps.c
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
     Nion_splinem = calloc(NSFR_high*NMTURN,sizeof(float));
-	second_derivs_Nionm[0] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
-	second_derivs_Nionm[1] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
-	second_derivs_Nionm[2] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
+    second_derivs_Nionm[0] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
+    second_derivs_Nionm[1] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
+    second_derivs_Nionm[2] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
 #else //INHOMO_FEEDBACK
     Nion_splinem = calloc(NSFR_high,sizeof(float));
     second_derivs_Nionm = calloc(NSFR_high,sizeof(float));
@@ -1281,9 +1281,9 @@ int main(int argc, char ** argv){
           // delta cannot be less than -1
           *((float *)deltax_filtered + HII_R_FFT_INDEX(x,y,z)) = 
             FMAX(*((float *)deltax_filtered + HII_R_FFT_INDEX(x,y,z)) , -1+FRACT_FLOAT_ERR);
-		}
-	  }
-	}
+        }
+      }
+    }
 }
 
 #ifdef INHOMO_RECO
@@ -1296,9 +1296,9 @@ int main(int argc, char ** argv){
           // <N_rec> cannot be less than zero
           *((float *)N_rec_filtered + HII_R_FFT_INDEX(x,y,z)) = 
           FMAX(*((float *)N_rec_filtered + HII_R_FFT_INDEX(x,y,z)) , 0.0);
-		}
-	  }
-	}
+        }
+      }
+    }
 }
 #endif //INHOMO_RECO
         
@@ -1312,9 +1312,9 @@ int main(int argc, char ** argv){
           // collapsed mass cannot be less than zero
           *((float *)M_coll_filtered + HII_R_FFT_INDEX(x,y,z)) = 
             FMAX(*((float *)M_coll_filtered + HII_R_FFT_INDEX(x,y,z)) , 0.0);
-		}
-	  }
-	}
+        }
+      }
+    }
 }
 #endif //USE_HALO_FIELD
 
@@ -1619,10 +1619,12 @@ int main(int argc, char ** argv){
       fclose(F);
     }
 #ifdef SAVE_SPACE
-    sprintf(filename, "rm ../Boxes/Nion_evolution/Nion_z%06.2f_R%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", PREV_REDSHIFT, R, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-	system(filename);
-    sprintf(filename, "rm ../Boxes/Nion_evolution/Nionm_z%06.2f_R%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", PREV_REDSHIFT, R, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-	system(filename);
+    if(flag_first_reionization == 0){
+      sprintf(filename, "rm ../Boxes/Nion_evolution/Nion_z%06.2f_R%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", PREV_REDSHIFT, R, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+      system(filename);
+      sprintf(filename, "rm ../Boxes/Nion_evolution/Nionm_z%06.2f_R%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", PREV_REDSHIFT, R, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+      system(filename);
+    }
 #endif
 #endif //CONTEMPORANEOUS_DUTYCYCLE
 
