@@ -1087,11 +1087,11 @@ int main(int argc, char ** argv){
     fprintf(stderr, "\n [z=%.3f] constructing the interpolation table...", zp);
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-#pragma omp parallel shared(log10_overdense_low_table,log10_SFRD_z_low_table,arr_num,Overdense_high_table,SFRD_z_high_table,second_derivs_Nion_zpp, log10_overdense_low_table_Mturn,Overdense_high_table_Mturn,second_derivs_Nion_zppm) private(i, SFRDLow_zpp_spline, SFRDLow_zpp_splinem)
+#pragma omp parallel shared(log10_overdense_low_table,log10_SFRD_z_low_table,arr_num,Overdense_high_table,SFRD_z_high_table,second_derivs_Nion_zpp, log10_overdense_low_table_Mturn,Overdense_high_table_Mturn,log10_SFRD_z_low_tablem, SFRD_z_high_tablem, second_derivs_Nion_zppm, SFRDLow_zpp_spline, SFRDLow_zpp_splinem) private(i)
 #else
-#pragma omp parallel shared(log10_overdense_low_table,log10_SFRD_z_low_table,arr_num,Overdense_high_table,SFRD_z_high_table,second_derivs_Nion_zpp, Overdense_high_table_Mturn,second_derivs_Nion_zppm) private(i, SFRDLow_zpp_spline, SFRDLow_zpp_splinem)
+#pragma omp parallel shared(log10_overdense_low_table,log10_SFRD_z_low_table,arr_num,Overdense_high_table,SFRD_z_high_table,second_derivs_Nion_zpp, log10_SFRD_z_low_tablem, SFRD_z_high_tablem, second_derivs_Nion_zppm, SFRDLow_zpp_spline, SFRDLow_zpp_splinem) private(i)
 #endif
-#pragma omp parallel shared(log10_overdense_low_table,log10_SFRD_z_low_table,arr_num,Overdense_high_table,SFRD_z_high_table,second_derivs_Nion_zpp) private(i, SFRDLow_zpp_spline)
+#pragma omp parallel shared(log10_overdense_low_table,log10_SFRD_z_low_table,arr_num,Overdense_high_table,SFRD_z_high_table,second_derivs_Nion_zpp, SFRDLow_zpp_spline) private(i)
 #endif
 {
 #pragma omp for
@@ -1209,12 +1209,12 @@ int main(int argc, char ** argv){
 #else //SHARP_CUTOFF
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-#pragma omp parallel shared(zpp, R_ct, delNL0, Overdense_high_table, SFRD_z_high_table, SFRD_z_high_tablem, second_derivs_Nion_zpp, second_derivs_Nion_zppm, Mcrit_LW, Overdense_high_table_Mturn) private(box_ct, delNL_zpp, fcoll, SFRDLow_zpp_spline, SFRDLow_zpp_spline_acc, Splined_Fcoll, fcollm, SFRDLow_zpp_splinem, SFRDLow_zpp_spline_accm, Splined_Fcollm, logMcrit_LW, SFRDLow_zpp_spline_accm_Mturn) reduction(+:sample_ct, fcoll_R, fcoll_Rm)
+#pragma omp parallel shared(zpp, R_ct, delNL0, Overdense_high_table, SFRD_z_high_table, SFRD_z_high_tablem, second_derivs_Nion_zpp, second_derivs_Nion_zppm, Mcrit_LW, Overdense_high_table_Mturn, SFRDLow_zpp_spline, SFRDLow_zpp_spline_acc, SFRDLow_zpp_splinem, SFRDLow_zpp_spline_accm, SFRDLow_zpp_spline_accm_Mturn) private(box_ct, delNL_zpp, fcoll, Splined_Fcoll, fcollm, Splined_Fcollm, logMcrit_LW) reduction(+:sample_ct, fcoll_R, fcoll_Rm)
 #else //INHOMO_FEEDBACK
-#pragma omp parallel shared(zpp, R_ct, delNL0, Overdense_high_table, SFRD_z_high_table, SFRD_z_high_tablem, second_derivs_Nion_zpp, second_derivs_Nion_zppm, NSFR_high) private(box_ct, delNL_zpp, fcoll, SFRDLow_zpp_spline, SFRDLow_zpp_spline_acc, Splined_Fcoll, fcollm, SFRDLow_zpp_splinem, SFRDLow_zpp_spline_accm, Splined_Fcollm) reduction(+:sample_ct, fcoll_R, fcoll_Rm)
+#pragma omp parallel shared(zpp, R_ct, delNL0, Overdense_high_table, SFRD_z_high_table, SFRD_z_high_tablem, second_derivs_Nion_zpp, second_derivs_Nion_zppm, SFRDLow_zpp_spline, SFRDLow_zpp_spline_acc, SFRDLow_zpp_splinem, SFRDLow_zpp_spline_accm) private(box_ct, delNL_zpp, fcoll, Splined_Fcoll, fcollm, Splined_Fcollm) reduction(+:sample_ct, fcoll_R, fcoll_Rm)
 #endif //INHOMO_FEEDBACK
 #else //MINI_HALO
-#pragma omp parallel shared(zpp, R_ct, delNL0, Overdense_high_table, SFRD_z_high_table, second_derivs_Nion_zpp, NSFR_high) private(box_ct, delNL_zpp, fcoll, SFRDLow_zpp_spline, SFRDLow_zpp_spline_acc, Splined_Fcoll) reduction(+:sample_ct, fcoll_R)
+#pragma omp parallel shared(zpp, R_ct, delNL0, Overdense_high_table, SFRD_z_high_table, second_derivs_Nion_zpp, SFRDLow_zpp_spline, SFRDLow_zpp_spline_acc) private(box_ct, delNL_zpp, fcoll, Splined_Fcoll) reduction(+:sample_ct, fcoll_R)
 #endif //MINI_HALO
 #endif //SHARP_CUTOFF
 {
@@ -1464,7 +1464,7 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
     /***************  PARALLELIZED LOOP ******************************************************************/
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-#pragma omp parallel shared(COMPUTE_Ts, Tk_box, x_e_box, x_e_ave, delNL0, freq_int_heat_tbl, freq_int_ion_tbl, freq_int_lya_tbl,freq_int_heat_tblm, freq_int_ion_tblm, freq_int_lya_tblm, zp, dzp, Ts, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, growth_factor_zp, dgrowth_factor_dzp, NO_LIGHT, zpp_edge, sigma_atR, sigma_Tmin, ST_over_PS, ST_over_PSm, sum_lyn,sum_lynm,sum_lyLWn, sum_lyLWnm, const_zp_prefactor, const_zp_prefactorm, M_MIN_at_z, M_MIN_at_zp, dt_dzp, J_alpha_threads, J_LW_threads, xalpha_threads, Xheat_threads, Xion_threads, M_MIN, R_values, Mcrit_atom_glob,logMcrit_LW_ave) private(box_ct, ans, xHII_call, R_ct, curr_delNL0, m_xHII_low, m_xHII_high, freq_int_heat, freq_int_ion, freq_int_lya, freq_int_heatm, freq_int_ionm, freq_int_lyam, dansdz, J_alpha_tot, J_LW_tot, curr_xalpha)
+#pragma omp parallel shared(COMPUTE_Ts, Tk_box, x_e_box, x_e_ave, delNL0, freq_int_heat_tbl, freq_int_ion_tbl, freq_int_lya_tbl,freq_int_heat_tblm, freq_int_ion_tblm, freq_int_lya_tblm, zp, dzp, Ts, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, growth_factor_zp, dgrowth_factor_dzp, NO_LIGHT, zpp_edge, sigma_atR, sigma_Tmin, ST_over_PS, ST_over_PSm, sum_lyn,sum_lynm,sum_lyLWn, sum_lyLWnm, const_zp_prefactor, const_zp_prefactorm, M_MIN_at_z, M_MIN_at_zp, dt_dzp, J_alpha_threads, J_LW_threads, xalpha_threads, Xheat_threads, Xion_threads, M_MIN, R_values, Mcrit_atom_glob,logMcrit_LW_ave,J_21_LW) private(box_ct, ans, xHII_call, R_ct, curr_delNL0, m_xHII_low, m_xHII_high, freq_int_heat, freq_int_ion, freq_int_lya, freq_int_heatm, freq_int_ionm, freq_int_lyam, dansdz, J_alpha_tot, J_LW_tot, curr_xalpha)
 #else
 #pragma omp parallel shared(COMPUTE_Ts, Tk_box, x_e_box, x_e_ave, delNL0, freq_int_heat_tbl, freq_int_ion_tbl, freq_int_lya_tbl,freq_int_heat_tblm, freq_int_ion_tblm, freq_int_lya_tblm, zp, dzp, Ts, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, growth_factor_zp, dgrowth_factor_dzp, NO_LIGHT, zpp_edge, sigma_atR, sigma_Tmin, ST_over_PS, ST_over_PSm, sum_lyn,sum_lynm, const_zp_prefactor, const_zp_prefactorm, M_MIN_at_z, M_MIN_at_zp, dt_dzp, J_alpha_threads, xalpha_threads, Xheat_threads, Xion_threads) private(box_ct, ans, xHII_call, R_ct, curr_delNL0, m_xHII_low, m_xHII_high, freq_int_heat, freq_int_ion, freq_int_lya, freq_int_heatm, freq_int_ionm, freq_int_lyam, dansdz, J_alpha_tot, curr_xalpha)
 #endif

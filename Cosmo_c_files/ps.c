@@ -1380,11 +1380,15 @@ void initialiseSplinedSigmaM(float M_Min, float M_Max)
     second_derivs_sigma = calloc(NMass,sizeof(float));
     second_derivs_dsigma = calloc(NMass,sizeof(float));
     
+#pragma omp parallel shared(Mass_Spline, Sigma_Spline, dSigmadm_Spline, M_Min, M_Max) private(i)
+{
+#pragma omp for
     for(i=0;i<NMass;i++) {
         Mass_Spline[i] = pow(10., log10(M_Min) + (float)i/(NMass-1)*( log10(M_Max) - log10(M_Min) ) );
         Sigma_Spline[i] = sigma_z0(Mass_Spline[i]);
         dSigmadm_Spline[i] = log10(-dsigmasqdm_z0(Mass_Spline[i]));
     }
+}
     spline(Mass_Spline-1,Sigma_Spline-1,NMass,0,0,second_derivs_sigma-1);
     spline(Mass_Spline-1,dSigmadm_Spline-1,NMass,0,0,second_derivs_dsigma-1);
 }
@@ -1507,7 +1511,6 @@ double dNion_STm(double lnM, void *params){
 }
 #endif
 
-//double Nion_ST(double z, double MassTurnover, double Alpha_star, double Alpha_esc, double Fstar10, double Fesc10, double Mlim_Fstar, double Mlim_Fesc){
 double Nion_ST(double z, double M_Min, double MassTurnover, double Alpha_star, double Alpha_esc, double Fstar10, double Fesc10, double Mlim_Fstar, double Mlim_Fesc){
     double result, error, lower_limit, upper_limit;
     gsl_function F;
@@ -1895,13 +1898,13 @@ void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover,
     gsl_spline_init(NionLow_spline, log10_overdense_spline_SFR, log10_Nion_spline, NSFR_low);
 #endif //INHOMO_FEEDBACK
 
-//#ifdef INHOMO_FEEDBACK
-//#pragma omp parallel shared(Overdense_spline_SFR, overdense_large_low, overdense_large_high, log10_Mturn_spline_SFR, Nion_spline, z,Mmin,Mmax, Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc) private(i, j, MassTurnover)
-//#else
-//#pragma omp parallel shared(Overdense_spline_SFR, overdense_large_low, overdense_large_high, Nion_spline, z,Mmin,Mmax, MassTurnover,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc) private(i)
-//#endif
+#ifdef INHOMO_FEEDBACK
+#pragma omp parallel shared(Overdense_spline_SFR, overdense_large_low, overdense_large_high, log10_Mturn_spline_SFR, Nion_spline, z,Mmin,Mmax, Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc) private(i, j, MassTurnover)
+#else
+#pragma omp parallel shared(Overdense_spline_SFR, overdense_large_low, overdense_large_high, Nion_spline, z,Mmin,Mmax, MassTurnover,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc) private(i)
+#endif
 {
-//#pragma omp for
+#pragma omp for
     for(i=0;i<NSFR_high;i++) {
         Overdense_spline_SFR[i] = overdense_large_low + (float)i/((float)NSFR_high-1.)*(overdense_large_high - overdense_large_low);
 
@@ -1983,13 +1986,13 @@ void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, 
     gsl_spline_init(NionLow_splinem, log10_overdense_spline_SFR, log10_Nion_splinem, NSFR_low);
 #endif //INHOMO_FEEDBACK
 
-//#ifdef INHOMO_FEEDBACK
-//#pragma omp parallel shared(log10_Mturn_spline_SFR, Nion_splinem, z, Mmin, Mmax, Overdense_spline_SFR, Alpha_star, Mcrit_atom,Fstar10m,Mlim_Fstarm) private(i, j, MassTurnoverm)
-//#else
-//#pragma omp parallel shared(Nion_splinem, z, Mmin, Mmax, Overdense_spline_SFR, Alpha_star,MassTurnoverm, Mcrit_atom,Fstar10m,Mlim_Fstarm) private(i, j, MassTurnoverm)
-//#endif
+#ifdef INHOMO_FEEDBACK
+#pragma omp parallel shared(log10_Mturn_spline_SFR, Nion_splinem, z, Mmin, Mmax, Overdense_spline_SFR, Alpha_star, Mcrit_atom,Fstar10m,Mlim_Fstarm) private(i, j, MassTurnoverm)
+#else
+#pragma omp parallel shared(Nion_splinem, z, Mmin, Mmax, Overdense_spline_SFR, Alpha_star,MassTurnoverm, Mcrit_atom,Fstar10m,Mlim_Fstarm) private(i)
+#endif
 {
-//#pragma omp for
+#pragma omp for
     for(i=0;i<NSFR_high;i++) {
         //Overdense_spline_SFR[i] = overdense_large_low + (float)i/((float)NSFR_high-1.)*(overdense_large_high - overdense_large_low);
 
@@ -2484,13 +2487,13 @@ void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, floa
     gsl_spline_init(NionLow_spline, log10_overdense_spline_SFR, log10_Nion_spline, NSFR_low);
 #endif //INHOMO_FEEDBACK
 
-//#ifdef INHOMO_FEEDBACK
-//#pragma omp parallel shared(Overdense_spline_SFR, overdense_large_low, overdense_large_high, log10_Mturn_spline_SFR, Nion_spline, z,zp,Mmin,Mmax,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc) private(i, j, MassTurnover)
-//#else
-//#pragma omp parallel shared(Overdense_spline_SFR, overdense_large_low, overdense_large_high, Nion_spline, z,zp,Mmin,Mmax,MassTurnover,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc) private(i, j, MassTurnover)
-//#endif
+#ifdef INHOMO_FEEDBACK
+#pragma omp parallel shared(Overdense_spline_SFR, overdense_large_low, overdense_large_high, log10_Mturn_spline_SFR, Nion_spline, z,zp,Mmin,Mmax,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc) private(i, j, MassTurnover)
+#else
+#pragma omp parallel shared(Overdense_spline_SFR, overdense_large_low, overdense_large_high, Nion_spline, z,zp,Mmin,Mmax,MassTurnover,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc) private(i)
+#endif
 {
-//#pragma omp for
+#pragma omp for
     for(i=0;i<NSFR_high;i++) {
         Overdense_spline_SFR[i] = overdense_large_low + (float)i/((float)NSFR_high-1.)*(overdense_large_high - overdense_large_low);
 
@@ -2573,6 +2576,13 @@ void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, flo
 #endif //INHOMO_FEEDBACK
 
 
+#ifdef INHOMO_FEEDBACK
+#pragma omp parallel shared(Overdense_spline_SFR, log10_Mturn_spline_SFR, Nion_spline, z,zp,Mmin,Mmax,Alpha_star,Mcrit_atom,Fstar10m,Mlim_Fstarm) private(i, j, MassTurnoverm)
+#else
+#pragma omp parallel shared(Overdense_spline_SFR, Nion_spline, z,zp,Mmin,Mmax,MassTurnoverm,Alpha_star,Mcrit_atom,Fstar10m,Mlim_Fstarm) private(i)
+#endif
+{
+#pragma omp for
     for(i=0;i<NSFR_high;i++) {
         //Overdense_spline_SFR[i] = overdense_large_low + (float)i/((float)NSFR_high-1.)*(overdense_large_high - overdense_large_low);
 
@@ -2590,6 +2600,7 @@ void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, flo
             Nion_splinem[i]=pow(10.,-40.0);
 #endif //INHOMO_FEEDBACK
     }
+}
 #ifdef INHOMO_FEEDBACK
     spline2d(Overdense_spline_SFR,(float *)log10_Mturn_spline_SFRm, Nion_splinem,NSFR_high, NMTURN,second_derivs_Nionm);
 #else //INHOMO_FEEDBACK
@@ -2702,6 +2713,7 @@ void initialise_Nion_ST_spline(int Nbin, double z_val[], float Mmin, double M_MI
 
     Nion_z_spline_acc = gsl_interp_accel_alloc ();
     Nion_z_spline = gsl_spline_alloc (gsl_interp_cspline, Nbin);
+	//NOTE: openMP doesn't work here because rel_tol too small in functions sigma_z0 and dsigmasqdm_z0, which are called by dNdM_st, which is called by Nion_ST
 //#pragma omp parallel shared(Nbin, Nion_z_val, z_val, Mmin, M_MINa_interp_table,  Alpha_star, Alpha_esc, Fstar10, Fesc10, Mlim_Fstar, Mlim_Fesc) private(i)
 {
 //#pragma omp for    
@@ -2733,6 +2745,7 @@ void initialise_Nion_ST_splinem(int Nbin, double z_val[], float Mmin, double M_M
 #else
     Nion_z_splinem = gsl_spline_alloc (gsl_interp_cspline, Nbin);
 #endif
+	//NOTE: openMP doesn't work here because rel_tol too small in functions sigma_z0 and dsigmasqdm_z0, which are called by dNdM_st, which is called by Nion_STm
 //#ifdef INHOMO_FEEDBACK
 //#pragma omp parallel shared(Nbin, Nion_z_valm, z_val, Mmin, Mcrit_atom_interp_table, Alpha_star, Fstar10m, Mlim_Fstarm) private(i, j, MassTurnover)
 //#else
@@ -2796,6 +2809,7 @@ void initialise_SFRD_ST_spline(int Nbin, double z_val[], float Mmin, double M_MI
 
     SFRD_ST_z_spline_acc = gsl_interp_accel_alloc ();
     SFRD_ST_z_spline = gsl_spline_alloc (gsl_interp_cspline, Nbin);
+	//NOTE: openMP doesn't work here because rel_tol too small in functions sigma_z0 and dsigmasqdm_z0, which are called by dNdM_st, which is called by Nion_ST
 //#pragma omp parallel shared(Nbin, SFRD_val, z_val, Mmin, M_MINa_interp_table, Alpha_star, Fstar10, Mlim_Fstar) private(i)
 {
 //#pragma omp for
@@ -2826,6 +2840,7 @@ void initialise_SFRD_ST_splinem(int Nbin, double z_val[], float Mmin, double M_M
 #else
     SFRD_ST_z_splinem = gsl_spline_alloc (gsl_interp_cspline, Nbin);
 #endif
+	//NOTE: openMP doesn't work here because rel_tol too small in functions sigma_z0 and dsigmasqdm_z0, which are called by dNdM_st, which is called by Nion_STm
 //#ifdef INHOMO_FEEDBACK
 //#pragma omp parallel shared(Nbin, log10_Mturn, SFRD_valm, z_val, Mmin, Mcrit_atom_interp_table, Alpha_star, Fstar10m, Mlim_Fstarm) private(i, MassTurnover, j)
 //#else
@@ -2948,9 +2963,9 @@ void initialise_SFRD_Conditional_table(int Nsteps_zp, int Nfilter, float z[], do
         }
 }
 
-//#pragma omp parallel shared(SFRD_z_high_table, i_tot, j, z, Mmin, Mmax, Overdense_high_table, MassTurn,Alpha_star,Fstar10, Mlim_Fstar) private(i)
+#pragma omp parallel shared(SFRD_z_high_table, i_tot, j, z, Mmin, Mmax, Overdense_high_table, MassTurn,Alpha_star,Fstar10, Mlim_Fstar) private(i)
 {
-//#pragma omp for
+#pragma omp for
         for(i=0;i<NSFR_high;i++) {
             SFRD_z_high_table[i_tot+j][i] = Nion_ConditionalM(z[i_tot+j],log(Mmin),log(Mmax),Deltac,Overdense_high_table[i],MassTurn,Alpha_star,0.,Fstar10,1.,Mlim_Fstar,0.);
             if(SFRD_z_high_table[i_tot+j][i]<0.) SFRD_z_high_table[i_tot+j][i]=pow(10.,-40.0);
@@ -2987,19 +3002,27 @@ void initialise_SFRD_Conditional_tablem(int Nsteps_zp, int Nfilter, float z[], d
 //    initialiseSplinedSigmaM(Mmin,Mmax);
 //    fprintf(stderr, "In initialise_Fcollz_SFR_Conditional_table: Rmin = %6.4f, Rmax = %6.4f, Mmin = %.4e, Mmax = %.4e\n",
 //                                                                R[0],R[Nfilter-1],RtoM(R[0]),RtoM(R[Nfilter-1]));
+#pragma omp parallel shared(log10_overdense_low_table, overdense_low_table) private(i)
+{
+#pragma omp for
     for (i=0; i<NSFR_low; i++) {
       //overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low-1.)*(log10(1.+overdense_small_high)-log10(1.+overdense_small_low));
       //log10_overdense_low_table[i] = overdense_val;
       overdense_low_table[i] = pow(10.,log10_overdense_low_table[i]);
     }
+}
     //for (i=0; i<NSFR_high;i++) {
     //  Overdense_high_table[i] = overdense_large_low + (float)i/((float)NSFR_high-1.)*(overdense_large_high - overdense_large_low);
     //}
 #ifdef INHOMO_FEEDBACK
+#pragma omp parallel shared(log10_overdense_low_table_Mturn, Overdense_high_table_Mturn) private(i)
+{
+#pragma omp for
     for (i=0; i<NMTURN;i++) {
       log10_overdense_low_table_Mturn[i] = 5. + (double)i/((double)NMTURN-1.)*5.;
       Overdense_high_table_Mturn[i] = (float)log10_overdense_low_table_Mturn[i];
     }
+}
 #endif
     for (k=0; k < Nsteps_zp; k++) {
       i_tot = Nfilter*k;
@@ -3019,9 +3042,9 @@ void initialise_SFRD_Conditional_tablem(int Nsteps_zp, int Nfilter, float z[], d
           }
 }
 
-//#pragma omp parallel shared(SFRD_z_high_tablem, i_tot, j, q, z, Mmin, Mmax, Overdense_high_table, Alpha_star,MassTurn,Mcrit_atom,Fstar10m,Mlim_Fstarm) private(i)
+#pragma omp parallel shared(SFRD_z_high_tablem, i_tot, j, q, z, Mmin, Mmax, Overdense_high_table, Alpha_star,MassTurn,Mcrit_atom,Fstar10m,Mlim_Fstarm) private(i)
 {
-//#pragma omp for
+#pragma omp for
           for(i=0;i<NSFR_high;i++) {
             SFRD_z_high_tablem[i_tot+j][i+q*NSFR_low] = Nion_ConditionalMm(z[i_tot+j],log(Mmin),log(Mmax),Deltac,Overdense_high_table[i],Alpha_star,MassTurn,Mcrit_atom,Fstar10m,Mlim_Fstarm);
             if(SFRD_z_high_tablem[i_tot+j][i+q*NSFR_low]<0.) SFRD_z_high_tablem[i_tot+j][i+q*NSFR_low]=pow(10.,-40.0);
@@ -3045,9 +3068,9 @@ void initialise_SFRD_Conditional_tablem(int Nsteps_zp, int Nfilter, float z[], d
         }
 }
 
-//#pragma omp parallel shared(SFRD_z_high_tablem, i_tot, j, z, Mmin, Mmax, Overdense_high_table, Alpha_star,MassTurn,Mcrit_atom,Fstar10m,Mlim_Fstarm) private(i)
+#pragma omp parallel shared(SFRD_z_high_tablem, i_tot, j, z, Mmin, Mmax, Overdense_high_table, Alpha_star,MassTurn,Mcrit_atom,Fstar10m,Mlim_Fstarm) private(i)
 {
-//#pragma omp for
+#pragma omp for
         for(i=0;i<NSFR_high;i++) {
             SFRD_z_high_tablem[i_tot+j][i] = Nion_ConditionalMm(z[i_tot+j],log(Mmin),log(Mmax),Deltac,Overdense_high_table[i],Alpha_star,MassTurn,Mcrit_atom,Fstar10m,Mlim_Fstarm);
             if(SFRD_z_high_tablem[i_tot+j][i]<0.) SFRD_z_high_tablem[i_tot+j][i]=pow(10.,-40.0);
@@ -3166,6 +3189,7 @@ I am trying to estimate the redshift and duration of reionization...\n");
     params.DELTA_Z_SC = soundcrossing_timescale_inredshift(params.Z_RE);
     fprintf(stderr, "Guessing %03d...z_re = %g, Delta z_re = %g, Delta z_sc = %g\n", Ntry, params.Z_RE, params.DELTA_Z_RE, params.DELTA_Z_SC);
 
+	//NOTE: openMP doesn't work here because rel_tol too small in functions sigma_z0 and dsigmasqdm_z0, which are called by dNdM_st, which is called by Nion_ST(m)
 //#pragma omp parallel shared(Nzz, redshifts, params,  ALPHA_STAR, F_STAR10, ALPHA_ESC, F_ESC10, F_STAR10m, ION_EFF_FACTOR, ION_EFF_FACTOR_MINI, Nion0, Nion1) private(i, Mcrit_RE, Mcrit_LW, Mcrit_atom, M_MINa, M_MINm, M_MIN, Mlim_Fstar, Mlim_Fesc, Mlim_Fstarm)
 {
 //#pragma omp for

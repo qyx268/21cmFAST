@@ -878,7 +878,7 @@ int main(int argc, char ** argv){
     init_heat();
     global_xH = 1 - xion_RECFAST(REDSHIFT, 0);;
     destruct_heat();
-#pragma omp parallel shared(xH) private(ct)
+#pragma omp parallel shared(xH, global_xH) private(ct)
 {
 #pragma omp for
     for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++){
@@ -1450,10 +1450,11 @@ int main(int argc, char ** argv){
 #endif //USE_HALO_FIELD
 
 #ifdef USE_HALO_FIELD
-#pragma omp parallel shared(M_coll_filtered, massofscaleR, density_over_mean, R, pixel_volume) private(x,y,z,Splined_Fcoll)
+		  // NOTE: in this case no CONTEMPORANEOUS_DUTYCYCLE or MINI_HALO
+#pragma omp parallel shared(M_coll_filtered, massofscaleR, density_over_mean, R, pixel_volume, Fcoll) private(x,y,z,Splined_Fcoll) reduction(+:f_coll)
 #else
 #ifdef SHARP_CUTOFF
-#pragma omp parallel shared(deltax_filtered,growth_factor,erfc_denom) private(x,y,z,density_over_mean, erfc_num)
+#pragma omp parallel shared(deltax_filtered,growth_factor,erfc_denom) private(x,y,z,density_over_mean, erfc_num, Splined_Fcoll)
 #else
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
 #ifdef INHOMO_FEEDBACK
@@ -1511,15 +1512,11 @@ int main(int argc, char ** argv){
 #else //INHOMO_FEEDBACK
             if (flag_first_reionization == 0){
               DeltaNion_Spline_density(density_over_mean - 1,&(Splined_Fcoll));
-#ifdef MINI_HALO
               DeltaNion_Spline_densitym(density_over_mean - 1,&(Splined_Fcollm));
-#endif
             }
             else{
               Nion_Spline_density(density_over_mean - 1,&(Splined_Fcoll));
-#ifdef MINI_HALO
               Nion_Spline_densitym(density_over_mean - 1,&(Splined_Fcollm));
-#endif
             }
 #endif //INHOMO_FEEDBACK
 #else //CONTEMPORANEOUS_DUTYCYCLE
@@ -1728,7 +1725,7 @@ int main(int argc, char ** argv){
 
             // keep track of the first time this cell is ionized (earliest time)
             if (z_re[HII_R_INDEX(x,y,z)] < 0)
-              z_re[HII_R_INDEX(x,y,z)] = REDSHIFT;          
+              z_re[HII_R_INDEX(x,y,z)] = REDSHIFT;
 #endif //INHOMO_RECO
 
         

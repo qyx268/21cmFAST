@@ -144,6 +144,7 @@
 	
     #ifdef CONTEMPORANEOUS_DUTYCYCLE
       #define SAVE_SPACE //ifdef delete previous Nion grids when we are done with them
+    #endif
 
     #ifdef INHOMO_RECO // need INHOMO_RECO if you want INHOMO_FEEDBACK
       #define INHOMO_FEEDBACK 1 // operate as a flag, comment this line if homogeneous feedback is adopted
