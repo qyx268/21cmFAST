@@ -1380,9 +1380,10 @@ void initialiseSplinedSigmaM(float M_Min, float M_Max)
     second_derivs_sigma = calloc(NMass,sizeof(float));
     second_derivs_dsigma = calloc(NMass,sizeof(float));
     
-#pragma omp parallel shared(Mass_Spline, Sigma_Spline, dSigmadm_Spline, M_Min, M_Max) private(i)
+	//NOTE: openMP doesn't work here because rel_tol too small in functions sigma_z0 and dsigmasqdm_z0, which are called by dNdM_st, which is called by Nion_ST
+//#pragma omp parallel shared(Mass_Spline, Sigma_Spline, dSigmadm_Spline, M_Min, M_Max) private(i)
 {
-#pragma omp for
+//#pragma omp for
     for(i=0;i<NMass;i++) {
         Mass_Spline[i] = pow(10., log10(M_Min) + (float)i/(NMass-1)*( log10(M_Max) - log10(M_Min) ) );
         Sigma_Spline[i] = sigma_z0(Mass_Spline[i]);

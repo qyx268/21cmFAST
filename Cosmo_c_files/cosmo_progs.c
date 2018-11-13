@@ -261,6 +261,8 @@ double lyman_werner_threshold(float z, float J_21_LW){
 }
 
 double reionization_feedback(float z, float Gamma_halo_HII, float z_IN){
+    if (z_IN<0)
+      return 1e-40;
     return REION_SM13_M0 * pow(HALO_BIAS * Gamma_halo_HII, REION_SM13_A) * pow((1.+z)/10, REION_SM13_B) *
            pow(1 - pow((1.+z)/(1.+z_IN), REION_SM13_C), REION_SM13_D);
 }
