@@ -40,9 +40,9 @@ void init_21cmMC_arrays() {
 #ifdef INHOMO_FEEDBACK
     SFRDLow_zpp_spline_accm_Mturn[i] = gsl_interp_accel_alloc ();
     SFRDLow_zpp_splinem[i] = gsl_spline2d_alloc (gsl_interp2d_bicubic, NSFR_low, NMTURN);
-	second_derivs_Nion_zppm[i][0] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
-	second_derivs_Nion_zppm[i][1] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
-	second_derivs_Nion_zppm[i][2] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
+    second_derivs_Nion_zppm[i][0] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
+    second_derivs_Nion_zppm[i][1] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
+    second_derivs_Nion_zppm[i][2] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
 #else
     SFRDLow_zpp_splinem[i] = gsl_spline_alloc (gsl_interp_cspline, NSFR_low);
     second_derivs_Nion_zppm[i] = calloc(NSFR_high,sizeof(float));
@@ -1084,6 +1084,7 @@ int main(int argc, char ** argv){
 #ifndef SHARP_CUTOFF
     // New in v2: initialise interpolation of SFRD over zpp and overdensity.
     arr_num = NUM_FILTER_STEPS_FOR_Ts*counter; // New
+    fprintf(stderr, "\n [z=%.3f] constructing the interpolation table...", zp);
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
 #pragma omp parallel shared(log10_overdense_low_table,log10_SFRD_z_low_table,arr_num,Overdense_high_table,SFRD_z_high_table,second_derivs_Nion_zpp, log10_overdense_low_table_Mturn,Overdense_high_table_Mturn,second_derivs_Nion_zppm) private(i, SFRDLow_zpp_spline, SFRDLow_zpp_splinem)
@@ -1108,6 +1109,7 @@ int main(int argc, char ** argv){
 #endif
     }
 }
+    fprintf(stderr, "done = %06.2f min \n",(double)clock()/CLOCKS_PER_SEC/60.0);
 #endif
 
     // check if we will next compute the spin temperature (i.e. if this is the final zp step)
@@ -1227,11 +1229,11 @@ int main(int argc, char ** argv){
         //---------- interpolation for fcoll starts ----------
         // Here 'fcoll' is not the collpased fraction, but leave this name as is to simplify the variable name.
 #ifdef INHOMO_FEEDBACK
-		logMcrit_LW = log10(Mcrit_LW[box_ct]);
-		if (logMcrit_LW < 5)
-			logMcrit_LW = 5.;
-		if (logMcrit_LW >10)
-			logMcrit_LW = 10.;
+        logMcrit_LW = log10(Mcrit_LW[box_ct]);
+        if (logMcrit_LW < 5)
+            logMcrit_LW = 5.;
+        if (logMcrit_LW >10)
+            logMcrit_LW = 10.;
 #endif
         if (delNL_zpp < 1.5){
           if (delNL_zpp < -1.) {
@@ -1241,13 +1243,13 @@ int main(int argc, char ** argv){
 #endif
           }    
           else {
-            fcoll = gsl_spline_eval(SFRDLow_zpp_spline[R_ct], delNL_zpp, SFRDLow_zpp_spline_acc[R_ct]);
+            fcoll = gsl_spline_eval(SFRDLow_zpp_spline[R_ct], log10(delNL_zpp+1.), SFRDLow_zpp_spline_acc[R_ct]);
             fcoll = pow(10., fcoll);
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-            fcollm = gsl_spline2d_eval(SFRDLow_zpp_splinem[R_ct], delNL_zpp, logMcrit_LW, SFRDLow_zpp_spline_accm[R_ct], SFRDLow_zpp_spline_accm_Mturn[R_ct]);
+            fcollm = gsl_spline2d_eval(SFRDLow_zpp_splinem[R_ct], log10(delNL_zpp+1.), logMcrit_LW, SFRDLow_zpp_spline_accm[R_ct], SFRDLow_zpp_spline_accm_Mturn[R_ct]);
 #else 
-            fcollm = gsl_spline_eval(SFRDLow_zpp_splinem[R_ct], delNL_zpp, SFRDLow_zpp_spline_accm[R_ct]);
+            fcollm = gsl_spline_eval(SFRDLow_zpp_splinem[R_ct], log10(delNL_zpp+1.), SFRDLow_zpp_spline_accm[R_ct]);
 #endif //INHOMO_FEEDBACK
             fcollm = pow(10., fcollm);
 #endif //MINI_HALO
