@@ -1798,7 +1798,7 @@ int main(int argc, char ** argv){
   fftwf_destroy_plan(plan);
   fftwf_cleanup();
 
-#pragma omp parallel shared(deltax_unfiltered, REDSHIFT, Gamma12, fabs_dtdz, ZSTEP, xH) private(x,y,z, density_over_mean, z_eff, dNrec)
+#pragma omp parallel shared(deltax_unfiltered, REDSHIFT, Gamma12, fabs_dtdz, ZSTEP, xH, N_rec_unfiltered) private(x,y,z, density_over_mean, z_eff, dNrec)
 {
 #pragma omp for
   for (x=0; x<HII_DIM; x++){
