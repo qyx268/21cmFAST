@@ -1602,9 +1602,9 @@ int main(int argc, char ** argv){
     }
 #ifdef SAVE_SPACE
     sprintf(filename, "rm ../Boxes/Nion_evolution/Nion_z%06.2f_R%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", PREV_REDSHIFT, R, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-	system(filename)
+	system(filename);
     sprintf(filename, "rm ../Boxes/Nion_evolution/Nionm_z%06.2f_R%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", PREV_REDSHIFT, R, HII_FILTER, MFP, HII_DIM, BOX_LEN);
-	system(filename)
+	system(filename);
 #endif
 #endif //CONTEMPORANEOUS_DUTYCYCLE
 
