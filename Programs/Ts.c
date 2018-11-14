@@ -98,11 +98,36 @@ void init_21cmMC_arrays() {
 
 void destroy_21cmMC_arrays() {
 
-  int i,ithread;
+  int i;
 
   free(xi_SFR);
   free(wi_SFR);
+  for (i=0; i < NUM_FILTER_STEPS_FOR_Ts; i++){
+    gsl_interp_accel_free (SFRDLow_zpp_spline_acc[i]);
+    gsl_spline_free (SFRDLow_zpp_spline[i]);
+    free(second_derivs_Nion_zpp[i]);
+
+#ifdef MINI_HALO
+    gsl_interp_accel_free (SFRDLow_zpp_spline_accm[i]);
+#ifdef INHOMO_FEEDBACK
+    gsl_interp_accel_free (SFRDLow_zpp_spline_accm_Mturn[i]);
+    gsl_spline2d_free (SFRDLow_zpp_splinem[i]);
+    free(second_derivs_Nion_zppm[i][0]);
+    free(second_derivs_Nion_zppm[i][1]);
+    free(second_derivs_Nion_zppm[i][2]);
+#else
+    gsl_spline_free (SFRDLow_zpp_splinem[i]);
+    free(second_derivs_Nion_zppm[i]);
+#endif
+#endif
+  }
+
   free(redshift_interp_table);
+
+  free(log10_overdense_low_table);
+#ifdef INHOMO_FEEDBACK
+  free(log10_overdense_low_table_Mturn);
+#endif
 
   for(i=0;i<NUM_FILTER_STEPS_FOR_Ts*Nsteps_zp;i++) {
     free(log10_SFRD_z_low_table[i]);
@@ -115,9 +140,9 @@ void destroy_21cmMC_arrays() {
   free(log10_SFRD_z_low_tablem);
 #endif
 
-  free(log10_overdense_low_table);
+  free(Overdense_high_table);
 #ifdef INHOMO_FEEDBACK
-  free(log10_overdense_low_table_Mturn);
+  free(Overdense_high_table_Mturn);
 #endif
 
   for(i=0;i<NUM_FILTER_STEPS_FOR_Ts*Nsteps_zp;i++) {
@@ -131,28 +156,6 @@ void destroy_21cmMC_arrays() {
   free(SFRD_z_high_tablem);
 #endif
 
-  free(Overdense_high_table);
-#ifdef INHOMO_FEEDBACK
-  free(Overdense_high_table_Mturn);
-#endif
-  
-  for (i=0; i < NUM_FILTER_STEPS_FOR_Ts; i++){
-    gsl_spline_free (SFRDLow_zpp_spline[i]);
-    gsl_interp_accel_free (SFRDLow_zpp_spline_acc[i]);
-    free(second_derivs_Nion_zpp[i]);
-#ifdef MINI_HALO
-#ifdef INHOMO_FEEDBACK
-    gsl_spline2d_free (SFRDLow_zpp_splinem[i]);
-    gsl_interp_accel_free (SFRDLow_zpp_spline_accm_Mturn[i]);
-#else
-    gsl_spline_free (SFRDLow_zpp_splinem[i]);
-#endif
-    gsl_interp_accel_free (SFRDLow_zpp_spline_accm[i]);
-    free(second_derivs_Nion_zppm[i][0]);
-    free(second_derivs_Nion_zppm[i][1]);
-    free(second_derivs_Nion_zppm[i][2]);
-#endif
-  }
   gsl_spline_free (SFRD_ST_z_spline);
   gsl_interp_accel_free (SFRD_ST_z_spline_acc);
   gsl_spline_free (Nion_z_spline);

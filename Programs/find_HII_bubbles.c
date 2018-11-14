@@ -569,6 +569,8 @@ int main(int argc, char ** argv){
     strcpy(error_message, "find_HII_bubbles.c: Read error occured while reading z_re box!\n");
     goto CLEANUP;
     }
+	fclose(F);
+	F = NULL;
   }
   else{ // this is the first call (highest redshift)
 #pragma omp parallel shared(z_re) private(ct)
@@ -591,6 +593,8 @@ int main(int argc, char ** argv){
         }
       }
     }
+	fclose(F);
+	F = NULL;
   }
   else{
     fprintf(stderr, "Earliest redshift call, initializing Nrec to zeros\n");
@@ -616,6 +620,8 @@ int main(int argc, char ** argv){
     strcpy(error_message, "find_HII_bubbles.c: Read error occured while reading Gamma12 box!\n");
     goto CLEANUP;
     }
+	fclose(F);
+	F = NULL;
   }
   else{ // this is the first call (highest redshift)
     for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
@@ -631,6 +637,8 @@ int main(int argc, char ** argv){
     strcpy(error_message, "find_HII_bubbles.c: Read error occured while reading J_21_LW box!\n");
     goto CLEANUP;
     }
+	fclose(F);
+	F = NULL;
   }
   else{ // this is the first call (highest redshift)
     for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
@@ -674,8 +682,11 @@ int main(int argc, char ** argv){
 #else //INHOMO_FEEDBACK
   Mcrit_LW            = lyman_werner_threshold(REDSHIFT);
 #ifdef REION_SM
-  if(F = fopen("../Parameter_files/REION_SM.H", "r"))
+  if(F = fopen("../Parameter_files/REION_SM.H", "r")){
+	fclose(F);
+	F = NULL;
     reading_reionization_SM13parameters(&REION_SM13_Z_RE, &REION_SM13_DELTA_Z_RE, &REION_SM13_DELTA_Z_SC);
+  }
   else
     estimating_reionization(ION_EFF_FACTOR, ION_EFF_FACTOR_MINI, ALPHA_STAR, F_STAR10, ALPHA_ESC, F_ESC10, F_STAR10m,
                             &REION_SM13_Z_RE, &REION_SM13_DELTA_Z_RE, &REION_SM13_DELTA_Z_SC);
@@ -733,13 +744,27 @@ int main(int argc, char ** argv){
   Fcollm_prev = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);  // stores the previous Fcollm
   system("mkdir -p ../Boxes/Nion_evolution/");
   sprintf(filename, "../Boxes/Nion_evolution/mean_f_coll_st_z%06.2f.bin", PREV_REDSHIFT);
-  if(F = fopen(filename, "r"))
-    fread(&mean_f_coll_prev_st, sizeof(double), 1, F);
+  if(F = fopen(filename, "r")){
+    if (fread(&mean_f_coll_prev_st, sizeof(double), 1, F) !=1){
+	  fprintf(stderr, "find_HII_bubble: ERROR: reading mean_f_coll_st");
+	  fprintf(LOG, "find_HII_bubble: ERROR: reading mean_f_coll_st");
+	  goto CLEANUP;
+	}
+	fclose(F);
+	F = NULL;
+  }
   else
     mean_f_coll_prev_st = 0.;
   sprintf(filename, "../Boxes/Nion_evolution/mean_f_collm_st_z%06.2f.bin", PREV_REDSHIFT);
-  if(F = fopen(filename, "r"))
-    fread(&mean_f_collm_prev_st, sizeof(double), 1, F);
+  if(F = fopen(filename, "r")){
+    if (fread(&mean_f_collm_prev_st, sizeof(double), 1, F)!=1){
+	  fprintf(stderr, "find_HII_bubble: ERROR: reading mean_f_coll_stm");
+	  fprintf(LOG, "find_HII_bubble: ERROR: reading mean_f_coll_stm");
+	  goto CLEANUP;
+	}
+	fclose(F);
+	F = NULL;
+  }
   else
     mean_f_collm_prev_st = 0.;
 #endif
@@ -771,16 +796,27 @@ int main(int argc, char ** argv){
   else
     mean_f_coll_st  = mean_f_coll_prev_st  + DeltaNion_ST(REDSHIFT, PREV_REDSHIFT, M_MIN, M_MINa, ALPHA_STAR, ALPHA_ESC, F_STAR10, F_ESC10, Mlim_Fstar, Mlim_Fesc);
   sprintf(filename, "../Boxes/Nion_evolution/mean_f_coll_st_z%06.2f.bin", REDSHIFT);
-  if(fwrite(&mean_f_coll_st, sizeof(double), 1, fopen(filename, "w")) !=1)
+  F = fopen(filename, "w");
+  if(fwrite(&mean_f_coll_st, sizeof(double), 1, F) !=1){
     fprintf(stderr,  "find_HII_bubbles.c: Error writing %s", filename);
+	goto CLEANUP;
+  }
+  fclose(F);
+  F = NULL;
 
   if (mean_f_collm_prev_st < 1e-15)
     mean_f_collm_st = Nion_STm(REDSHIFT, M_MIN, M_MINm, Mcrit_atom, ALPHA_STAR, F_STAR10m, Mlim_Fstarm);
   else
     mean_f_collm_st = mean_f_collm_prev_st + DeltaNion_STm(REDSHIFT, PREV_REDSHIFT, M_MIN, M_MINm, Mcrit_atom, ALPHA_STAR, F_STAR10m, Mlim_Fstarm);
   sprintf(filename, "../Boxes/Nion_evolution/mean_f_collm_st_z%06.2f.bin", REDSHIFT);
-  if(fwrite(&mean_f_collm_st, sizeof(double), 1, fopen(filename, "w")) !=1)
+  F = fopen(filename, "w");
+  if(fwrite(&mean_f_collm_st, sizeof(double), 1, F) !=1){
     fprintf(stderr,  "find_HII_bubbles.c: Error writing %s", filename);
+	goto CLEANUP;
+  }
+  fclose(F);
+  F = NULL;
+
 #else //CONTEMPORANEOUS_DUTYCYCLE
   mean_f_coll_st = Nion_ST(REDSHIFT, M_MIN, M_MINa, ALPHA_STAR, ALPHA_ESC, F_STAR10, F_ESC10, Mlim_Fstar, Mlim_Fesc);
 #ifdef MINI_HALO
@@ -1373,6 +1409,8 @@ int main(int argc, char ** argv){
 #else //INHOMO_FEEDBACK
       initialise_DeltaNion_spline(REDSHIFT, PREV_REDSHIFT, massofscaleR,M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
 #endif //INHOMO_FEEDBACK
+    fclose(F);
+    F = NULL;
     }
     else{ // this is the first call (highest redshift)
       flag_first_reionization = 1;
@@ -1415,6 +1453,8 @@ int main(int argc, char ** argv){
 #else //INHOMO_FEEDBACK
       initialise_DeltaNion_splinem(REDSHIFT, PREV_REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,M_MINm,Mcrit_atom,F_STAR10m,Mlim_Fstarm);
 #endif //INHOMO_FEEDBACK
+    fclose(F);
+    F = NULL;
     }
     else{ // this is the first call (highest redshift)
       if (flag_first_reionization == 0){
@@ -1601,7 +1641,7 @@ int main(int argc, char ** argv){
         fprintf(stderr, "find_HII_bubbles.c: WARNING: Unable to write output file %s\n", filename);
         fprintf(LOG, "find_HII_bubbles.c: WARNING: Unable to write output file %s\n", filename);
       }
-      fclose(F);
+      fclose(F);F=NULL;
     }
     sprintf(filename, "../Boxes/Nion_evolution/Nionm_z%06.2f_R%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, R, HII_FILTER, MFP, HII_DIM, BOX_LEN);
     if (!(F=fopen(filename, "wb"))){
@@ -1613,7 +1653,7 @@ int main(int argc, char ** argv){
         fprintf(stderr, "find_HII_bubbles.c: WARNING: Unable to write output file %s\n", filename);
         fprintf(LOG, "find_HII_bubbles.c: WARNING: Unable to write output file %s\n", filename);
       }
-      fclose(F);
+      fclose(F);F=NULL;
     }
 #ifdef SAVE_SPACE
     if(flag_first_reionization == 0){
