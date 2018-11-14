@@ -72,6 +72,7 @@ void destroy_21cmMC_arrays() {
     free(Overdense_spline_SFR); // New in v2
     free(Nion_spline);
 #ifdef INHOMO_FEEDBACK
+    free(Nion_splinem);
     free(second_derivs_Nion[0]);
     free(second_derivs_Nion[1]);
     free(second_derivs_Nion[2]);

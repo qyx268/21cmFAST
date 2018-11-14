@@ -1242,7 +1242,7 @@ void splint(float xa[], float ya[], float y2a[], int n, float x, float *y)
 }
 
 #ifdef INHOMO_FEEDBACK
-void spline2d(float x[], float y[], float z[], int nx, int ny, float *z2[])
+void spline2d(float xi[], float yi[], float zi[], int nx, int ny, float *z2[])
 /* Given arrays x[1..n],  y[1..m], and z[11,12,...1n, 21,22,..2n,..,m1,m2,..,mn] containing a tabulated 
  * function, i.e. zij = f(xi, yj), with x1 < x2 <... < xn; y1 < y2 < ... < ym, and assuming the firsti
  * derivative of the interpolating function at the edges z1*, zm*, z*1 and z*n are 0, this routine 
@@ -1253,6 +1253,14 @@ void spline2d(float x[], float y[], float z[], int nx, int ny, float *z2[])
   void nrerror(char error_text[]);
   int nw, i, j;
   float *w, *s;
+  float *x, *y, *z;
+  float *sx, *sy, *sxy;
+  x = xi;
+  y = yi;
+  z = zi;
+  sx = z2[0];
+  sy = z2[1];
+  sxy = z2[2];
 
   nw = (nx > ny) ? nx : ny;
   s = (float *) malloc(nw * sizeof(float));
@@ -1265,7 +1273,7 @@ void spline2d(float x[], float y[], float z[], int nx, int ny, float *z2[])
       w[i] = z[i+nx*j];
     spline(x-1, w-1, nx, 0, 0, s-1);
     for (i = 0; i < nx; i++)
-      z2[0][i+nx*j] = s[i];
+      sx[i+nx*j] = s[i];
   }
   
   for (i = 0; i < nx; i++) {
@@ -1273,19 +1281,19 @@ void spline2d(float x[], float y[], float z[], int nx, int ny, float *z2[])
       w[j] = z[i+nx*j];
     spline(y-1, w-1, ny, 0, 0, s-1);
     for (j = 0; j < ny; j++)
-      z2[1][i+nx*j] = s[j];
+      sy[i+nx*j] = s[j];
 
     for (j = 0; j < ny; j++)
-      w[j] = z2[0][i+nx*j];
+      w[j] = sx[i+nx*j];
     spline(y-1, w-1, ny, 0, 0, s-1);
     for (j = 0; j < ny; j++)
-      z2[2][i+nx*j] = s[j];
+      sxy[i+nx*j] = s[j];
   }
   free(s);
   free(w);
 }
 
-void splint2d(float x[], float y[], float z[], float *z2[], int nx, int ny, float xx, float yy, float *zz)
+void splint2d(float xi[], float yi[], float zi[], float *z2[], int nx, int ny, float xx, float yy, float *zz)
 {
   void nrerror(char error_text[]);
   double a, b, g, c, d;
@@ -1293,6 +1301,15 @@ void splint2d(float x[], float y[], float z[], float *z2[], int nx, int ny, floa
   int k00, k01, k10, k11;
   double dx, dy;
   double f0, f1, s0, s1;
+  float *x, *y, *z;
+  float *sx, *sy, *sxy;
+
+  x = xi;
+  y = yi;
+  z = zi;
+  sx = z2[0];
+  sy = z2[1];
+  sxy = z2[2];
 
   /* Linear search for interval containing each independent variable */
   i0=0;
@@ -1334,13 +1351,13 @@ void splint2d(float x[], float y[], float z[], float *z2[], int nx, int ny, floa
 
   /* Interpolate in y direction for f(x[], y) to get f at points U and V */
 
-  f0 = a*z[k00] + b*z[k01] + c*z2[1][k00] + d*z2[1][k01];
-  f1 = a*z[k10] + b*z[k11] + c*z2[1][k10] + d*z2[1][k11];
+  f0 = a*z[k00] + b*z[k01] + c*sy[k00] + d*sy[k01];
+  f1 = a*z[k10] + b*z[k11] + c*sy[k10] + d*sy[k11];
 
   /* Interpolate in y direction for 2nd derivative of f(x[], y) at U and V */
 
-  s0 = a*z2[0][k00] + b*z2[0][k01] + c*z2[2][k00] + d*z2[2][k01];
-  s1 = a*z2[0][k10] + b*z2[0][k11] + c*z2[2][k10] + d*z2[2][k11];
+  s0 = a*sx[k00] + b*sx[k01] + c*sxy[k00] + d*sxy[k01];
+  s1 = a*sx[k10] + b*sx[k11] + c*sxy[k10] + d*sxy[k11];
 
   /* Interpolate in x direction for value of function at our point P */
 
@@ -1917,9 +1934,9 @@ void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover,
           //log10_Mturn_spline_SFR[j] = LogMassTurnover_low + (double)j/((double)NMTURN-1.)*(LogMassTurnover_high-LogMassTurnover_low);
           //log10_Mturn_spline_SFR_float[j] = (float)(log10_Mturn_spline_SFR[j]);
           MassTurnover =  pow(10., log10_Mturn_spline_SFR[j]);
-          Nion_spline[i+j*NSFR_low] = Nion_ConditionalM(z,log(Mmin),log(Mmax),Deltac,Overdense_spline_SFR[i],MassTurnover,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
-          if(Nion_spline[i+j*NSFR_low]<0.)
-            Nion_spline[i+j*NSFR_low]=pow(10.,-40.0);
+          Nion_spline[i+j*NSFR_high] = Nion_ConditionalM(z,log(Mmin),log(Mmax),Deltac,Overdense_spline_SFR[i],MassTurnover,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
+          if(Nion_spline[i+j*NSFR_high]<0.)
+            Nion_spline[i+j*NSFR_high]=pow(10.,-40.0);
         }
 #else //INHOMO_FEEDBACK
         Nion_spline[i] = Nion_ConditionalM(z,log(Mmin),log(Mmax),Deltac,Overdense_spline_SFR[i],MassTurnover,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
@@ -2007,9 +2024,9 @@ void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, 
           //log10_Mturn_spline_SFRm[j] = LogMassTurnover_low + (double)j/((double)NMTURN-1.)*(LogMassTurnover_high-LogMassTurnover_low);
           //log10_Mturn_spline_SFRm_float[j] = (float)(log10_Mturn_spline_SFRm[j]);
           MassTurnoverm =  pow(10., log10_Mturn_spline_SFRm[j]);
-          Nion_splinem[i+j*NSFR_low] = Nion_ConditionalMm(z,log(Mmin),log(Mmax),Deltac,Overdense_spline_SFR[i],Alpha_star,MassTurnoverm,Mcrit_atom,Fstar10m,Mlim_Fstarm);
-          if(Nion_splinem[i+j*NSFR_low]<0.)
-            Nion_splinem[i+j*NSFR_low]=pow(10.,-40.0);
+          Nion_splinem[i+j*NSFR_high] = Nion_ConditionalMm(z,log(Mmin),log(Mmax),Deltac,Overdense_spline_SFR[i],Alpha_star,MassTurnoverm,Mcrit_atom,Fstar10m,Mlim_Fstarm);
+          if(Nion_splinem[i+j*NSFR_high]<0.)
+            Nion_splinem[i+j*NSFR_high]=pow(10.,-40.0);
         }
 #else //INHOMO_FEEDBACK
         Nion_splinem[i] = Nion_ConditionalMm(z,log(Mmin),log(Mmax),Deltac,Overdense_spline_SFR[i],Alpha_star,MassTurnoverm,Mcrit_atom,Fstar10m,Mlim_Fstarm);
@@ -2510,9 +2527,9 @@ void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, floa
             //log10_Mturn_spline_SFR[j] = LogMassTurnover_low + (double)j/((double)NMTURN-1.)*(LogMassTurnover_high-LogMassTurnover_low);
             //log10_Mturn_spline_SFR_float[j] = (float)(log10_Mturn_spline_SFR[j]);
             MassTurnover =  pow(10., log10_Mturn_spline_SFR[j]);
-            Nion_spline[i+j*NSFR_low] = DeltaNion_ConditionalM(z,zp,log(Mmin),log(Mmax),Deltac,Overdense_spline_SFR[i],MassTurnover,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
-            if(Nion_spline[i+j*NSFR_low]<0.)
-                Nion_spline[i+j*NSFR_low]=pow(10.,-40.0);
+            Nion_spline[i+j*NSFR_high] = DeltaNion_ConditionalM(z,zp,log(Mmin),log(Mmax),Deltac,Overdense_spline_SFR[i],MassTurnover,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
+            if(Nion_spline[i+j*NSFR_high]<0.)
+                Nion_spline[i+j*NSFR_high]=pow(10.,-40.0);
         }
 #else //INHOMO_FEEDBACK
         Nion_spline[i] = DeltaNion_ConditionalM(z,zp,log(Mmin),log(Mmax),Deltac,Overdense_spline_SFR[i],MassTurnover,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
@@ -2601,9 +2618,9 @@ void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, flo
           //log10_Mturn_spline_SFRm[j] = LogMassTurnover_low + (double)j/((double)NMTURN-1.)*(LogMassTurnover_high-LogMassTurnover_low);
           //log10_Mturn_spline_SFRm_float[j] = (float)(log10_Mturn_spline_SFRm[j]);
           MassTurnoverm =  pow(10., log10_Mturn_spline_SFRm[j]);
-          Nion_splinem[i+j*NSFR_low] = DeltaNion_ConditionalMm(z,zp,log(Mmin),log(Mmax),Deltac,Overdense_spline_SFR[i],Alpha_star,MassTurnoverm,Mcrit_atom,Fstar10m,Mlim_Fstarm);
-          if(Nion_splinem[i+j*NSFR_low]<0.)
-            Nion_splinem[i+j*NSFR_low]=pow(10.,-40.0);
+          Nion_splinem[i+j*NSFR_high] = DeltaNion_ConditionalMm(z,zp,log(Mmin),log(Mmax),Deltac,Overdense_spline_SFR[i],Alpha_star,MassTurnoverm,Mcrit_atom,Fstar10m,Mlim_Fstarm);
+          if(Nion_splinem[i+j*NSFR_high]<0.)
+            Nion_splinem[i+j*NSFR_high]=pow(10.,-40.0);
         }
 #else //INHOMO_FEEDBACK
         Nion_splinem[i] = DeltaNion_ConditionalMm(z,zp,log(Mmin),log(Mmax),Deltac,Overdense_spline_SFR[i],Alpha_star,MassTurnoverm,Mcrit_atom,Fstar10m,Mlim_Fstarm);
