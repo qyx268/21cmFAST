@@ -1454,7 +1454,7 @@ int main(int argc, char ** argv){
 #pragma omp parallel shared(M_coll_filtered, massofscaleR, density_over_mean, R, pixel_volume, Fcoll) private(x,y,z,Splined_Fcoll) reduction(+:f_coll)
 #else
 #ifdef SHARP_CUTOFF
-#pragma omp parallel shared(deltax_filtered,growth_factor,erfc_denom) private(x,y,z,density_over_mean, erfc_num, Splined_Fcoll)
+#pragma omp parallel shared(deltax_filtered,growth_factor,erfc_denom, Fcoll) private(x,y,z,density_over_mean, erfc_num, Splined_Fcoll) reduction(+:f_coll)
 #else
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
 #ifdef INHOMO_FEEDBACK
