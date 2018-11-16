@@ -1880,8 +1880,8 @@ void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover,
     NionLow_spline_acc = gsl_interp_accel_alloc ();
 #ifdef INHOMO_FEEDBACK
     double MassTurnover;
-    double LogMassTurnover_high = 10;
-    double LogMassTurnover_low = log10(MMinTurnover);
+    double LogMassTurnover_high = 10. + 9e-8;
+    double LogMassTurnover_low = log10(MMinTurnover) - 9e-8;
 
     int j;
     NionLow_spline_acc_Mturn = gsl_interp_accel_alloc ();
@@ -1966,8 +1966,8 @@ void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, 
     NionLow_spline_accm = gsl_interp_accel_alloc ();
 #ifdef INHOMO_FEEDBACK
     double MassTurnoverm;
-    double LogMassTurnover_high = 10;
-    double LogMassTurnover_low = log10(MminTurnoverm);
+    double LogMassTurnover_high = 10. + 9e-8;
+    double LogMassTurnover_low = log10(MminTurnoverm) - 9e-8;
 
     int j;
     NionLow_spline_accm_Mturn = gsl_interp_accel_alloc ();
@@ -2469,8 +2469,8 @@ void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, floa
     NionLow_spline_acc = gsl_interp_accel_alloc ();
 #ifdef INHOMO_FEEDBACK
     double MassTurnover;
-    double LogMassTurnover_high = 10;
-    double LogMassTurnover_low = log10(MminTurnover);
+    double LogMassTurnover_high = 10. + 9e-8;
+    double LogMassTurnover_low = log10(MminTurnover) - 9e-8;
 
     int j;
     NionLow_spline_acc_Mturn = gsl_interp_accel_alloc ();
@@ -2559,8 +2559,8 @@ void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, flo
     NionLow_spline_accm = gsl_interp_accel_alloc ();
 #ifdef INHOMO_FEEDBACK
     double MassTurnoverm;
-    double LogMassTurnover_high = 10;
-    double LogMassTurnover_low = log10(MminTurnoverm);
+    double LogMassTurnover_high = 10. + 9e-8;
+    double LogMassTurnover_low = log10(MminTurnoverm) - 9e-8;
 
     int j;
     NionLow_spline_accm_Mturn = gsl_interp_accel_alloc ();
@@ -3047,7 +3047,7 @@ void initialise_SFRD_Conditional_tablem(int Nsteps_zp, int Nfilter, float z[], d
 {
 #pragma omp for
     for (i=0; i<NMTURN;i++) {
-      log10_overdense_low_table_Mturn[i] = 5. + (double)i/((double)NMTURN-1.)*5.;
+      log10_overdense_low_table_Mturn[i] = 5. - 9e-8 + (double)i/((double)NMTURN-1.)*(5.+1.8e-7);
       Overdense_high_table_Mturn[i] = (float)log10_overdense_low_table_Mturn[i];
     }
 }

@@ -1459,7 +1459,7 @@ int main(int argc, char ** argv){
       R = fmax(cell_length_factor*BOX_LEN/(double)HII_DIM, R_BUBBLE_MIN);
     }
 
-    fprintf(stderr, "memcpying...");
+//    fprintf(stderr, "memcpying...");
     fprintf(LOG, "begin memcpy, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
@@ -1482,13 +1482,13 @@ int main(int argc, char ** argv){
     memcpy(N_rec_filtered, N_rec_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
 #endif //INHOMO_RECO
     memcpy(deltax_filtered, deltax_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
-    fprintf(stderr, "done  ");
+//    fprintf(stderr, "done  ");
     fprintf(LOG, "end memcpy, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
 
     // if this scale is not the size of the cells, we need to filter the fields
     if (!LAST_FILTER_STEP || (R > cell_length_factor*BOX_LEN/(double)HII_DIM) ){
-      fprintf(stderr, " filtering...");
+//      fprintf(stderr, " filtering...");
       fprintf(LOG, "begin filter, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
       fflush(LOG);
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
@@ -1511,13 +1511,13 @@ int main(int argc, char ** argv){
       HII_filter(N_rec_filtered, HII_FILTER, R);
 #endif //INHOMO_RECO
       HII_filter(deltax_filtered, HII_FILTER, R);
-      fprintf(stderr, "done  ");
+//      fprintf(stderr, "done  ");
       fprintf(LOG, "end filter, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
       fflush(LOG);
     }
     
     // do the FFT to get back to real space
-    fprintf(stderr, "ffting...");
+//    fprintf(stderr, "ffting...");
     fprintf(LOG, "begin fft, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
@@ -1548,7 +1548,7 @@ int main(int argc, char ** argv){
 #endif //INHOMO_RECO
     plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)deltax_filtered, (float *)deltax_filtered, FFTW_ESTIMATE);
     fftwf_execute(plan);
-    fprintf(stderr, "done  ");
+//    fprintf(stderr, "done  ");
     fprintf(LOG, "end fft with R=%f, clock=%06.2f\n", R, (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
 
@@ -1674,7 +1674,7 @@ int main(int argc, char ** argv){
 #endif
     massofscaleR = RtoM(R);
 #ifndef USE_HALO_FIELD
-    fprintf(stderr, "begin f_coll normalization...");
+//    fprintf(stderr, "begin f_coll normalization...");
     fprintf(LOG, "begin f_coll normalization, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
     temparg =  2*(pow(sigma_z0(M_MIN), 2) - pow(sigma_z0(massofscaleR), 2) );
@@ -1851,7 +1851,7 @@ int main(int argc, char ** argv){
     f_collm /= (double) HII_TOT_NUM_PIXELS; // ave PS fcoll for this filter scale
     ST_over_PSm = mean_f_collm_st/f_collm; // normalization ratio used to adjust the PS conditional collapsed fraction
 #endif
-    fprintf(stderr, "done\n");
+//    fprintf(stderr, "done\n");
     fprintf(LOG, "end f_coll normalization, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
     
