@@ -146,10 +146,14 @@ double **log10_SFRD_z_low_tablem;
 float **SFRD_z_high_tablem;
 #endif
 
+#ifdef INHOMO_FEEDBACK
+void initialise_SFRD_Conditional_table(int Nsteps_zp, int Nfilter, float z[], double R[], float Mmin, float Alpha_star, float Fstar10);
+#else
 #ifdef REION_SM
 void initialise_SFRD_Conditional_table(int Nsteps_zp, int Nfilter, float z[], double R[], float Mmin, float Alpha_star, float Fstar10, double REION_SM13_Z_RE, double REION_SM13_DELTA_Z_RE, double REION_SM13_DELTA_Z_SC);
 #else
 void initialise_SFRD_Conditional_table(int Nsteps_zp, int Nfilter, float z[], double R[], float Mmin, float MassTurnover, float Alpha_star, float Fstar10);
+#endif
 #endif
 void initialise_Xray_Fcollz_SFR_Conditional(int R_ct, int zp_int1, int zp_int2);
 
@@ -2925,10 +2929,14 @@ void SFRD_ST_zm(float z, float *splined_value)
 }
 #endif
 
+#ifdef INHOMO_FEEDBACK
+void initialise_SFRD_Conditional_table(int Nsteps_zp, int Nfilter, float z[], double R[], float Mmin, float Alpha_star, float Fstar10)
+#else
 #ifdef REION_SM
 void initialise_SFRD_Conditional_table(int Nsteps_zp, int Nfilter, float z[], double R[], float Mmin, float Alpha_star, float Fstar10, double REION_SM13_Z_RE, double REION_SM13_DELTA_Z_RE, double REION_SM13_DELTA_Z_SC)
 #else
 void initialise_SFRD_Conditional_table(int Nsteps_zp, int Nfilter, float z[], double R[], float Mmin, float MassTurnover, float Alpha_star, float Fstar10)
+#endif
 #endif
 {
     double overdense_val;
@@ -2972,6 +2980,9 @@ void initialise_SFRD_Conditional_table(int Nsteps_zp, int Nfilter, float z[], do
         initialiseGL_Nion(NGL_SFR, Mmin, Mmax);
 #ifdef MINI_HALO
         Mcrit_atom = atomic_cooling_threshold(z[i_tot+j]);
+#ifdef INHOMO_FEEDBACK
+		MassTurn   = Mcrit_atom;
+#else //INHOMO_FEEDBACK
 #ifdef REION_SM
         Mcrit_RE   = reionization_feedback(z[i_tot+j], REION_SM13_Z_RE, REION_SM13_DELTA_Z_RE, REION_SM13_DELTA_Z_SC);
 #else //REION_SM
@@ -2980,6 +2991,7 @@ void initialise_SFRD_Conditional_table(int Nsteps_zp, int Nfilter, float z[], do
         MassTurn   = Mcrit_RE > Mcrit_atom ? Mcrit_RE : Mcrit_atom;
 #else // MINI_HALO
         MassTurn   = MassTurnover;
+#endif //INHOMO_FEEDBACK
 #endif //MINI_HALO
 
 #pragma omp parallel shared(log10_SFRD_z_low_table, i_tot, j, z, Mmax, overdense_low_table, MassTurn,Alpha_star, Fstar10, Mlim_Fstar) private(i)

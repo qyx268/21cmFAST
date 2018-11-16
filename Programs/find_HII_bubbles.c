@@ -1857,7 +1857,7 @@ int main(int argc, char ** argv){
     fflush(LOG);
     
 #ifdef MINI_HALO
-    fprintf(stderr, "fcoll(m)=%f(%f), ST_over_PS(m)=%f(%f), mean normalized fcoll(m)=%f(%f)\n", f_coll, f_collm, ST_over_PS, ST_over_PSm, f_coll*ST_over_PS, f_collm*ST_over_PSm);
+    fprintf(stderr, "fcoll(m)=%g(%g), ST_over_PS(m)=%g(%g), mean normalized fcoll(m)=%g(%g)\n", f_coll, f_collm, ST_over_PS, ST_over_PSm, f_coll*ST_over_PS, f_collm*ST_over_PSm);
 #endif
 
     /****************************************************************************/
