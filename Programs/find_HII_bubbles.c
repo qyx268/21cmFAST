@@ -1339,9 +1339,10 @@ int main(int argc, char ** argv){
 {
   if (flag_first_reionization == 0){
 #pragma omp for
-    for (ct=0; ct<HII_KSPACE_NUM_PIXELS; ct++)
+    for (ct=0; ct<HII_KSPACE_NUM_PIXELS; ct++){
       Fcoll_prev_unfiltered[ct] /= (double)HII_TOT_NUM_PIXELS;
       Fcollm_prev_unfiltered[ct] /= (double)HII_TOT_NUM_PIXELS;
+	}
   }
 }
 #endif //CONTEMPORANEOUS_DUTYCYCLE
