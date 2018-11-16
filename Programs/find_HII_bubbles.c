@@ -439,7 +439,7 @@ int main(int argc, char ** argv){
   float f_coll_crit, pixel_volume,  density_over_mean, erfc_num, erfc_denom, erfc_denom_cell, res_xH, Splined_Fcoll;
   float *xH=NULL, TVIR_MIN, MFP, xHI_from_xrays, std_xrays, *z_re=NULL, *Gamma12=NULL, *mfp=NULL;
 #ifdef INHOMO_FEEDBACK
-  float *J_21_LW=NULL;
+  float *J_21_LW=NULL, Mcrit_mol;
   fftwf_complex *M_MINa_unfiltered=NULL, *M_MINa_filtered=NULL;
   fftwf_complex *M_MINm_unfiltered=NULL, *M_MINm_filtered=NULL;
   float log10M_MINa_ave=0., log10M_MINm_ave=0.;
@@ -549,6 +549,14 @@ int main(int argc, char ** argv){
   // cell sizes in RT simulations.  it probably doesn't matter for larger cell sizes.
   cell_length_factor = L_FACTOR;
 
+  // OPEN LOG FILE
+  system("mkdir -p ../Log_files");
+  sprintf(filename, "../Log_files/HII_bubble_log_file_%d", getpid());
+  LOG = fopen(filename, "w");
+  if (!LOG){
+    fprintf(stderr, "find_HII_bubbles.c: Error opening log file\n");
+  }
+
 #ifdef USE_HALO_FIELD
   if ((FIND_BUBBLE_ALGORITHM==2)&& ((BOX_LEN/(float)HII_DIM) < 1)) // fairly arbitrary length based on 2 runs i did
     cell_length_factor = 1;
@@ -577,8 +585,8 @@ int main(int argc, char ** argv){
     strcpy(error_message, "find_HII_bubbles.c: Read error occured while reading z_re box!\n");
     goto CLEANUP;
     }
-	fclose(F);
-	F = NULL;
+    fclose(F);
+    F = NULL;
   }
   else{ // this is the first call (highest redshift)
 #pragma omp parallel shared(z_re) private(ct)
@@ -601,11 +609,11 @@ int main(int argc, char ** argv){
         }
       }
     }
-	fclose(F);
-	F = NULL;
+    fclose(F);
+    F = NULL;
   }
   else{
-    fprintf(stderr, "Earliest redshift call, initializing Nrec to zeros\n");
+    fprintf(stderr, "Earliest redshift call, initializing Nrec to zeros...");
     // initialize N_rec
 #pragma omp parallel shared(N_rec_unfiltered) private(i,j,k)
 {
@@ -618,6 +626,7 @@ int main(int argc, char ** argv){
       }
     }
 }
+    fprintf(stderr, "done\n");
   }
 #ifdef INHOMO_FEEDBACK
   // Gamma12 box
@@ -628,12 +637,16 @@ int main(int argc, char ** argv){
     strcpy(error_message, "find_HII_bubbles.c: Read error occured while reading Gamma12 box!\n");
     goto CLEANUP;
     }
-	fclose(F);
-	F = NULL;
+    fclose(F);
+    F = NULL;
   }
   else{ // this is the first call (highest redshift)
+#pragma omp parallel shared(Gamma12) private(ct)
+{
+#pragma omp for
     for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
       Gamma12[ct] = 0.0;
+}
   }
 
   // J_21_LW box
@@ -645,12 +658,16 @@ int main(int argc, char ** argv){
     strcpy(error_message, "find_HII_bubbles.c: Read error occured while reading J_21_LW box!\n");
     goto CLEANUP;
     }
-	fclose(F);
-	F = NULL;
+    fclose(F);
+    F = NULL;
   }
   else{ // this is the first call (highest redshift)
+#pragma omp parallel shared(J_21_LW) private(ct)
+{
+#pragma omp for
     for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
       J_21_LW[ct] = 0.0;
+}
   }
 #endif //INHOMO_FEEDBACK
 #endif //INHOMO_RECO
@@ -671,6 +688,7 @@ int main(int argc, char ** argv){
   ION_EFF_FACTOR_MINI = N_GAMMA_UV_MINI * F_STAR10m * F_ESC10m;
   Mcrit_atom          = atomic_cooling_threshold(REDSHIFT);
 #ifdef INHOMO_FEEDBACK
+  Mcrit_mol           = lyman_werner_threshold(REDSHIFT, 0.);
   M_MINa_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
   M_MINa_filtered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
   M_MINm_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
@@ -679,27 +697,27 @@ int main(int argc, char ** argv){
     strcpy(error_message, "find_HII_bubbles.c: Error allocating memory for M_MINa or M_MINm boxes\nAborting...\n");
     goto CLEANUP;
   }
-  fprintf(stderr, "Calculating M_MIN boxes for atomic and molecular halos\n");
-  fprintf(LOG, "Calculating M_MIN boxes for atomic and molecular halos\n");
+  fprintf(stderr, "Calculating and outputting M_MIN boxes for atomic and molecular halos...");
+  fprintf(LOG, "Calculating and outputting M_MIN boxes for atomic and molecular halos...");
   // use the average for check dark ages and do the ST/PS renormalization
 #pragma omp parallel shared(REDSHIFT,J_21_LW, Gamma12, z_re, M_MINa_unfiltered, M_MINm_unfiltered,Mcrit_atom) private(Mcrit_RE, Mcrit_LW,M_MINa, M_MINm,x,y,z) reduction(+: log10M_MINa_ave, log10M_MINm_ave)
 {
 #pragma omp for
-  for (i=0; i<HII_DIM; i++){
-	for (j=0; j<HII_DIM; j++){
-	  for (k=0; k<HII_DIM; k++){
-		Mcrit_RE = reionization_feedback(REDSHIFT, Gamma12[HII_R_INDEX(x, y, z)], z_re[HII_R_INDEX(x, y, z)]);
-		Mcrit_LW = lyman_werner_threshold(REDSHIFT, J_21_LW[HII_R_INDEX(x, y, z)]);
-		M_MINa   = Mcrit_RE > Mcrit_atom ? Mcrit_RE : Mcrit_atom;
-		M_MINm   = Mcrit_RE > Mcrit_LW   ? Mcrit_RE : Mcrit_LW;
+  for (x=0; x<HII_DIM; x++){
+    for (y=0; y<HII_DIM; y++){
+      for (z=0; z<HII_DIM; z++){
+        Mcrit_RE = reionization_feedback(REDSHIFT, Gamma12[HII_R_INDEX(x, y, z)], z_re[HII_R_INDEX(x, y, z)]);
+        Mcrit_LW = lyman_werner_threshold(REDSHIFT, J_21_LW[HII_R_INDEX(x, y, z)]);
+        M_MINa   = Mcrit_RE > Mcrit_atom ? Mcrit_RE : Mcrit_atom;
+        M_MINm   = Mcrit_RE > Mcrit_LW   ? Mcrit_RE : Mcrit_LW;
 
-		*((float *)M_MINa_unfiltered + HII_R_FFT_INDEX(x,y,z)) = M_MINa;
-		*((float *)M_MINm_unfiltered + HII_R_FFT_INDEX(x,y,z)) = M_MINm;
+        *((float *)M_MINa_unfiltered + HII_R_FFT_INDEX(x,y,z)) = M_MINa;
+        *((float *)M_MINm_unfiltered + HII_R_FFT_INDEX(x,y,z)) = M_MINm;
 
-		log10M_MINa_ave += log10(M_MINa);
-		log10M_MINm_ave += log10(M_MINm);
-	  }
-	}
+        log10M_MINa_ave += log10(M_MINa);
+        log10M_MINm_ave += log10(M_MINm);
+      }
+    }
   }
 }
 
@@ -748,13 +766,15 @@ int main(int argc, char ** argv){
     fclose(F);
     F = NULL;
   }
+  fprintf(stderr, "done\n");
+  fprintf(LOG, "done\n");
 
 #else //INHOMO_FEEDBACK
   Mcrit_LW            = lyman_werner_threshold(REDSHIFT);
 #ifdef REION_SM
   if(F = fopen("../Parameter_files/REION_SM.H", "r")){
-	fclose(F);
-	F = NULL;
+    fclose(F);
+    F = NULL;
     reading_reionization_SM13parameters(&REION_SM13_Z_RE, &REION_SM13_DELTA_Z_RE, &REION_SM13_DELTA_Z_SC);
   }
   else
@@ -801,40 +821,36 @@ int main(int argc, char ** argv){
   T = gsl_rng_default;
   r = gsl_rng_alloc(T);
   
-  // OPEN LOG FILE
-  system("mkdir -p ../Log_files");
-  sprintf(filename, "../Log_files/HII_bubble_log_file_%d", getpid());
-  LOG = fopen(filename, "w");
-  if (!LOG){
-    fprintf(stderr, "find_HII_bubbles.c: Error opening log file\n");
-  }
-
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
+  fprintf(stderr, "Reading in previous mean f_colls for atomic and molecular halos...");
+  fprintf(LOG, "Reading in previous mean f_colls for atomic and molecular halos...");
   system("mkdir -p ../Boxes/Nion_evolution/");
   sprintf(filename, "../Boxes/Nion_evolution/mean_f_coll_st_z%06.2f.bin", PREV_REDSHIFT);
   if(F = fopen(filename, "r")){
     if (fread(&mean_f_coll_prev_st, sizeof(double), 1, F) !=1){
-	  fprintf(stderr, "find_HII_bubble: ERROR: reading mean_f_coll_st");
-	  fprintf(LOG, "find_HII_bubble: ERROR: reading mean_f_coll_st");
-	  goto CLEANUP;
-	}
-	fclose(F);
-	F = NULL;
+      fprintf(stderr, "find_HII_bubble: ERROR: reading mean_f_coll_st");
+      fprintf(LOG, "find_HII_bubble: ERROR: reading mean_f_coll_st");
+      goto CLEANUP;
+    }
+    fclose(F);
+    F = NULL;
   }
   else
     mean_f_coll_prev_st = 0.;
   sprintf(filename, "../Boxes/Nion_evolution/mean_f_collm_st_z%06.2f.bin", PREV_REDSHIFT);
   if(F = fopen(filename, "r")){
     if (fread(&mean_f_collm_prev_st, sizeof(double), 1, F)!=1){
-	  fprintf(stderr, "find_HII_bubble: ERROR: reading mean_f_coll_stm");
-	  fprintf(LOG, "find_HII_bubble: ERROR: reading mean_f_coll_stm");
-	  goto CLEANUP;
-	}
-	fclose(F);
-	F = NULL;
+      fprintf(stderr, "find_HII_bubble: ERROR: reading mean_f_coll_stm");
+      fprintf(LOG, "find_HII_bubble: ERROR: reading mean_f_coll_stm");
+      goto CLEANUP;
+    }
+    fclose(F);
+    F = NULL;
   }
   else
     mean_f_collm_prev_st = 0.;
+  fprintf(stderr, "done\n");
+  fprintf(LOG, "done\n");
 #endif
 
   // allocate memory for the neutral fraction box
@@ -867,7 +883,7 @@ int main(int argc, char ** argv){
   F = fopen(filename, "w");
   if(fwrite(&mean_f_coll_st, sizeof(double), 1, F) !=1){
     fprintf(stderr,  "find_HII_bubbles.c: Error writing %s", filename);
-	goto CLEANUP;
+    goto CLEANUP;
   }
   fclose(F);
   F = NULL;
@@ -880,7 +896,7 @@ int main(int argc, char ** argv){
   F = fopen(filename, "w");
   if(fwrite(&mean_f_collm_st, sizeof(double), 1, F) !=1){
     fprintf(stderr,  "find_HII_bubbles.c: Error writing %s", filename);
-	goto CLEANUP;
+    goto CLEANUP;
   }
   fclose(F);
   F = NULL;
@@ -1183,8 +1199,8 @@ int main(int argc, char ** argv){
     strcpy(error_message, "find_HII_bubbles.c: Error allocating memory for deltax boxes\nAborting...\n");
     goto CLEANUP;
   }
-  fprintf(stderr, "Reading in deltax box\n");
-  fprintf(LOG, "Reading in deltax box\n");
+  fprintf(stderr, "Reading in deltax box...");
+  fprintf(LOG, "Reading in deltax box...");
 
   sprintf(filename, "../Boxes/updated_smoothed_deltax_z%06.2f_%i_%.0fMpc", REDSHIFT, HII_DIM, BOX_LEN);
   F = fopen(filename, "rb");
@@ -1206,8 +1222,10 @@ int main(int argc, char ** argv){
   }
   fclose(F);
   F = NULL;
+  fprintf(stderr, "done\n");
+  fprintf(LOG, "done\n");
 
-#ifdef COCONTEMPORANEOUS_DUTYCYCLE
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
   // ALLOCATE AND READ-IN THE PREV FCOLL FIELDS
   // add the modification term to make sure dNion/dt > 0
   // NOTE we do not check whether mean_f_coll_st*ION_EFF_FACTOR + mean_f_collm_st*ION_EFF_FACTOR_MINI 
@@ -1218,8 +1236,8 @@ int main(int argc, char ** argv){
     strcpy(error_message, "find_HII_bubbles.c: Error allocating memory for Fcoll_prev boxes\nAborting...\n");
     goto CLEANUP;
   }
-  fprintf(stderr, "Reading in Fcoll_prev box\n");
-  fprintf(LOG, "Reading in Fcoll_prev box\n");
+  fprintf(stderr, "Reading in Fcoll_prev box...");
+  fprintf(LOG, "Reading in Fcoll_prev box...");
   sprintf(filename, "../Boxes/Nion_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", PREV_REDSHIFT, HII_FILTER, MFP, HII_DIM, BOX_LEN);
   if(F = fopen(filename, "rb")){
     for (i=0; i<HII_DIM; i++){
@@ -1238,6 +1256,8 @@ int main(int argc, char ** argv){
   }
   else
     flag_first_reionization = 1;
+  fprintf(stderr, "done\n");
+  fprintf(LOG, "done\n");
 
   Fcollm_prev_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
   Fcollm_prev_filtered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
@@ -1245,14 +1265,14 @@ int main(int argc, char ** argv){
     strcpy(error_message, "find_HII_bubbles.c: Error allocating memory for Fcollm_prev boxes\nAborting...\n");
     goto CLEANUP;
   }
-  fprintf(stderr, "Reading in Fcollm_prev box\n");
-  fprintf(LOG, "Reading in Fcollm_prev box\n");
+  fprintf(stderr, "Reading in Fcollm_prev box...");
+  fprintf(LOG, "Reading in Fcollm_prev box...");
   sprintf(filename, "../Boxes/Nionm_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", PREV_REDSHIFT, HII_FILTER, MFP, HII_DIM, BOX_LEN);
   if(F = fopen(filename, "rb")){
-	if (flag_first_reionization == 1){
-	  strcpy(error_message, "find_HII_bubbles.c: read Nionm box but not Nion box???\n");
-	  goto CLEANUP;
-	}
+    if (flag_first_reionization == 1){
+      strcpy(error_message, "find_HII_bubbles.c: read Nionm box but not Nion box???\n");
+      goto CLEANUP;
+    }
     for (i=0; i<HII_DIM; i++){
       for (j=0; j<HII_DIM; j++){
         for (k=0; k<HII_DIM; k++){
@@ -1267,14 +1287,17 @@ int main(int argc, char ** argv){
     F = NULL;
   }
   else{
-	if (flag_first_reionization == 0){
-	  strcpy(error_message, "find_HII_bubbles.c: no Nionm box but read Nion box???\n");
-	  goto CLEANUP;
-	}
+    if (flag_first_reionization == 0){
+      strcpy(error_message, "find_HII_bubbles.c: no Nionm box but read Nion box???\n");
+      goto CLEANUP;
+    }
   }
+  fprintf(stderr, "done\n");
+  fprintf(LOG, "done\n");
 #endif
 
   // do the fft to get the k-space M_coll field and deltax field
+  fprintf(stderr, "begin initial ffts...");
   fprintf(LOG, "begin initial ffts, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
   fflush(LOG);
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
@@ -1362,6 +1385,7 @@ int main(int argc, char ** argv){
   for (ct=0; ct<HII_KSPACE_NUM_PIXELS; ct++)
     deltax_unfiltered[ct] /= (HII_TOT_NUM_PIXELS+0.0);
 }
+  fprintf(stderr, "done\n");
   fprintf(LOG, "end initial ffts, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
   fflush(LOG);
 
@@ -1435,13 +1459,14 @@ int main(int argc, char ** argv){
       R = fmax(cell_length_factor*BOX_LEN/(double)HII_DIM, R_BUBBLE_MIN);
     }
 
-    fprintf(LOG, "before memcpy, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
+    fprintf(stderr, "begin memcpy...");
+    fprintf(LOG, "begin memcpy, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
-	if (flag_first_reionization == 0){
+    if (flag_first_reionization == 0){
       memcpy(Fcoll_prev_filtered, Fcoll_prev_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
       memcpy(Fcollm_prev_filtered, Fcollm_prev_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
-	}
+    }
 #endif //CONTEMPORANEOUS_DUTYCYCLE
 #ifdef INHOMO_FEEDBACK
     memcpy(M_MINa_filtered, M_MINa_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
@@ -1457,17 +1482,20 @@ int main(int argc, char ** argv){
     memcpy(N_rec_filtered, N_rec_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
 #endif //INHOMO_RECO
     memcpy(deltax_filtered, deltax_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
-
+    fprintf(stderr, "done\n");
+    fprintf(LOG, "end memcpy, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
+    fflush(LOG);
 
     // if this scale is not the size of the cells, we need to filter the fields
     if (!LAST_FILTER_STEP || (R > cell_length_factor*BOX_LEN/(double)HII_DIM) ){
+      fprintf(stderr, "begin filter...");
       fprintf(LOG, "begin filter, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
       fflush(LOG);
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
-	  if (flag_first_reionization == 0){
+      if (flag_first_reionization == 0){
         HII_filter(Fcoll_prev_filtered, HII_FILTER, R);
         HII_filter(Fcollm_prev_filtered, HII_FILTER, R);
-	  }
+      }
 #endif //CONTEMPORANEOUS_DUTYCYCLE
 #ifdef INHOMO_FEEDBACK
       HII_filter(M_MINa_filtered, HII_FILTER, R);
@@ -1483,20 +1511,22 @@ int main(int argc, char ** argv){
       HII_filter(N_rec_filtered, HII_FILTER, R);
 #endif //INHOMO_RECO
       HII_filter(deltax_filtered, HII_FILTER, R);
+      fprintf(stderr, "done\n");
       fprintf(LOG, "end filter, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
       fflush(LOG);
     }
     
     // do the FFT to get back to real space
+    fprintf(stderr, "begin fft with R=%f...", R);
     fprintf(LOG, "begin fft with R=%f, clock=%06.2f\n", R, (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
-	if (flag_first_reionization == 0){
+    if (flag_first_reionization == 0){
       plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)Fcoll_prev_filtered, (float *)Fcoll_prev_filtered, FFTW_ESTIMATE);
       fftwf_execute(plan);
       plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)Fcollm_prev_filtered, (float *)Fcollm_prev_filtered, FFTW_ESTIMATE);
       fftwf_execute(plan);
-	}
+    }
 #endif //CONTEMPORANEOUS_DUTYCYCLE
 #ifdef INHOMO_FEEDBACK
     plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)M_MINa_filtered, (float *)M_MINa_filtered, FFTW_ESTIMATE);
@@ -1518,6 +1548,7 @@ int main(int argc, char ** argv){
 #endif //INHOMO_RECO
     plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)deltax_filtered, (float *)deltax_filtered, FFTW_ESTIMATE);
     fftwf_execute(plan);
+    fprintf(stderr, "done\n");
     fprintf(LOG, "end fft with R=%f, clock=%06.2f\n", R, (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
 
@@ -1530,8 +1561,8 @@ int main(int argc, char ** argv){
       for (y=0; y<HII_DIM; y++){
         for (z=0; z<HII_DIM; z++){
           // delta cannot be less than -1
-          *((float *)deltax_filtered + HII_R_FFT_INDEX(x,y,z)) = 
-            FMAX(*((float *)deltax_filtered + HII_R_FFT_INDEX(x,y,z)) , -1+FRACT_FLOAT_ERR);
+          if (*((float *)deltax_filtered + HII_R_FFT_INDEX(x,y,z)) < -1+FRACT_FLOAT_ERR) 
+            *((float *)deltax_filtered + HII_R_FFT_INDEX(x,y,z)) = -1+FRACT_FLOAT_ERR;
         }
       }
     }
@@ -1545,8 +1576,8 @@ int main(int argc, char ** argv){
       for (y=0; y<HII_DIM; y++){
         for (z=0; z<HII_DIM; z++){
           // <N_rec> cannot be less than zero
-          *((float *)N_rec_filtered + HII_R_FFT_INDEX(x,y,z)) = 
-          FMAX(*((float *)N_rec_filtered + HII_R_FFT_INDEX(x,y,z)) , 0.0);
+          if (*((float *)N_rec_filtered + HII_R_FFT_INDEX(x,y,z)) < 0.0) 
+            *((float *)N_rec_filtered + HII_R_FFT_INDEX(x,y,z)) = 0.0;
         }
       }
     }
@@ -1558,16 +1589,16 @@ int main(int argc, char ** argv){
     Fcollm_prev_ave = 0.;
 #pragma omp parallel shared(Fcoll_prev_filtered, Fcollm_prev_filtered) private(x, y, z) reduction(+:Fcoll_prev_ave, Fcollm_prev_ave)
 {
-	if (flag_first_reionization == 0){
+    if (flag_first_reionization == 0){
 #pragma omp for
       for (x=0; x<HII_DIM; x++){
         for (y=0; y<HII_DIM; y++){
           for (z=0; z<HII_DIM; z++){
             // Fcoll cannot be less than 0
-            *((float *)Fcoll_prev_filtered + HII_R_FFT_INDEX(x,y,z)) = 
-              FMAX(*((float *)Fcoll_prev_filtered + HII_R_FFT_INDEX(x,y,z)) , 0.0);
-            *((float *)Fcollm_prev_filtered + HII_R_FFT_INDEX(x,y,z)) = 
-              FMAX(*((float *)Fcollm_prev_filtered + HII_R_FFT_INDEX(x,y,z)) , 0.0);
+            if (*((float *)Fcoll_prev_filtered + HII_R_FFT_INDEX(x,y,z)) < 0.0)
+              *((float *)Fcoll_prev_filtered + HII_R_FFT_INDEX(x,y,z)) = 0.0;
+            if (*((float *)Fcollm_prev_filtered + HII_R_FFT_INDEX(x,y,z)) < 0.0) 
+              *((float *)Fcollm_prev_filtered + HII_R_FFT_INDEX(x,y,z)) = 0.0;
             Fcoll_prev_ave += *((float *)Fcoll_prev_filtered + HII_R_FFT_INDEX(x,y,z));
             Fcollm_prev_ave += *((float *)Fcollm_prev_filtered + HII_R_FFT_INDEX(x,y,z));
           }
@@ -1583,18 +1614,22 @@ int main(int argc, char ** argv){
 #pragma omp parallel shared(M_MINa_filtered, M_MINm_filtered) private(x, y, z)
 {
 #pragma omp for
-	for (x=0; x<HII_DIM; x++){
-	  for (y=0; y<HII_DIM; y++){
-		for (z=0; z<HII_DIM; z++){
-		  // M_MINa cannot be less than Mcrit_atom
-		  *((float *)M_MINa_filtered + HII_R_FFT_INDEX(x,y,z)) =
-			FMAX(*((float *)M_MINa_filtered + HII_R_FFT_INDEX(x,y,z)) , Mcrit_atom);
-		  // M_MINa cannot be less than lyman_werner_threshold(REDSHIFT,0)
-		  *((float *)M_MINm_filtered + HII_R_FFT_INDEX(x,y,z)) =
-			FMAX(*((float *)M_MINm_filtered + HII_R_FFT_INDEX(x,y,z)) , lyman_werner_threshold(REDSHIFT,0));
-		}
-	  }
-	}
+    for (x=0; x<HII_DIM; x++){
+      for (y=0; y<HII_DIM; y++){
+        for (z=0; z<HII_DIM; z++){
+          // M_MINa cannot be less than Mcrit_atom
+          if (*((float *)M_MINa_filtered + HII_R_FFT_INDEX(x,y,z)) < Mcrit_atom)
+            *((float *)M_MINa_filtered + HII_R_FFT_INDEX(x,y,z)) = Mcrit_atom;
+          if (*((float *)M_MINa_filtered + HII_R_FFT_INDEX(x,y,z)) > 1e10)
+            *((float *)M_MINa_filtered + HII_R_FFT_INDEX(x,y,z)) = 1e10;
+          // M_MINa cannot be less than Mcrit_mol
+          if (*((float *)M_MINm_filtered + HII_R_FFT_INDEX(x,y,z)) < Mcrit_mol)
+            *((float *)M_MINm_filtered + HII_R_FFT_INDEX(x,y,z))  = Mcrit_mol;
+          if (*((float *)M_MINm_filtered + HII_R_FFT_INDEX(x,y,z)) > 1e10)
+            *((float *)M_MINm_filtered + HII_R_FFT_INDEX(x,y,z)) = 1e10;
+        }
+      }
+    }
 }
 #endif //INHOMO_FEEDBACK 
 
@@ -1606,8 +1641,8 @@ int main(int argc, char ** argv){
       for (y=0; y<HII_DIM; y++){
         for (z=0; z<HII_DIM; z++){
           // collapsed mass cannot be less than zero
-          *((float *)M_coll_filtered + HII_R_FFT_INDEX(x,y,z)) = 
-            FMAX(*((float *)M_coll_filtered + HII_R_FFT_INDEX(x,y,z)) , 0.0);
+          if (*((float *)M_coll_filtered + HII_R_FFT_INDEX(x,y,z)) < 0.0) 
+            *((float *)M_coll_filtered + HII_R_FFT_INDEX(x,y,z)) = 0.0;
         }
       }
     }
@@ -1622,8 +1657,10 @@ int main(int argc, char ** argv){
       for (y=0; y<HII_DIM; y++){
         for (z=0; z<HII_DIM; z++){
           // x_e has to be between zero and unity
-          *((float *)xe_filtered + HII_R_FFT_INDEX(x,y,z)) = FMAX(*((float *)xe_filtered + HII_R_FFT_INDEX(x,y,z)) , 0);
-          *((float *)xe_filtered + HII_R_FFT_INDEX(x,y,z)) = FMIN(*((float *)xe_filtered + HII_R_FFT_INDEX(x,y,z)) , 0.999);
+          if (*((float *)xe_filtered + HII_R_FFT_INDEX(x,y,z)) < 0.0)
+            *((float *)xe_filtered + HII_R_FFT_INDEX(x,y,z)) = 0.0;
+          if (*((float *)xe_filtered + HII_R_FFT_INDEX(x,y,z)) > 0.999) 
+            *((float *)xe_filtered + HII_R_FFT_INDEX(x,y,z)) = 0.999;
         }
       }
     } //  end sanity check in box
@@ -1637,6 +1674,7 @@ int main(int argc, char ** argv){
 #endif
     massofscaleR = RtoM(R);
 #ifndef USE_HALO_FIELD
+    fprintf(stderr, "begin f_coll normalization...");
     fprintf(LOG, "begin f_coll normalization, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
     temparg =  2*(pow(sigma_z0(M_MIN), 2) - pow(sigma_z0(massofscaleR), 2) );
@@ -1645,7 +1683,7 @@ int main(int argc, char ** argv){
 #ifndef SHARP_CUTOFF
     initialiseGL_Nion(NGL_SFR, M_MIN, massofscaleR);
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
-	if (flag_first_reionization == 0){
+    if (flag_first_reionization == 0){
 #ifdef INHOMO_FEEDBACK
       initialise_DeltaNion_spline(REDSHIFT, PREV_REDSHIFT, massofscaleR,M_MIN,Mcrit_atom,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
       initialise_DeltaNion_splinem(REDSHIFT, PREV_REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,lyman_werner_threshold(REDSHIFT,0),Mcrit_atom,F_STAR10m,Mlim_Fstarm);
@@ -1679,7 +1717,7 @@ int main(int argc, char ** argv){
 #endif //USE_HALO_FIELD
 
 #ifdef USE_HALO_FIELD
-		  // NOTE: in this case no CONTEMPORANEOUS_DUTYCYCLE or MINI_HALO
+          // NOTE: in this case no CONTEMPORANEOUS_DUTYCYCLE or MINI_HALO
 #pragma omp parallel shared(M_coll_filtered, massofscaleR, density_over_mean, R, pixel_volume, Fcoll) private(x,y,z,Splined_Fcoll) reduction(+:f_coll)
 #else
 #ifdef SHARP_CUTOFF
@@ -1783,23 +1821,23 @@ int main(int argc, char ** argv){
 #endif //CONTEMPORANEOUS_DUTYCYCLE
           }
 #endif //USE_HALO_FIELD
-		  
-		  Fcoll[HII_R_FFT_INDEX(x,y,z)] = 0.;
+          
+          Fcoll[HII_R_FFT_INDEX(x,y,z)] = 0.;
 #ifdef MINI_HALO
-		  Fcollm[HII_R_FFT_INDEX(x,y,z)] = 0.;
+          Fcollm[HII_R_FFT_INDEX(x,y,z)] = 0.;
 #endif
 
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
           // save the value of the collasped fraction into the Fcoll array
-		  if (flag_first_reionization == 0){
+          if (flag_first_reionization == 0){
             Fcoll[HII_R_FFT_INDEX(x,y,z)]  += *((float *)Fcoll_prev_filtered + HII_R_FFT_INDEX(x,y,z));
             Fcollm[HII_R_FFT_INDEX(x,y,z)] += *((float *)Fcollm_prev_filtered + HII_R_FFT_INDEX(x,y,z));
-		  }
+          }
 #endif //CONTEMPORANEOUS_DUTYCYCLE
-		  Fcoll[HII_R_FFT_INDEX(x,y,z)] += Splined_Fcoll;
+          Fcoll[HII_R_FFT_INDEX(x,y,z)] += Splined_Fcoll;
           f_coll  += Fcoll[HII_R_FFT_INDEX(x,y,z)];
 #ifdef MINI_HALO
-		  Fcollm[HII_R_FFT_INDEX(x,y,z)] += Splined_Fcollm;
+          Fcollm[HII_R_FFT_INDEX(x,y,z)] += Splined_Fcollm;
           f_collm += Fcollm[HII_R_FFT_INDEX(x,y,z)];
 #endif
         }
@@ -1813,6 +1851,7 @@ int main(int argc, char ** argv){
     f_collm /= (double) HII_TOT_NUM_PIXELS; // ave PS fcoll for this filter scale
     ST_over_PSm = mean_f_collm_st/f_collm; // normalization ratio used to adjust the PS conditional collapsed fraction
 #endif
+    fprintf(stderr, "done\n");
     fprintf(LOG, "end f_coll normalization if, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
     
@@ -1821,6 +1860,7 @@ int main(int argc, char ** argv){
     /****************************************************************************/
     /************  MAIN LOOP THROUGH THE BOX FOR THIS FILTER SCALE **************/
     /****************************************************************************/
+    fprintf(stderr, "Start of the main loop through the box for this filter scale...");
     fprintf(LOG, "Start of the main loop through the box for this filter scale, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
     // now lets scroll through the filtered box
@@ -1984,6 +2024,9 @@ int main(int argc, char ** argv){
       } // y
     } // x
 }
+    fprintf(stderr, "done\n");
+    fprintf(LOG, "End of the main loop through the box for this filter scale, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
+    fflush(LOG);
     R /= DELTA_R_HII_FACTOR;
   } // END OF LOOP THROUGH FILTER RADII
 
@@ -2043,7 +2086,7 @@ int main(int argc, char ** argv){
   sprintf(filename, "../Boxes/Nion_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, HII_FILTER, MFP, HII_DIM, BOX_LEN);
   if (!(F = fopen(filename, "wb"))){
     sprintf(error_message, "find_HII_bubbles: ERROR: unable to open file for writting Nion (i.e. Fcoll) box!\n");
-	goto CLEANUP;
+    goto CLEANUP;
   }
   else{
     for (i=0; i<HII_DIM; i++){
@@ -2063,7 +2106,7 @@ int main(int argc, char ** argv){
   sprintf(filename, "../Boxes/Nionm_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, HII_FILTER, MFP, HII_DIM, BOX_LEN);
   if (!(F = fopen(filename, "wb"))){
     sprintf(error_message, "find_HII_bubbles: ERROR: unable to open file for writting Nionm (i.e. Fcollm) box!\n");
-	goto CLEANUP;
+    goto CLEANUP;
   }
   else{
     for (i=0; i<HII_DIM; i++){
