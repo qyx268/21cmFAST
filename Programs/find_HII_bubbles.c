@@ -440,6 +440,9 @@ int main(int argc, char ** argv){
   float *xH=NULL, TVIR_MIN, MFP, xHI_from_xrays, std_xrays, *z_re=NULL, *Gamma12=NULL, *mfp=NULL;
 #ifdef INHOMO_FEEDBACK
   float *J_21_LW=NULL;
+  fftwf_complex *M_MINa_unfiltered=NULL, *M_MINa_filtered=NULL;
+  fftwf_complex *M_MINm_unfiltered=NULL, *M_MINm_filtered=NULL;
+  float log10M_MINa_ave=0., log10M_MINm_ave=0.;
 #endif 
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
   float Fcoll_prev_ave, Fcollm_prev_ave;
@@ -460,7 +463,7 @@ int main(int argc, char ** argv){
   float nua, dnua, temparg, Gamma_R, z_eff;
   float F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, Mlim_Fstar, Mlim_Fesc; //New in v2
 #ifdef MINI_HALO
-  float F_STAR10m, F_ESC10m, Mlim_Fstarm, ION_EFF_FACTOR_MINI,M_MINm, M_MINa, Splined_Fcollm, dfcolldtm,Gamma_R_prefactorm,ST_over_PSm,f_collm, Mcrit_atom, Mcrit_LW=0., Mcrit_RE=0.;
+  float F_STAR10m, F_ESC10m, Mlim_Fstarm, ION_EFF_FACTOR_MINI,M_MINm, M_MINa, Splined_Fcollm, dfcolldtm,Gamma_R_prefactorm,ST_over_PSm,f_collm, Mcrit_atom, Mcrit_LW, Mcrit_RE;
   double mean_f_collm_st; //New in v2.1
   double X_LUMINOSITYm;
 #ifdef REION_SM
@@ -668,22 +671,84 @@ int main(int argc, char ** argv){
   ION_EFF_FACTOR_MINI = N_GAMMA_UV_MINI * F_STAR10m * F_ESC10m;
   Mcrit_atom          = atomic_cooling_threshold(REDSHIFT);
 #ifdef INHOMO_FEEDBACK
+  M_MINa_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  M_MINa_filtered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  M_MINm_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  M_MINm_filtered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  if (!M_MINa_unfiltered || !M_MINa_filtered || !M_MINm_unfiltered || !M_MINm_filtered){
+    strcpy(error_message, "find_HII_bubbles.c: Error allocating memory for M_MINa or M_MINm boxes\nAborting...\n");
+    goto CLEANUP;
+  }
+  fprintf(stderr, "Calculating M_MIN boxes for atomic and molecular halos\n");
+  fprintf(LOG, "Calculating M_MIN boxes for atomic and molecular halos\n");
   // use the average for check dark ages and do the ST/PS renormalization
-#pragma omp parallel shared(REDSHIFT,J_21_LW, Gamma12, z_re) private(ct) reduction(+: Mcrit_LW, Mcrit_RE)
+#pragma omp parallel shared(REDSHIFT,J_21_LW, Gamma12, z_re, M_MINa_unfiltered, M_MINm_unfiltered,Mcrit_atom) private(Mcrit_RE, Mcrit_LW,M_MINa, M_MINm,x,y,z) reduction(+: log10M_MINa_ave, log10M_MINm_ave)
 {
 #pragma omp for
-  for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++){
-    Mcrit_LW += log10(lyman_werner_threshold(REDSHIFT, J_21_LW[ct]));
-    Mcrit_RE += log10(reionization_feedback(REDSHIFT, Gamma12[ct], z_re[ct]));
+  for (i=0; i<HII_DIM; i++){
+	for (j=0; j<HII_DIM; j++){
+	  for (k=0; k<HII_DIM; k++){
+		Mcrit_RE = reionization_feedback(REDSHIFT, Gamma12[HII_R_INDEX(x, y, z)], z_re[HII_R_INDEX(x, y, z)]);
+		Mcrit_LW = lyman_werner_threshold(REDSHIFT, J_21_LW[HII_R_INDEX(x, y, z)]);
+		M_MINa   = Mcrit_RE > Mcrit_atom ? Mcrit_RE : Mcrit_atom;
+		M_MINm   = Mcrit_RE > Mcrit_LW   ? Mcrit_RE : Mcrit_LW;
+
+		*((float *)M_MINa_unfiltered + HII_R_FFT_INDEX(x,y,z)) = M_MINa;
+		*((float *)M_MINm_unfiltered + HII_R_FFT_INDEX(x,y,z)) = M_MINm;
+
+		log10M_MINa_ave += log10(M_MINa);
+		log10M_MINm_ave += log10(M_MINm);
+	  }
+	}
   }
 }
-  Mcrit_LW   /= HII_TOT_NUM_PIXELS;
-  Mcrit_RE   /= HII_TOT_NUM_PIXELS;
-  Mcrit_LW    = pow(10, Mcrit_LW);
-  Mcrit_RE    = pow(10, Mcrit_RE);
-  M_MINa      = Mcrit_RE > Mcrit_atom ? Mcrit_RE : Mcrit_atom;
-  M_MINm      = Mcrit_RE > Mcrit_LW   ? Mcrit_RE : Mcrit_LW;
+
+  log10M_MINa_ave /= HII_TOT_NUM_PIXELS;
+  log10M_MINm_ave /= HII_TOT_NUM_PIXELS;
+  M_MINa      = pow(10., log10M_MINa_ave);
+  M_MINm      = pow(10., log10M_MINm_ave);
   M_MIN       = 1e5;
+
+  // Output M_MIN boxes for post checking
+  sprintf(filename, "../Boxes/M_MINa_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT,HII_FILTER, MFP, HII_DIM, BOX_LEN);
+  if (!(F = fopen(filename, "wb"))){
+    sprintf(error_message, "find_HII_bubbles: ERROR: unable to open file for writting M_MINa box!\n");
+    goto CLEANUP;
+  }
+  else{
+    for (i=0; i<HII_DIM; i++){
+      for (j=0; j<HII_DIM; j++){
+        for (k=0; k<HII_DIM; k++){
+          if(fwrite((float *)M_MINa_unfiltered + HII_R_FFT_INDEX(i,j,k), sizeof(float), 1, F)!=1){
+            sprintf(error_message, "find_HII_bubbles.c: Write error occured while writting M_MINa box.\n");
+            goto CLEANUP;
+          }
+        }
+      }
+    }
+    fclose(F);
+    F = NULL;
+  }
+  sprintf(filename, "../Boxes/M_MINm_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT,HII_FILTER, MFP, HII_DIM, BOX_LEN);
+  if (!(F = fopen(filename, "wb"))){
+    sprintf(error_message, "find_HII_bubbles: ERROR: unable to open file for writting M_MINm box!\n");
+    goto CLEANUP;
+  }
+  else{
+    for (i=0; i<HII_DIM; i++){
+      for (j=0; j<HII_DIM; j++){
+        for (k=0; k<HII_DIM; k++){
+          if(fwrite((float *)M_MINm_unfiltered + HII_R_FFT_INDEX(i,j,k), sizeof(float), 1, F)!=1){
+            sprintf(error_message, "find_HII_bubbles.c: Write error occured while writting M_MINm box.\n");
+            goto CLEANUP;
+          }
+        }
+      }
+    }
+    fclose(F);
+    F = NULL;
+  }
+
 #else //INHOMO_FEEDBACK
   Mcrit_LW            = lyman_werner_threshold(REDSHIFT);
 #ifdef REION_SM
@@ -1220,6 +1285,12 @@ int main(int argc, char ** argv){
     fftwf_execute(plan);
   }
 #endif //CONTEMPORANEOUS_DUTYCYCLE
+#ifdef INHOMO_FEEDBACK
+  plan = fftwf_plan_dft_r2c_3d(HII_DIM, HII_DIM, HII_DIM, (float *)M_MINa_unfiltered, (fftwf_complex *)M_MINa_unfiltered, FFTW_ESTIMATE);
+  fftwf_execute(plan);
+  plan = fftwf_plan_dft_r2c_3d(HII_DIM, HII_DIM, HII_DIM, (float *)M_MINm_unfiltered, (fftwf_complex *)M_MINm_unfiltered, FFTW_ESTIMATE);
+  fftwf_execute(plan);
+#endif //INHOMO_FEEDBACK
 #ifdef USE_HALO_FIELD
   plan = fftwf_plan_dft_r2c_3d(HII_DIM, HII_DIM, HII_DIM, (float *)M_coll_unfiltered, (fftwf_complex *)M_coll_unfiltered, FFTW_ESTIMATE);
   fftwf_execute(plan);
@@ -1251,6 +1322,16 @@ int main(int argc, char ** argv){
   }
 }
 #endif //CONTEMPORANEOUS_DUTYCYCLE
+#ifdef INHOMO_FEEDBACK
+#pragma omp parallel shared(M_MINa_unfiltered, M_MINm_unfiltered) private(ct)
+{
+#pragma omp for
+  for (ct=0; ct<HII_KSPACE_NUM_PIXELS; ct++){
+    M_MINa_unfiltered[ct] /= (double)HII_TOT_NUM_PIXELS;
+    M_MINm_unfiltered[ct] /= (double)HII_TOT_NUM_PIXELS;
+  }
+}
+#endif //INHOMO_FEEDBACK
 #ifdef USE_HALO_FIELD
 #pragma omp parallel shared(M_coll_unfiltered) private(ct)
 {
@@ -1294,6 +1375,16 @@ int main(int argc, char ** argv){
       fftwf_free(Gamma12);
 #ifdef INHOMO_FEEDBACK 
       fftwf_free(J_21_LW);
+      fftwf_free(M_MINa_unfiltered);
+      fftwf_free(M_MINa_filtered);
+      fftwf_free(M_MINm_unfiltered);
+      fftwf_free(M_MINm_filtered);
+#endif
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
+      fftwf_free(Fcoll_prev_unfiltered);
+      fftwf_free(Fcoll_prev_filtered);
+      fftwf_free(Fcollm_prev_unfiltered);
+      fftwf_free(Fcollm_prev_filtered);
 #endif
       fclose(LOG);
       fftwf_free(deltax_unfiltered);
@@ -1352,6 +1443,10 @@ int main(int argc, char ** argv){
       memcpy(Fcollm_prev_filtered, Fcollm_prev_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
 	}
 #endif //CONTEMPORANEOUS_DUTYCYCLE
+#ifdef INHOMO_FEEDBACK
+    memcpy(M_MINa_filtered, M_MINa_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+    memcpy(M_MINm_filtered, M_MINm_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+#endif //INHOMO_FEEDBACK
 #ifdef USE_HALO_FIELD
     memcpy(M_coll_filtered, M_coll_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
 #endif //USE_HALO_FIELD
@@ -1374,6 +1469,10 @@ int main(int argc, char ** argv){
         HII_filter(Fcollm_prev_filtered, HII_FILTER, R);
 	  }
 #endif //CONTEMPORANEOUS_DUTYCYCLE
+#ifdef INHOMO_FEEDBACK
+      HII_filter(M_MINa_filtered, HII_FILTER, R);
+      HII_filter(M_MINm_filtered, HII_FILTER, R);
+#endif //INHOMO_FEEDBACK
 #ifdef USE_HALO_FIELD
       HII_filter(M_coll_filtered, HII_FILTER, R);
 #endif //USE_HALO_FIELD
@@ -1399,6 +1498,12 @@ int main(int argc, char ** argv){
       fftwf_execute(plan);
 	}
 #endif //CONTEMPORANEOUS_DUTYCYCLE
+#ifdef INHOMO_FEEDBACK
+    plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)M_MINa_filtered, (float *)M_MINa_filtered, FFTW_ESTIMATE);
+    fftwf_execute(plan);
+    plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)M_MINm_filtered, (float *)M_MINm_filtered, FFTW_ESTIMATE);
+    fftwf_execute(plan);
+#endif //INHOMO_FEEDBACK
 #ifdef USE_HALO_FIELD
     plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)M_coll_filtered, (float *)M_coll_filtered, FFTW_ESTIMATE);
     fftwf_execute(plan);
@@ -1451,7 +1556,7 @@ int main(int argc, char ** argv){
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
     Fcoll_prev_ave = 0.;
     Fcollm_prev_ave = 0.;
-#pragma omp parallel shared(Fcoll_prev_filtered, Fcollm_prev_filtered) private(x, y, z), reduction(+:Fcoll_prev_ave, Fcollm_prev_ave)
+#pragma omp parallel shared(Fcoll_prev_filtered, Fcollm_prev_filtered) private(x, y, z) reduction(+:Fcoll_prev_ave, Fcollm_prev_ave)
 {
 	if (flag_first_reionization == 0){
 #pragma omp for
@@ -1469,10 +1574,29 @@ int main(int argc, char ** argv){
         }
       }
     }
-  }
-      Fcoll_prev_ave   /= (double) HII_TOT_NUM_PIXELS;
-      Fcollm_prev_ave   /= (double) HII_TOT_NUM_PIXELS;
+}
+    Fcoll_prev_ave   /= (double) HII_TOT_NUM_PIXELS;
+    Fcollm_prev_ave   /= (double) HII_TOT_NUM_PIXELS;
 #endif //CONTEMPORANEOUS_DUTYCYCLE
+
+#ifdef INHOMO_FEEDBACK
+#pragma omp parallel shared(M_MINa_filtered, M_MINm_filtered) private(x, y, z)
+{
+#pragma omp for
+	for (x=0; x<HII_DIM; x++){
+	  for (y=0; y<HII_DIM; y++){
+		for (z=0; z<HII_DIM; z++){
+		  // M_MINa cannot be less than Mcrit_atom
+		  *((float *)M_MINa_filtered + HII_R_FFT_INDEX(x,y,z)) =
+			FMAX(*((float *)M_MINa_filtered + HII_R_FFT_INDEX(x,y,z)) , Mcrit_atom);
+		  // M_MINa cannot be less than lyman_werner_threshold(REDSHIFT,0)
+		  *((float *)M_MINm_filtered + HII_R_FFT_INDEX(x,y,z)) =
+			FMAX(*((float *)M_MINm_filtered + HII_R_FFT_INDEX(x,y,z)) , lyman_werner_threshold(REDSHIFT,0));
+		}
+	  }
+	}
+}
+#endif //INHOMO_FEEDBACK 
 
 #ifdef USE_HALO_FIELD
 #pragma omp parallel shared(M_coll_filtered) private(x, y, z)
@@ -1563,13 +1687,13 @@ int main(int argc, char ** argv){
 #else
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
 #ifdef INHOMO_FEEDBACK
-#pragma omp parallel shared(deltax_filtered,  REDSHIFT, Gamma12, z_re, J_21_LW, Mcrit_atom, flag_first_reionization, Fcoll, Fcollm, Fcoll_prev_filtered, Fcollm_prev_filtered) private(x,y,z, density_over_mean, Mcrit_RE, Mcrit_LW, M_MINa, M_MINm, Splined_Fcoll, Splined_Fcollm) reduction(+:f_coll, f_collm)
+#pragma omp parallel shared(deltax_filtered,  REDSHIFT, flag_first_reionization, Fcoll, Fcollm, Fcoll_prev_filtered, Fcollm_prev_filtered, M_MINa_filtered, M_MINm_filtered) private(x,y,z, density_over_mean, M_MINa, M_MINm, Splined_Fcoll, Splined_Fcollm) reduction(+:f_coll, f_collm)
 #else
 #pragma omp parallel shared(deltax_filtered,  flag_first_reionization, Fcoll, Fcollm) private(x,y,z, density_over_mean, Splined_Fcoll, Splined_Fcollm) reduction(+:f_coll, f_collm)
 #endif
 #else//CONTEMPORANEOUS_DUTYCYCLE
 #ifdef INHOMO_FEEDBACK
-#pragma omp parallel shared(deltax_filtered,  REDSHIFT, Gamma12, z_re, J_21_LW, Mcrit_atom, Fcoll, Fcollm) private(x,y,z, density_over_mean, Mcrit_RE, Mcrit_LW, M_MINa, M_MINm, Splined_Fcoll, Splined_Fcollm) reduction(+:f_coll, f_collm)
+#pragma omp parallel shared(deltax_filtered,  REDSHIFT, Fcoll, Fcollm, M_MINa_filtered, M_MINm_filtered) private(x,y,z, density_over_mean, Mcrit_RE, M_MINa, M_MINm, Splined_Fcoll, Splined_Fcollm) reduction(+:f_coll, f_collm)
 #else
 #ifdef MINI_HALO
 #pragma omp parallel shared(deltax_filtered,  Fcoll, Fcollm) private(x,y,z, density_over_mean, Splined_Fcoll, Splined_Fcollm) reduction(+:f_coll, f_collm)
@@ -1601,10 +1725,8 @@ int main(int argc, char ** argv){
             // unless it's the highest redshift then it's the same as ifndef CONTEMPORANEOUS_DUTYCYCLE
             // see ...
 #ifdef INHOMO_FEEDBACK
-            Mcrit_RE = reionization_feedback(REDSHIFT, Gamma12[HII_R_INDEX(x,y,z)], z_re[HII_R_INDEX(x,y,z)]); 
-            Mcrit_LW = lyman_werner_threshold(REDSHIFT, J_21_LW[HII_R_INDEX(x,y,z)]);
-            M_MINa = Mcrit_RE > Mcrit_atom ? Mcrit_RE : Mcrit_atom;
-            M_MINm = Mcrit_RE > Mcrit_LW   ? Mcrit_RE : Mcrit_LW;
+            M_MINa = *((float *)M_MINa_filtered + HII_R_FFT_INDEX(x,y,z));
+            M_MINm = *((float *)M_MINm_filtered + HII_R_FFT_INDEX(x,y,z));
             if (flag_first_reionization == 0){
               // it's Splined value anymore, otherwise it's taking forever!
               DeltaNion_Spline_density(density_over_mean - 1, M_MINa, &(Splined_Fcoll));
@@ -1629,10 +1751,8 @@ int main(int argc, char ** argv){
             // f_coll * ION_EFF_FACTOR = the number of IGM ionizing photon per baryon at a given overdensity.
             // see eq. (17) in Park et al. 2018
 #ifdef INHOMO_FEEDBACK
-            Mcrit_RE = reionization_feedback(REDSHIFT, Gamma12[HII_R_INDEX(x,y,z)], z_re[HII_R_INDEX(x,y,z)]); 
-            Mcrit_LW = lyman_werner_threshold(REDSHIFT, J_21_LW[HII_R_INDEX(x,y,z)]);
-            M_MINa = Mcrit_RE > Mcrit_atom ? Mcrit_RE : Mcrit_atom;
-            M_MINm = Mcrit_RE > Mcrit_LW   ? Mcrit_RE : Mcrit_LW;
+            M_MINa = *((float *)M_MINa_filtered + HII_R_FFT_INDEX(x,y,z));
+            M_MINm = *((float *)M_MINm_filtered + HII_R_FFT_INDEX(x,y,z));
 
             Nion_Spline_density(density_over_mean - 1, M_MINa, &(Splined_Fcoll));
             Nion_Spline_densitym(density_over_mean - 1, M_MINm, &(Splined_Fcollm));
@@ -2119,6 +2239,10 @@ int main(int argc, char ** argv){
   fftwf_free(Gamma12);
 #ifdef INHOMO_FEEDBACK 
   fftwf_free(J_21_LW);
+  fftwf_free(M_MINa_unfiltered);
+  fftwf_free(M_MINa_filtered);
+  fftwf_free(M_MINm_unfiltered);
+  fftwf_free(M_MINm_filtered);
 #endif
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
   fftwf_free(Fcoll_prev_unfiltered);
