@@ -1459,7 +1459,7 @@ int main(int argc, char ** argv){
       R = fmax(cell_length_factor*BOX_LEN/(double)HII_DIM, R_BUBBLE_MIN);
     }
 
-    fprintf(stderr, "begin memcpy...");
+    fprintf(stderr, "memcpying...");
     fprintf(LOG, "begin memcpy, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
@@ -1482,13 +1482,13 @@ int main(int argc, char ** argv){
     memcpy(N_rec_filtered, N_rec_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
 #endif //INHOMO_RECO
     memcpy(deltax_filtered, deltax_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
-    fprintf(stderr, "done\n");
+    fprintf(stderr, "done  ");
     fprintf(LOG, "end memcpy, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
 
     // if this scale is not the size of the cells, we need to filter the fields
     if (!LAST_FILTER_STEP || (R > cell_length_factor*BOX_LEN/(double)HII_DIM) ){
-      fprintf(stderr, "begin filter...");
+      fprintf(stderr, " filtering...");
       fprintf(LOG, "begin filter, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
       fflush(LOG);
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
@@ -1511,14 +1511,14 @@ int main(int argc, char ** argv){
       HII_filter(N_rec_filtered, HII_FILTER, R);
 #endif //INHOMO_RECO
       HII_filter(deltax_filtered, HII_FILTER, R);
-      fprintf(stderr, "done\n");
+      fprintf(stderr, "done  ");
       fprintf(LOG, "end filter, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
       fflush(LOG);
     }
     
     // do the FFT to get back to real space
-    fprintf(stderr, "begin fft with R=%f...", R);
-    fprintf(LOG, "begin fft with R=%f, clock=%06.2f\n", R, (double)clock()/CLOCKS_PER_SEC);
+    fprintf(stderr, "ffting...");
+    fprintf(LOG, "begin fft, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
     if (flag_first_reionization == 0){
@@ -1548,7 +1548,7 @@ int main(int argc, char ** argv){
 #endif //INHOMO_RECO
     plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)deltax_filtered, (float *)deltax_filtered, FFTW_ESTIMATE);
     fftwf_execute(plan);
-    fprintf(stderr, "done\n");
+    fprintf(stderr, "done  ");
     fprintf(LOG, "end fft with R=%f, clock=%06.2f\n", R, (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
 
@@ -1860,8 +1860,8 @@ int main(int argc, char ** argv){
     /****************************************************************************/
     /************  MAIN LOOP THROUGH THE BOX FOR THIS FILTER SCALE **************/
     /****************************************************************************/
-    fprintf(stderr, "Start of the main loop through the box for this filter scale...");
-    fprintf(LOG, "Start of the main loop through the box for this filter scale, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
+    fprintf(stderr, "Start of the main loop through the box for this filter scale (R=%fMpc)...",R);
+    fprintf(LOG, "Start of the main loop through the box for this filter scale (R=%fMpc), clock=%06.2f\n", R, (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
     // now lets scroll through the filtered box
     rec = ave_xHI_xrays = ave_den = ave_fcoll = std_xrays = 0;
