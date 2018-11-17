@@ -2989,9 +2989,9 @@ void initialise_SFRD_Conditional_table(int Nsteps_zp, int Nfilter, float z[], do
         Mcrit_RE   = MassTurnover;
 #endif //REION_SM
         MassTurn   = Mcrit_RE > Mcrit_atom ? Mcrit_RE : Mcrit_atom;
+#endif //INHOMO_FEEDBACK
 #else // MINI_HALO
         MassTurn   = MassTurnover;
-#endif //INHOMO_FEEDBACK
 #endif //MINI_HALO
 
 #pragma omp parallel shared(log10_SFRD_z_low_table, i_tot, j, z, Mmax, overdense_low_table, MassTurn,Alpha_star, Fstar10, Mlim_Fstar) private(i)
