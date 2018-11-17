@@ -2961,7 +2961,7 @@ void initialise_SFRD_Conditional_table(int Nsteps_zp, int Nfilter, float z[], do
     for (i=0; i<NSFR_low; i++) {
       overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low-1.)*(log10(1.+overdense_small_high)-log10(1.+overdense_small_low));
       log10_overdense_low_table[i] = overdense_val;
-      overdense_low_table[i] = pow(10.,log10_overdense_low_table[i]);
+      overdense_low_table[i] = pow(10.,log10_overdense_low_table[i]) - 1.;
     }
 }
 
@@ -2998,7 +2998,7 @@ void initialise_SFRD_Conditional_table(int Nsteps_zp, int Nfilter, float z[], do
 {
 #pragma omp for
         for (i=0; i<NSFR_low; i++){
-            log10_SFRD_z_low_table[i_tot+j][i] = log10(GaussLegendreQuad_Nion(NGL_SFR,z[i_tot+j],log(Mmax),Deltac,overdense_low_table[i]-1.,MassTurn,Alpha_star,0.,Fstar10,1.,Mlim_Fstar,0.));
+            log10_SFRD_z_low_table[i_tot+j][i] = log10(GaussLegendreQuad_Nion(NGL_SFR,z[i_tot+j],log(Mmax),Deltac,overdense_low_table[i],MassTurn,Alpha_star,0.,Fstar10,1.,Mlim_Fstar,0.));
             if(log10_SFRD_z_low_table[i_tot+j][i] < -40.) log10_SFRD_z_low_table[i_tot+j][i] = -40.;
         }
 }
@@ -3048,7 +3048,7 @@ void initialise_SFRD_Conditional_tablem(int Nsteps_zp, int Nfilter, float z[], d
     for (i=0; i<NSFR_low; i++) {
       //overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low-1.)*(log10(1.+overdense_small_high)-log10(1.+overdense_small_low));
       //log10_overdense_low_table[i] = overdense_val;
-      overdense_low_table[i] = pow(10.,log10_overdense_low_table[i]);
+      overdense_low_table[i] = pow(10.,log10_overdense_low_table[i]) - 1.;
     }
 }
     //for (i=0; i<NSFR_high;i++) {
@@ -3077,7 +3077,7 @@ void initialise_SFRD_Conditional_tablem(int Nsteps_zp, int Nfilter, float z[], d
 {
 #pragma omp for
           for (i=0; i<NSFR_low; i++){
-            log10_SFRD_z_low_tablem[i_tot+j][i+q*NSFR_low] = log10(GaussLegendreQuad_Nionm(NGL_SFR,z[i_tot+j],log(Mmax),Deltac,overdense_low_table[i]-1.,Alpha_star,MassTurn,Mcrit_atom,Fstar10m,Mlim_Fstarm));
+            log10_SFRD_z_low_tablem[i_tot+j][i+q*NSFR_low] = log10(GaussLegendreQuad_Nionm(NGL_SFR,z[i_tot+j],log(Mmax),Deltac,overdense_low_table[i],Alpha_star,MassTurn,Mcrit_atom,Fstar10m,Mlim_Fstarm));
             if(log10_SFRD_z_low_tablem[i_tot+j][i+q*NSFR_low] < -40.) log10_SFRD_z_low_tablem[i_tot+j][i+q*NSFR_low] = -40.;
           }
 }
@@ -3103,7 +3103,7 @@ void initialise_SFRD_Conditional_tablem(int Nsteps_zp, int Nfilter, float z[], d
 {
 #pragma omp for
         for (i=0; i<NSFR_low; i++){
-            log10_SFRD_z_low_tablem[i_tot+j][i] = log10(GaussLegendreQuad_Nionm(NGL_SFR,z[i_tot+j],log(Mmax),Deltac,overdense_low_table[i]-1.,Alpha_star,MassTurn,Mcrit_atom,Fstar10m,Mlim_Fstarm));
+            log10_SFRD_z_low_tablem[i_tot+j][i] = log10(GaussLegendreQuad_Nionm(NGL_SFR,z[i_tot+j],log(Mmax),Deltac,overdense_low_table[i],Alpha_star,MassTurn,Mcrit_atom,Fstar10m,Mlim_Fstarm));
             if(log10_SFRD_z_low_tablem[i_tot+j][i] < -40.) log10_SFRD_z_low_tablem[i_tot+j][i] = -40.;
         }
 }
