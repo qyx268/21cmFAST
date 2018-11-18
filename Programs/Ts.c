@@ -944,7 +944,7 @@ int main(int argc, char ** argv){
 #else //INHOMO_FEEDBACK
 #ifdef REION_SM
     if(F = fopen("../Parameter_files/REION_SM.H", "r"))
-      reading_reionization_SM13parameters(&REION_SM13_Z_RE, &REION_SM13_DELTA_Z_RE, &REION_SM13_DELTA_Z_SC);
+      reading_reionization_SM13parameters(&REION_SM13_Z_RE, &REION_SM13_DELTA_Z_RE, &REION_SM13_DELTA_Z_SC, F);
     else
       estimating_reionization(ION_EFF_FACTOR, ION_EFF_FACTOR_MINI, ALPHA_STAR, F_STAR10, ALPHA_ESC, F_ESC10, F_STAR10m,
                               &REION_SM13_Z_RE, &REION_SM13_DELTA_Z_RE, &REION_SM13_DELTA_Z_SC);
@@ -976,7 +976,7 @@ int main(int argc, char ** argv){
 {
 #pragma omp for
   for (i=0; i<NMTURN; i++)
-    log10_Mturn_interp_table[i] = 5 + (double)i/((double)NMTURN-1.)*5;
+    log10_Mturn_interp_table[i] = 5. - 9e-8 + (double)i/((double)NMTURN-1.)*(5.+ 1.8e-7);
 }
   M_MIN  = 1e5;
 #else //INHOMO_FEEDBACK
@@ -1142,6 +1142,8 @@ int main(int argc, char ** argv){
         fprintf(stderr, "Ts.c: Read error occured while reading J_21_LW box!\n");
         return -1;
       } 
+      else
+        fclose(F);
     }
     else{
       for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)

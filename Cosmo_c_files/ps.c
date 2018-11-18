@@ -3059,8 +3059,8 @@ void initialise_SFRD_Conditional_tablem(int Nsteps_zp, int Nfilter, float z[], d
 {
 #pragma omp for
     for (i=0; i<NMTURN;i++) {
-      log10_overdense_low_table_Mturn[i] = 5. - 9e-8 + (double)i/((double)NMTURN-1.)*(5.+1.8e-7);
-      Overdense_high_table_Mturn[i] = (float)log10_overdense_low_table_Mturn[i];
+      log10_overdense_low_table_Mturn[i] = logMturn[i];
+      Overdense_high_table_Mturn[i] = (float)logMturn[i];
     }
 }
 #endif
@@ -3302,17 +3302,12 @@ I am trying to estimate the redshift and duration of reionization...\n");
   gsl_interp_accel_free (zQ_spline_acc);
 }
 
-void reading_reionization_SM13parameters(double *REION_SM13_Z_RE, double *REION_SM13_DELTA_Z_RE, double *REION_SM13_DELTA_Z_SC){
+void reading_reionization_SM13parameters(double *REION_SM13_Z_RE, double *REION_SM13_DELTA_Z_RE, double *REION_SM13_DELTA_Z_SC, FILE *F){
   struct Param_REION_SM params;
-  FILE *F;
-  if(F = fopen("../Parameter_files/REION_SM.H", "r")){
-    if(fread(&params, sizeof(struct Param_REION_SM), 1, F) !=1)
-      fprintf(stderr,  "reionization_helper_progs.c: Error reading reionization parameter file, ../Parameter_files/REION_SM.H\nAborting...\n");
-    else
-      fclose(F);
-  }
+  if(fread(&params, sizeof(struct Param_REION_SM), 1, F) !=1)
+    fprintf(stderr,  "reionization_helper_progs.c: Error reading reionization parameter file, ../Parameter_files/REION_SM.H\nAborting...\n");
   else
-      fprintf(stderr,  "reionization_helper_progs.c: Error openning reionization parameter file, ../Parameter_files/REION_SM.H\nAborting...\n");
+    fclose(F);
   *REION_SM13_Z_RE       = params.Z_RE;
   *REION_SM13_DELTA_Z_RE = params.DELTA_Z_RE;
   *REION_SM13_DELTA_Z_SC = params.DELTA_Z_SC;
