@@ -688,6 +688,7 @@ int main(int argc, char ** argv){
   ION_EFF_FACTOR_MINI = N_GAMMA_UV_MINI * F_STAR10m * F_ESC10m;
   Mcrit_atom          = atomic_cooling_threshold(REDSHIFT);
 #ifdef INHOMO_FEEDBACK
+  // NOTE: Mcrit_atom  and Mcrit_mol are both at REDSHIFT not PREV_REDSHIFT!!!
   Mcrit_mol           = lyman_werner_threshold(REDSHIFT, 0.);
   M_MINa_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
   M_MINa_filtered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
@@ -772,11 +773,8 @@ int main(int argc, char ** argv){
 #else //INHOMO_FEEDBACK
   Mcrit_LW            = lyman_werner_threshold(REDSHIFT);
 #ifdef REION_SM
-  if(F = fopen("../Parameter_files/REION_SM.H", "r")){
-    fclose(F);
-    F = NULL;
-    reading_reionization_SM13parameters(&REION_SM13_Z_RE, &REION_SM13_DELTA_Z_RE, &REION_SM13_DELTA_Z_SC);
-  }
+  if(F = fopen("../Parameter_files/REION_SM.H", "r"))
+    reading_reionization_SM13parameters(&REION_SM13_Z_RE, &REION_SM13_DELTA_Z_RE, &REION_SM13_DELTA_Z_SC, F);
   else
     estimating_reionization(ION_EFF_FACTOR, ION_EFF_FACTOR_MINI, ALPHA_STAR, F_STAR10, ALPHA_ESC, F_ESC10, F_STAR10m,
                             &REION_SM13_Z_RE, &REION_SM13_DELTA_Z_RE, &REION_SM13_DELTA_Z_SC);

@@ -212,7 +212,8 @@ int main(int argc, char ** argv){
   double nuprime, fcoll_R, Ts_ave;
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-  float *Mcrit_LW=NULL, *J_21_LW=NULL, logMcrit_LW;
+  float *J_21_LW=NULL, logMcrit_LW, *Mcrit_LW, Mcrit_mol;
+  fftwf_complex *Mcrit_LW_unfiltered=NULL, *Mcrit_LW_filtered=NULL;
 #endif
   double fcoll_Rm;
 #ifdef REION_SM
@@ -661,6 +662,16 @@ int main(int argc, char ** argv){
   }
   fclose(F);
 
+#ifdef INHOMO_FEEDBACK
+  J_21_LW  = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);
+  Mcrit_LW = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);
+  Mcrit_LW_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  Mcrit_LW_filtered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  if (!Mcrit_LW_unfiltered || !Mcrit_LW_filtered || !J_21_LW || !Mcrit_LW){
+    fprintf(stderr, "Ts.c: Error allocating memory for feedback boxes\nAborting...\n");
+    return -1;
+  }
+#endif
 
   /*** Transform unfiltered box to k-space to prepare for filtering ***/
   fprintf(stderr, "begin initial ffts, time=%06.2f min\n", (double)clock()/CLOCKS_PER_SEC/60.0);
@@ -1060,12 +1071,6 @@ int main(int argc, char ** argv){
 
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-  Mcrit_LW = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);
-  J_21_LW  = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);
-  if (!Mcrit_LW || !J_21_LW){
-    fprintf(stderr, "Ts.c: Error allocating memory for feedback boxes\nAborting...\n");
-    return -1;
-  }
   initialise_SFRD_Conditional_tablem(Nsteps_zp,NUM_FILTER_STEPS_FOR_Ts,redshift_interp_table,R_values, M_MIN, log10_Mturn_interp_table, ALPHA_STAR, F_STAR10m);
 #else
 #ifdef REION_SM
@@ -1135,25 +1140,32 @@ int main(int argc, char ** argv){
     Nion_ST_z(zp,&(Splined_Nion_ST_zp));
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-    // no interpolation for Mcrit_LW or M_MINm, use the mean
+    Mcrit_mol = lyman_werner_threshold(zp, 0.);
     sprintf(filename, "../Boxes/J_21_LW_z%06.2f_L_X%.1e_alphaX%.1f_f_star%06.4f_alpha_star%06.4f_f_esc%06.4f_alpha_esc%06.4f_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", prev_zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN); 
     if (F=fopen(filename, "rb")){
       if (mod_fread(J_21_LW, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
         fprintf(stderr, "Ts.c: Read error occured while reading J_21_LW box!\n");
         return -1;
       } 
-      else
-        fclose(F);
+      fclose(F);
     }
     else{
       for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
         J_21_LW[ct] = 0.0;
     }
     logMcrit_LW_ave = 0;
-    for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++){
-      Mcrit_LW[ct]  = lyman_werner_threshold(zp, J_21_LW[ct]);
-      logMcrit_LW_ave += log10(Mcrit_LW[ct]);
+#pragma omp parallel shared(zp, Mcrit_LW_unfiltered, J_21_LW) private(i,j,k) reduction(+:logMcrit_LW_ave)
+{
+#pragma omp for
+  for (i=0; i<HII_DIM; i++){
+    for (j=0; j<HII_DIM; j++){
+      for (k=0; k<HII_DIM; k++){
+        *((float *)Mcrit_LW_unfiltered + HII_R_FFT_INDEX(i,j,k)) = lyman_werner_threshold(zp, J_21_LW[HII_R_INDEX(i,j,k)]);;
+        logMcrit_LW_ave += log10(*((float *)Mcrit_LW_unfiltered + HII_R_FFT_INDEX(i,j,k)));
+      }
     }
+  }
+}
     logMcrit_LW_ave /= HII_TOT_NUM_PIXELS;
     Mcrit_atom_glob  = atomic_cooling_threshold(zp);
     Nion_ST_zm(zp,logMcrit_LW_ave,&(Splined_Nion_ST_zpm));
@@ -1204,6 +1216,54 @@ int main(int argc, char ** argv){
       if (zpp - redshift_interp_table[arr_num+R_ct] > 1e-3) fprintf(stderr, "zpp = %.4f, zpp_array = %.4f\n", zpp, redshift_interp_table[arr_num+R_ct]);
 #ifdef SHARP_CUTOFF 
       sigma_Tmin[R_ct] =  sigma_z0(M_MIN); // In v2 sigma_Tmin doesn't need to be an array, just a constant.
+#endif
+
+#ifdef INHOMO_FEEDBACK
+      // NEED TO FILTER Mcrit_LW!!!
+      /*** Transform unfiltered box to k-space to prepare for filtering ***/
+      fprintf(stderr, "FFTing Mcrit_LW...");
+      fprintf(LOG, "FFTing Mcrit_LW...");
+      plan = fftwf_plan_dft_r2c_3d(HII_DIM, HII_DIM, HII_DIM, (float *)Mcrit_LW_unfiltered, (fftwf_complex *)Mcrit_LW_unfiltered, FFTW_ESTIMATE);
+        fftwf_execute(plan);
+        fftwf_destroy_plan(plan);
+      fftwf_cleanup();
+      // remember to add the factor of VOLUME/TOT_NUM_PIXELS when converting from real space to k-space
+      // Note: we will leave off factor of VOLUME, in anticipation of the inverse FFT below
+#pragma omp parallel shared(Mcrit_LW_unfiltered) private(ct)
+{
+#pragma omp for
+      for (ct=0; ct<HII_KSPACE_NUM_PIXELS; ct++)
+        Mcrit_LW_unfiltered[ct] /= (float)HII_TOT_NUM_PIXELS;
+}
+
+      // copy over unfiltered box
+      memcpy(Mcrit_LW_filtered, Mcrit_LW_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+      if (R_ct > 0) // don't filter on cell size
+        HII_filter(Mcrit_LW_filtered, HEAT_FILTER, R_values[R_ct]);
+
+      // now fft back to real space
+      plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)Mcrit_LW_filtered, (float *)Mcrit_LW_filtered, FFTW_ESTIMATE);
+      fftwf_execute(plan);
+
+
+      // I don't know how box_ct_increment works... so just do the same copying thing...
+#pragma omp parallel shared(Mcrit_LW, Mcrit_LW_filtered, Mcrit_mol) private(i, j, k)
+{
+#pragma omp for
+    for (i=0; i<HII_DIM; i++){
+      for (j=0; j<HII_DIM; j++){
+        for (k=0; k<HII_DIM; k++){
+          Mcrit_LW[HII_R_INDEX(i,j,k)] = *((float *) Mcrit_LW_filtered + HII_R_FFT_INDEX(i,j,k));
+          if(Mcrit_LW[HII_R_INDEX(i,j,k)] < Mcrit_mol)
+            Mcrit_LW[HII_R_INDEX(i,j,k)] = Mcrit_mol;
+          if (Mcrit_LW[HII_R_INDEX(i,j,k)] > 1e10)
+            Mcrit_LW[HII_R_INDEX(i,j,k)] = 1e10;
+        }
+      }
+    }
+}
+      fprintf(stderr, "done =%06.2f min\n", (double)clock()/CLOCKS_PER_SEC/60.0);
+      fprintf(LOG, "done =%06.2f min\n", (double)clock()/CLOCKS_PER_SEC/60.0);
 #endif
 
       // let's now normalize the total collapse fraction so that the mean is the
@@ -1262,7 +1322,7 @@ int main(int argc, char ** argv){
 #endif //INHOMO_FEEDBACK
             fcollm = pow(10., fcollm);
 #endif //MINI_HALO
-          }    
+          }
         }
         else {
           if (delNL_zpp < 0.99*Deltac) {
@@ -1773,6 +1833,8 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
 #ifndef SHARP_CUTOFF
   destroy_21cmMC_arrays();
 #ifdef INHOMO_FEEDBACK
+  fftwf_free(Mcrit_LW_unfiltered);
+  fftwf_free(Mcrit_LW_filtered);
   free(Mcrit_LW);
   free(J_21_LW);
 #endif
@@ -1782,5 +1844,3 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
   destruct_heat();
   return 0;
 }
-
-
