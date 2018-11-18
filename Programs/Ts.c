@@ -1221,8 +1221,6 @@ int main(int argc, char ** argv){
 #ifdef INHOMO_FEEDBACK
       // NEED TO FILTER Mcrit_LW!!!
       /*** Transform unfiltered box to k-space to prepare for filtering ***/
-      fprintf(stderr, "FFTing Mcrit_LW...");
-      fprintf(LOG, "FFTing Mcrit_LW...");
       plan = fftwf_plan_dft_r2c_3d(HII_DIM, HII_DIM, HII_DIM, (float *)Mcrit_LW_unfiltered, (fftwf_complex *)Mcrit_LW_unfiltered, FFTW_ESTIMATE);
         fftwf_execute(plan);
         fftwf_destroy_plan(plan);
@@ -1262,8 +1260,6 @@ int main(int argc, char ** argv){
       }
     }
 }
-      fprintf(stderr, "done =%06.2f min\n", (double)clock()/CLOCKS_PER_SEC/60.0);
-      fprintf(LOG, "done =%06.2f min\n", (double)clock()/CLOCKS_PER_SEC/60.0);
 #endif
 
       // let's now normalize the total collapse fraction so that the mean is the
