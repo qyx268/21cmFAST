@@ -905,7 +905,7 @@ double dsigmasqdm_z0(double M){
                1000, GSL_INTEG_GAUSS61, w, &result, &error); 
   gsl_integration_workspace_free (w);
   
-  return sigma_norm * sigma_norm * result /d2fact;
+  return sigma_norm * sigma_norm * result;
 }
 
 
@@ -1408,7 +1408,6 @@ void initialiseSplinedSigmaM(float M_Min, float M_Max)
     second_derivs_dsigma = calloc(NMass,sizeof(float));
     
 #pragma omp parallel shared(Mass_Spline, Sigma_Spline, dSigmadm_Spline, M_Min, M_Max) private(i)
-	//NOTE: openMP doesn't work here because rel_tol too small in functions sigma_z0 and dsigmasqdm_z0, which are called by dNdM_st, which is called by Nion_ST
 {
 #pragma omp for
     for(i=0;i<NMass;i++) {
@@ -2748,7 +2747,6 @@ void initialise_Nion_ST_spline(int Nbin, double z_val[], float Mmin, double M_MI
 
     Nion_z_spline_acc = gsl_interp_accel_alloc ();
     Nion_z_spline = gsl_spline_alloc (gsl_interp_cspline, Nbin);
-	//NOTE: openMP doesn't work here because rel_tol too small in functions sigma_z0 and dsigmasqdm_z0, which are called by dNdM_st, which is called by Nion_ST
 #pragma omp parallel shared(Nbin, Nion_z_val, z_val, Mmin, M_MINa_interp_table,  Alpha_star, Alpha_esc, Fstar10, Fesc10, Mlim_Fstar, Mlim_Fesc) private(i)
 {
 #pragma omp for    
@@ -2780,7 +2778,6 @@ void initialise_Nion_ST_splinem(int Nbin, double z_val[], float Mmin, double M_M
 #else
     Nion_z_splinem = gsl_spline_alloc (gsl_interp_cspline, Nbin);
 #endif
-	//NOTE: openMP doesn't work here because rel_tol too small in functions sigma_z0 and dsigmasqdm_z0, which are called by dNdM_st, which is called by Nion_STm
 #ifdef INHOMO_FEEDBACK
 #pragma omp parallel shared(Nbin, Nion_z_valm, z_val, Mmin, Mcrit_atom_interp_table, Alpha_star, Fstar10m, Mlim_Fstarm) private(i, j, MassTurnover)
 #else
@@ -2844,7 +2841,6 @@ void initialise_SFRD_ST_spline(int Nbin, double z_val[], float Mmin, double M_MI
 
     SFRD_ST_z_spline_acc = gsl_interp_accel_alloc ();
     SFRD_ST_z_spline = gsl_spline_alloc (gsl_interp_cspline, Nbin);
-	//NOTE: openMP doesn't work here because rel_tol too small in functions sigma_z0 and dsigmasqdm_z0, which are called by dNdM_st, which is called by Nion_ST
 #pragma omp parallel shared(Nbin, SFRD_val, z_val, Mmin, M_MINa_interp_table, Alpha_star, Fstar10, Mlim_Fstar) private(i)
 {
 #pragma omp for
@@ -2875,7 +2871,6 @@ void initialise_SFRD_ST_splinem(int Nbin, double z_val[], float Mmin, double M_M
 #else
     SFRD_ST_z_splinem = gsl_spline_alloc (gsl_interp_cspline, Nbin);
 #endif
-	//NOTE: openMP doesn't work here because rel_tol too small in functions sigma_z0 and dsigmasqdm_z0, which are called by dNdM_st, which is called by Nion_STm
 #ifdef INHOMO_FEEDBACK
 #pragma omp parallel shared(Nbin, log10_Mturn, SFRD_valm, z_val, Mmin, Mcrit_atom_interp_table, Alpha_star, Fstar10m, Mlim_Fstarm) private(i, MassTurnover, j)
 #else
@@ -3232,7 +3227,6 @@ I am trying to estimate the redshift and duration of reionization...\n");
     params.DELTA_Z_SC = soundcrossing_timescale_inredshift(params.Z_RE);
     fprintf(stderr, "Guessing %03d...z_re = %g, Delta z_re = %g, Delta z_sc = %g\n", Ntry, params.Z_RE, params.DELTA_Z_RE, params.DELTA_Z_SC);
 
-	//NOTE: openMP doesn't work here because rel_tol too small in functions sigma_z0 and dsigmasqdm_z0, which are called by dNdM_st, which is called by Nion_ST(m)
 //#pragma omp parallel shared(Nzz, redshifts, params,  ALPHA_STAR, F_STAR10, ALPHA_ESC, F_ESC10, F_STAR10m, ION_EFF_FACTOR, ION_EFF_FACTOR_MINI, Nion0, Nion1) private(i, Mcrit_RE, Mcrit_LW, Mcrit_atom, M_MINa, M_MINm, M_MIN, Mlim_Fstar, Mlim_Fesc, Mlim_Fstarm)
 {
 //#pragma omp for
