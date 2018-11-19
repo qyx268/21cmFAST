@@ -260,7 +260,7 @@ double dNion_ST(double lnM, void *params);
 double Nion_ST(double z, double M_Min, double MassTurnover, double Alpha_star, double Alpha_esc, double Fstar10, double Fesc10, double Mlim_Fstar, double Mlim_Fesc);
 /* New in v2 - part 3 of 4: end */
 
-double sigma_norm, R, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, d2fact, R_CUTOFF, DEL_CURR, SIG_CURR;
+double sigma_norm, theta_cmb, omhh, z_equality, y_d, sound_horizon, alpha_nu, f_nu, f_baryon, beta_c, R_CUTOFF;
 
 
 /*****     FUNCTION PROTOTYPES     *****/
@@ -665,13 +665,14 @@ double ddickedt(double z){
 */
 double dsigma_dk(double k, void *params){
   double p, w, T, gamma, q, aa, bb, cc, kR;
+  double R = *(double *)params;
 
   // get the power spectrum.. choice of 5:
   if (POWER_SPECTRUM == 0){ // Eisenstein & Hu
     T = TFmdm(k);
     // check if we should cuttoff power spectrum according to Bode et al. 2000 transfer function
 #ifdef P_CUTOFF 
-    T *= pow(1 + pow(BODE_e*k*R_CUTOFF, 2*BODE_v), -BODE_n/BODE_v);
+    T *= pow(1. + pow(BODE_e*k*R_CUTOFF, 2*BODE_v), -BODE_n/BODE_v);
 #endif //P_CUTOFF
     p = pow(k, POWER_INDEX) * T * T;
   }
@@ -725,6 +726,7 @@ double dsigma_dk(double k, void *params){
 
   return k*k*p*w*w;
 }
+
 double sigma_z0(double M){
   double result, error, lower_limit, upper_limit;
   gsl_function F;
@@ -732,8 +734,7 @@ double sigma_z0(double M){
   gsl_integration_workspace * w 
     = gsl_integration_workspace_alloc (1000);
   double kstart, kend;
-
-  R = MtoR(M);
+  double R = MtoR(M);
 
   // now lets do the integral for sigma and scale it with sigma_norm
   kstart = 1.0e-99/R;
@@ -742,6 +743,7 @@ double sigma_z0(double M){
   upper_limit = kend;//log(kend);
 
   F.function = &dsigma_dk;
+  F.params   = &R;
   gsl_integration_qag (&F, lower_limit, upper_limit, 0, rel_tol,
                1000, GSL_INTEG_GAUSS61, w, &result, &error); 
   gsl_integration_workspace_free (w);
@@ -810,6 +812,7 @@ double power_in_k(double k){
 */
 double dsigmasq_dm(double k, void *params){
   double p, w, T, gamma, q, aa, bb, cc, dwdr, drdm, kR;
+  double R = *(double *)params;
 
   // get the power spectrum.. choice of 5:
   if (POWER_SPECTRUM == 0){ // Eisenstein & Hu ApJ, 1999, 511, 5
@@ -878,8 +881,9 @@ double dsigmasq_dm(double k, void *params){
   }
 
   //  printf("%e\t%e\t%e\t%e\t%e\t%e\t%e\n", k, R, p, w, dwdr, drdm, dsigmadk[1]);
-  return k*k*p*2*w*dwdr*drdm * d2fact;
+  return k*k*p*2*w*dwdr*drdm;
 }
+
 double dsigmasqdm_z0(double M){
   double result, error, lower_limit, upper_limit;
   gsl_function F;
@@ -887,17 +891,16 @@ double dsigmasqdm_z0(double M){
   gsl_integration_workspace * w 
     = gsl_integration_workspace_alloc (1000);
   double kstart, kend;
-
-  R = MtoR(M);
+  double R = MtoR(M);
 
   // now lets do the integral for sigma and scale it with sigma_norm
   kstart = 1.0e-99/R;
   kend = 350.0/R;
   lower_limit = kstart;//log(kstart);
   upper_limit = kend;//log(kend);
-  d2fact = M*10000/sigma_z0(M);
 
   F.function = &dsigmasq_dm;
+  F.params = &R;
   gsl_integration_qag (&F, lower_limit, upper_limit, 0, rel_tol,
                1000, GSL_INTEG_GAUSS61, w, &result, &error); 
   gsl_integration_workspace_free (w);
@@ -997,13 +1000,14 @@ double init_ps(){
 
   sigma_norm = -1;
 
-  R = 8.0/hlittle;
+  double R = 8.0/hlittle;
   kstart = 1.0e-99/R;
   kend = 350.0/R;
   lower_limit = kstart;//log(kstart);
   upper_limit = kend;//log(kend);
 
   F.function = &dsigma_dk;
+  F.params   = &R;
 
   gsl_integration_qag (&F, lower_limit, upper_limit, 0, rel_tol,
                1000, GSL_INTEG_GAUSS61, w, &result, &error); 
@@ -1403,10 +1407,10 @@ void initialiseSplinedSigmaM(float M_Min, float M_Max)
     second_derivs_sigma = calloc(NMass,sizeof(float));
     second_derivs_dsigma = calloc(NMass,sizeof(float));
     
-//#pragma omp parallel shared(Mass_Spline, Sigma_Spline, dSigmadm_Spline, M_Min, M_Max) private(i)
+#pragma omp parallel shared(Mass_Spline, Sigma_Spline, dSigmadm_Spline, M_Min, M_Max) private(i)
 	//NOTE: openMP doesn't work here because rel_tol too small in functions sigma_z0 and dsigmasqdm_z0, which are called by dNdM_st, which is called by Nion_ST
 {
-//#pragma omp for
+#pragma omp for
     for(i=0;i<NMass;i++) {
         Mass_Spline[i] = pow(10., log10(M_Min) + (float)i/(NMass-1)*( log10(M_Max) - log10(M_Min) ) );
         Sigma_Spline[i] = sigma_z0(Mass_Spline[i]);
@@ -1492,7 +1496,6 @@ double dNion_ST(double lnM, void *params){
     double Mlim_Fesc = vals.LimitMass_Fesc;
 
     double Fstar, Fesc;
-
 
     if (Alpha_star > 0. && M > Mlim_Fstar)
         Fstar = 1./Fstar10;
@@ -2746,9 +2749,9 @@ void initialise_Nion_ST_spline(int Nbin, double z_val[], float Mmin, double M_MI
     Nion_z_spline_acc = gsl_interp_accel_alloc ();
     Nion_z_spline = gsl_spline_alloc (gsl_interp_cspline, Nbin);
 	//NOTE: openMP doesn't work here because rel_tol too small in functions sigma_z0 and dsigmasqdm_z0, which are called by dNdM_st, which is called by Nion_ST
-//#pragma omp parallel shared(Nbin, Nion_z_val, z_val, Mmin, M_MINa_interp_table,  Alpha_star, Alpha_esc, Fstar10, Fesc10, Mlim_Fstar, Mlim_Fesc) private(i)
+#pragma omp parallel shared(Nbin, Nion_z_val, z_val, Mmin, M_MINa_interp_table,  Alpha_star, Alpha_esc, Fstar10, Fesc10, Mlim_Fstar, Mlim_Fesc) private(i)
 {
-//#pragma omp for    
+#pragma omp for    
     for (i=0; i<Nbin; i++){
       Nion_z_val[i] = Nion_ST(z_val[i], Mmin, M_MINa_interp_table[i], Alpha_star, Alpha_esc, Fstar10, Fesc10, Mlim_Fstar, Mlim_Fesc);
 	}
@@ -2778,13 +2781,13 @@ void initialise_Nion_ST_splinem(int Nbin, double z_val[], float Mmin, double M_M
     Nion_z_splinem = gsl_spline_alloc (gsl_interp_cspline, Nbin);
 #endif
 	//NOTE: openMP doesn't work here because rel_tol too small in functions sigma_z0 and dsigmasqdm_z0, which are called by dNdM_st, which is called by Nion_STm
-//#ifdef INHOMO_FEEDBACK
-//#pragma omp parallel shared(Nbin, Nion_z_valm, z_val, Mmin, Mcrit_atom_interp_table, Alpha_star, Fstar10m, Mlim_Fstarm) private(i, j, MassTurnover)
-//#else
-//#pragma omp parallel shared(Nbin, Nion_z_valm, z_val, Mmin, M_MINm_interp_table, Mcrit_atom_interp_table, Alpha_star, Fstar10m, Mlim_Fstarm) private(i)
-//#endif
+#ifdef INHOMO_FEEDBACK
+#pragma omp parallel shared(Nbin, Nion_z_valm, z_val, Mmin, Mcrit_atom_interp_table, Alpha_star, Fstar10m, Mlim_Fstarm) private(i, j, MassTurnover)
+#else
+#pragma omp parallel shared(Nbin, Nion_z_valm, z_val, Mmin, M_MINm_interp_table, Mcrit_atom_interp_table, Alpha_star, Fstar10m, Mlim_Fstarm) private(i)
+#endif
 {
-//#pragma omp for
+#pragma omp for
     for (i=0; i<Nbin; i++){
 #ifdef INHOMO_FEEDBACK
         for (j=0; j<NMTURN; j++){
@@ -2842,9 +2845,9 @@ void initialise_SFRD_ST_spline(int Nbin, double z_val[], float Mmin, double M_MI
     SFRD_ST_z_spline_acc = gsl_interp_accel_alloc ();
     SFRD_ST_z_spline = gsl_spline_alloc (gsl_interp_cspline, Nbin);
 	//NOTE: openMP doesn't work here because rel_tol too small in functions sigma_z0 and dsigmasqdm_z0, which are called by dNdM_st, which is called by Nion_ST
-//#pragma omp parallel shared(Nbin, SFRD_val, z_val, Mmin, M_MINa_interp_table, Alpha_star, Fstar10, Mlim_Fstar) private(i)
+#pragma omp parallel shared(Nbin, SFRD_val, z_val, Mmin, M_MINa_interp_table, Alpha_star, Fstar10, Mlim_Fstar) private(i)
 {
-//#pragma omp for
+#pragma omp for
     for (i=0; i<Nbin; i++)
         SFRD_val[i] = Nion_ST(z_val[i], Mmin, M_MINa_interp_table[i], Alpha_star, 0., Fstar10, 1.,Mlim_Fstar,0.);
 }
@@ -2873,11 +2876,11 @@ void initialise_SFRD_ST_splinem(int Nbin, double z_val[], float Mmin, double M_M
     SFRD_ST_z_splinem = gsl_spline_alloc (gsl_interp_cspline, Nbin);
 #endif
 	//NOTE: openMP doesn't work here because rel_tol too small in functions sigma_z0 and dsigmasqdm_z0, which are called by dNdM_st, which is called by Nion_STm
-//#ifdef INHOMO_FEEDBACK
-//#pragma omp parallel shared(Nbin, log10_Mturn, SFRD_valm, z_val, Mmin, Mcrit_atom_interp_table, Alpha_star, Fstar10m, Mlim_Fstarm) private(i, MassTurnover, j)
-//#else
-//#pragma omp parallel shared(Nbin, SFRD_valm, z_val, Mmin, M_MINm_interp_table, Mcrit_atom_interp_table, Alpha_star, Fstar10m, Mlim_Fstarm) private(i)
-//#endif
+#ifdef INHOMO_FEEDBACK
+#pragma omp parallel shared(Nbin, log10_Mturn, SFRD_valm, z_val, Mmin, Mcrit_atom_interp_table, Alpha_star, Fstar10m, Mlim_Fstarm) private(i, MassTurnover, j)
+#else
+#pragma omp parallel shared(Nbin, SFRD_valm, z_val, Mmin, M_MINm_interp_table, Mcrit_atom_interp_table, Alpha_star, Fstar10m, Mlim_Fstarm) private(i)
+#endif
 {
 //#pragma omp for
     for (i=0; i<Nbin; i++){
