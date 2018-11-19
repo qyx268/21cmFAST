@@ -1169,6 +1169,22 @@ int main(int argc, char ** argv){
     logMcrit_LW_ave /= HII_TOT_NUM_PIXELS;
     Mcrit_atom_glob  = atomic_cooling_threshold(zp);
     Nion_ST_zm(zp,logMcrit_LW_ave,&(Splined_Nion_ST_zpm));
+
+    // NEED TO FILTER Mcrit_LW!!!
+    /*** Transform unfiltered box to k-space to prepare for filtering ***/
+    plan = fftwf_plan_dft_r2c_3d(HII_DIM, HII_DIM, HII_DIM, (float *)Mcrit_LW_unfiltered, (fftwf_complex *)Mcrit_LW_unfiltered, FFTW_ESTIMATE);
+    fftwf_execute(plan);
+    fftwf_destroy_plan(plan);
+    fftwf_cleanup();
+    // remember to add the factor of VOLUME/TOT_NUM_PIXELS when converting from real space to k-space
+    // Note: we will leave off factor of VOLUME, in anticipation of the inverse FFT below
+#pragma omp parallel shared(Mcrit_LW_unfiltered) private(ct)
+{
+#pragma omp for
+    for (ct=0; ct<HII_KSPACE_NUM_PIXELS; ct++)
+      Mcrit_LW_unfiltered[ct] /= (float)HII_TOT_NUM_PIXELS;
+}
+
 #else //INHOMO_FEEDBACK
     Nion_ST_zm(zp,&(Splined_Nion_ST_zpm));
 #endif //INHOMO_FEEDBACK
@@ -1219,21 +1235,6 @@ int main(int argc, char ** argv){
 #endif
 
 #ifdef INHOMO_FEEDBACK
-      // NEED TO FILTER Mcrit_LW!!!
-      /*** Transform unfiltered box to k-space to prepare for filtering ***/
-      plan = fftwf_plan_dft_r2c_3d(HII_DIM, HII_DIM, HII_DIM, (float *)Mcrit_LW_unfiltered, (fftwf_complex *)Mcrit_LW_unfiltered, FFTW_ESTIMATE);
-        fftwf_execute(plan);
-        fftwf_destroy_plan(plan);
-      fftwf_cleanup();
-      // remember to add the factor of VOLUME/TOT_NUM_PIXELS when converting from real space to k-space
-      // Note: we will leave off factor of VOLUME, in anticipation of the inverse FFT below
-#pragma omp parallel shared(Mcrit_LW_unfiltered) private(ct)
-{
-#pragma omp for
-      for (ct=0; ct<HII_KSPACE_NUM_PIXELS; ct++)
-        Mcrit_LW_unfiltered[ct] /= (float)HII_TOT_NUM_PIXELS;
-}
-
       // copy over unfiltered box
       memcpy(Mcrit_LW_filtered, Mcrit_LW_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
       if (R_ct > 0) // don't filter on cell size
@@ -1242,23 +1243,24 @@ int main(int argc, char ** argv){
       // now fft back to real space
       plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)Mcrit_LW_filtered, (float *)Mcrit_LW_filtered, FFTW_ESTIMATE);
       fftwf_execute(plan);
-
+      fftwf_destroy_plan(plan);
+      fftwf_cleanup();
 
       // I don't know how box_ct_increment works... so just do the same copying thing...
 #pragma omp parallel shared(Mcrit_LW, Mcrit_LW_filtered, Mcrit_mol) private(i, j, k)
 {
 #pragma omp for
-    for (i=0; i<HII_DIM; i++){
-      for (j=0; j<HII_DIM; j++){
-        for (k=0; k<HII_DIM; k++){
-          Mcrit_LW[HII_R_INDEX(i,j,k)] = *((float *) Mcrit_LW_filtered + HII_R_FFT_INDEX(i,j,k));
-          if(Mcrit_LW[HII_R_INDEX(i,j,k)] < Mcrit_mol)
-            Mcrit_LW[HII_R_INDEX(i,j,k)] = Mcrit_mol;
-          if (Mcrit_LW[HII_R_INDEX(i,j,k)] > 1e10)
-            Mcrit_LW[HII_R_INDEX(i,j,k)] = 1e10;
+      for (i=0; i<HII_DIM; i++){
+        for (j=0; j<HII_DIM; j++){
+          for (k=0; k<HII_DIM; k++){
+            Mcrit_LW[HII_R_INDEX(i,j,k)] = *((float *) Mcrit_LW_filtered + HII_R_FFT_INDEX(i,j,k));
+            if(Mcrit_LW[HII_R_INDEX(i,j,k)] < Mcrit_mol)
+              Mcrit_LW[HII_R_INDEX(i,j,k)] = Mcrit_mol;
+            if (Mcrit_LW[HII_R_INDEX(i,j,k)] > 1e10)
+              Mcrit_LW[HII_R_INDEX(i,j,k)] = 1e10;
+          }
         }
       }
-    }
 }
 #endif
 

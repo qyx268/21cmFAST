@@ -3086,8 +3086,8 @@ void initialise_SFRD_Conditional_tablem(int Nsteps_zp, int Nfilter, float z[], d
 {
 #pragma omp for
           for(i=0;i<NSFR_high;i++) {
-            SFRD_z_high_tablem[i_tot+j][i+q*NSFR_low] = Nion_ConditionalMm(z[i_tot+j],log(Mmin),log(Mmax),Deltac,Overdense_high_table[i],Alpha_star,MassTurn,Mcrit_atom,Fstar10m,Mlim_Fstarm);
-            if(SFRD_z_high_tablem[i_tot+j][i+q*NSFR_low]<0.) SFRD_z_high_tablem[i_tot+j][i+q*NSFR_low]=pow(10.,-40.0);
+            SFRD_z_high_tablem[i_tot+j][i+q*NSFR_high] = Nion_ConditionalMm(z[i_tot+j],log(Mmin),log(Mmax),Deltac,Overdense_high_table[i],Alpha_star,MassTurn,Mcrit_atom,Fstar10m,Mlim_Fstarm);
+            if(SFRD_z_high_tablem[i_tot+j][i+q*NSFR_high]<0.) SFRD_z_high_tablem[i_tot+j][i+q*NSFR_high]=pow(10.,-40.0);
           }
 }
         }
