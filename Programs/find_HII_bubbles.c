@@ -651,7 +651,7 @@ int main(int argc, char ** argv){
 
   // J_21_LW box
   J_21_LW = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);  // stores the lyman werner backgroud
-  sprintf(filename, "../Boxes/J_21_LW_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", PREV_REDSHIFT, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+  sprintf(filename, "../Boxes/J_21_LW_z%06.2f_L_X%.1e_alphaX%.1f_f_star%06.4f_alpha_star%06.4f_f_esc%06.4f_alpha_esc%06.4f_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", PREV_REDSHIFT, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN); 
   if (F=fopen(filename, "rb")){  // this is the first call for this run, i.e. at the highest redshift
     //check if some read error occurs
     if (mod_fread(J_21_LW, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
