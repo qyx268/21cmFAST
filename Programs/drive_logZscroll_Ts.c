@@ -47,6 +47,7 @@ int main(int argc, char ** argv){
   system("rm ../Boxes/xH_*");
   system("rm ../Boxes/Nrec_*");
   system("rm ../Boxes/Nion*");
+  system("rm ../Boxes/M_MIN*");
   system("rm ../Boxes/z_first*");
   system("rm ../Output_files/Deldel_T_power_spec/*");  
 
