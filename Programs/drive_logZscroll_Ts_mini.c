@@ -46,10 +46,13 @@ int main(int argc, char ** argv){
   system("rm ../Boxes/delta_T_*");
   system("rm ../Boxes/xH_*");
   system("rm ../Boxes/Nrec_*");
-  system("rm ../Boxes/Nion*");
   system("rm ../Boxes/Gamma12*");
-  system("rm ../Boxes/M_MIN*");
   system("rm ../Boxes/z_first*");
+#ifdef INHOMO_FEEDBACK
+  system("rm ../Boxes/J_21_LW*");
+  system("rm ../Boxes/Nion*");
+  system("rm ../Boxes/M_MIN*");
+#endif
   system("rm ../Output_files/Deldel_T_power_spec/*");  
 
   init_ps();
