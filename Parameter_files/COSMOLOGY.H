@@ -111,7 +111,7 @@
 
 #ifdef INHOMO_FEEDBACK
   // LW suppression follows ?
-  #define NU_LW_THRESH  (double) (11.18*NU_over_EV)
+  #define NU_LW_THRESH  (double) 0.822//11.18ev
   // use Sobacchi & Mesinger 2013a; 2014 prescription for reionization
   #define HALO_BIAS     (double) 2.0
   #define REION_SM13_M0 (double) 3e9
