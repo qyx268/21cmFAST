@@ -332,7 +332,6 @@ double spectral_emissivity(double nu_norm, int flag)
           return N0_3[i] * alpha_S_3[i] / (alpha_S_3[i] + 1) * ( pow(nu_n[i+1], alpha_S_3[i]+1) - pow(nu_norm, alpha_S_3[i]+1) );
       }
     }
-    return 0;
 
   case 2:
     // used for destruct_heat
