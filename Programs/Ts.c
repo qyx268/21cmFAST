@@ -1276,12 +1276,12 @@ int main(int argc, char ** argv){
 #else //SHARP_CUTOFF
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-#pragma omp parallel shared(zpp, R_ct, delNL0, Overdense_high_table, SFRD_z_high_table, SFRD_z_high_tablem, second_derivs_Nion_zpp, second_derivs_Nion_zppm, Mcrit_LW, Overdense_high_table_Mturn, SFRDLow_zpp_spline, SFRDLow_zpp_spline_acc, SFRDLow_zpp_splinem, SFRDLow_zpp_spline_accm, SFRDLow_zpp_spline_accm_Mturn) private(box_ct, delNL_zpp, fcoll, Splined_Fcoll, fcollm, Splined_Fcollm, logMcrit_LW) reduction(+:sample_ct, fcoll_R, fcoll_Rm)
+#pragma omp parallel shared(zpp,arr_num, R_ct, delNL0, Overdense_high_table, SFRD_z_high_table, SFRD_z_high_tablem, second_derivs_Nion_zpp, second_derivs_Nion_zppm, Mcrit_LW, Overdense_high_table_Mturn, SFRDLow_zpp_spline, SFRDLow_zpp_spline_acc, SFRDLow_zpp_splinem, SFRDLow_zpp_spline_accm, SFRDLow_zpp_spline_accm_Mturn) private(box_ct, delNL_zpp, fcoll, Splined_Fcoll, fcollm, Splined_Fcollm, logMcrit_LW) reduction(+:sample_ct, fcoll_R, fcoll_Rm)
 #else //INHOMO_FEEDBACK
-#pragma omp parallel shared(zpp, R_ct, delNL0, Overdense_high_table, SFRD_z_high_table, SFRD_z_high_tablem, second_derivs_Nion_zpp, second_derivs_Nion_zppm, SFRDLow_zpp_spline, SFRDLow_zpp_spline_acc, SFRDLow_zpp_splinem, SFRDLow_zpp_spline_accm) private(box_ct, delNL_zpp, fcoll, Splined_Fcoll, fcollm, Splined_Fcollm) reduction(+:sample_ct, fcoll_R, fcoll_Rm)
+#pragma omp parallel shared(zpp,arr_num, R_ct, delNL0, Overdense_high_table, SFRD_z_high_table, SFRD_z_high_tablem, second_derivs_Nion_zpp, second_derivs_Nion_zppm, SFRDLow_zpp_spline, SFRDLow_zpp_spline_acc, SFRDLow_zpp_splinem, SFRDLow_zpp_spline_accm) private(box_ct, delNL_zpp, fcoll, Splined_Fcoll, fcollm, Splined_Fcollm) reduction(+:sample_ct, fcoll_R, fcoll_Rm)
 #endif //INHOMO_FEEDBACK
 #else //MINI_HALO
-#pragma omp parallel shared(zpp, R_ct, delNL0, Overdense_high_table, SFRD_z_high_table, second_derivs_Nion_zpp, SFRDLow_zpp_spline, SFRDLow_zpp_spline_acc) private(box_ct, delNL_zpp, fcoll, Splined_Fcoll) reduction(+:sample_ct, fcoll_R)
+#pragma omp parallel shared(zpp,arr_num, R_ct, delNL0, Overdense_high_table, SFRD_z_high_table, second_derivs_Nion_zpp, SFRDLow_zpp_spline, SFRDLow_zpp_spline_acc) private(box_ct, delNL_zpp, fcoll, Splined_Fcoll) reduction(+:sample_ct, fcoll_R)
 #endif //MINI_HALO
 #endif //SHARP_CUTOFF
 {
@@ -1327,12 +1327,12 @@ int main(int argc, char ** argv){
             // Usage of 0.99*Deltac arises due to the fact that close to the critical density, the collapsed fraction becomes a little unstable
             // However, such densities should always be collapsed, so just set f_coll to unity. 
             // Additionally, the fraction of points in this regime relative to the entire simulation volume is extremely small.
-            splint(Overdense_high_table-1,SFRD_z_high_table[R_ct]-1,second_derivs_Nion_zpp[R_ct]-1,NSFR_high,delNL_zpp,&(fcoll));
+            splint(Overdense_high_table-1,SFRD_z_high_table[arr_num+R_ct]-1,second_derivs_Nion_zpp[R_ct]-1,NSFR_high,delNL_zpp,&(fcoll));
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-            splint2d(Overdense_high_table,Overdense_high_table_Mturn,SFRD_z_high_tablem[R_ct],second_derivs_Nion_zppm[R_ct],NSFR_high,NMTURN,delNL_zpp,logMcrit_LW,&(fcollm));
+            splint2d(Overdense_high_table,Overdense_high_table_Mturn,SFRD_z_high_tablem[arr_num+R_ct],second_derivs_Nion_zppm[R_ct],NSFR_high,NMTURN,delNL_zpp,logMcrit_LW,&(fcollm));
 #else //INHOMO_FEEDBACK
-            splint(Overdense_high_table-1,SFRD_z_high_tablem[R_ct]-1,second_derivs_Nion_zppm[R_ct]-1,NSFR_high,delNL_zpp,&(fcollm));
+            splint(Overdense_high_table-1,SFRD_z_high_tablem[arr_num+R_ct]-1,second_derivs_Nion_zppm[R_ct]-1,NSFR_high,delNL_zpp,&(fcollm));
 #endif //INHOMO_FEEDBACK
 #endif //MINI_HALO
           }
