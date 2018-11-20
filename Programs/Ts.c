@@ -215,7 +215,7 @@ int main(int argc, char ** argv){
   float *J_21_LW=NULL, logMcrit_LW, *Mcrit_LW, Mcrit_mol;
   fftwf_complex *Mcrit_LW_unfiltered=NULL, *Mcrit_LW_filtered=NULL;
 #endif
-  double fcoll_Rm;
+  double fcollm_R;
 #ifdef REION_SM
   double REION_SM13_Z_RE, REION_SM13_DELTA_Z_RE, REION_SM13_DELTA_Z_SC;
 #endif
@@ -1268,7 +1268,10 @@ int main(int argc, char ** argv){
       // Sheth-Torman collapse fraction
       fcoll_R = 0;
 #ifdef MINI_HALO
-      fcoll_Rm = 0;
+#ifdef INHOMO_FEEDBACK
+	  logMcrit_LW_ave = 0;
+#endif
+      fcollm_R = 0;
 #endif
       sample_ct=0;
 #ifdef SHARP_CUTOFF
@@ -1276,9 +1279,9 @@ int main(int argc, char ** argv){
 #else //SHARP_CUTOFF
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-#pragma omp parallel shared(zpp,arr_num, R_ct, delNL0, Overdense_high_table, SFRD_z_high_table, SFRD_z_high_tablem, second_derivs_Nion_zpp, second_derivs_Nion_zppm, Mcrit_LW, Overdense_high_table_Mturn, SFRDLow_zpp_spline, SFRDLow_zpp_spline_acc, SFRDLow_zpp_splinem, SFRDLow_zpp_spline_accm, SFRDLow_zpp_spline_accm_Mturn) private(box_ct, delNL_zpp, fcoll, Splined_Fcoll, fcollm, Splined_Fcollm, logMcrit_LW) reduction(+:sample_ct, fcoll_R, fcoll_Rm)
+#pragma omp parallel shared(zpp,arr_num, R_ct, delNL0, Overdense_high_table, SFRD_z_high_table, SFRD_z_high_tablem, second_derivs_Nion_zpp, second_derivs_Nion_zppm, Mcrit_LW, Overdense_high_table_Mturn, SFRDLow_zpp_spline, SFRDLow_zpp_spline_acc, SFRDLow_zpp_splinem, SFRDLow_zpp_spline_accm, SFRDLow_zpp_spline_accm_Mturn) private(box_ct, delNL_zpp, fcoll, Splined_Fcoll, fcollm, Splined_Fcollm, logMcrit_LW) reduction(+:sample_ct, fcoll_R, fcollm_R, logMcrit_LW_ave)
 #else //INHOMO_FEEDBACK
-#pragma omp parallel shared(zpp,arr_num, R_ct, delNL0, Overdense_high_table, SFRD_z_high_table, SFRD_z_high_tablem, second_derivs_Nion_zpp, second_derivs_Nion_zppm, SFRDLow_zpp_spline, SFRDLow_zpp_spline_acc, SFRDLow_zpp_splinem, SFRDLow_zpp_spline_accm) private(box_ct, delNL_zpp, fcoll, Splined_Fcoll, fcollm, Splined_Fcollm) reduction(+:sample_ct, fcoll_R, fcoll_Rm)
+#pragma omp parallel shared(zpp,arr_num, R_ct, delNL0, Overdense_high_table, SFRD_z_high_table, SFRD_z_high_tablem, second_derivs_Nion_zpp, second_derivs_Nion_zppm, SFRDLow_zpp_spline, SFRDLow_zpp_spline_acc, SFRDLow_zpp_splinem, SFRDLow_zpp_spline_accm) private(box_ct, delNL_zpp, fcoll, Splined_Fcoll, fcollm, Splined_Fcollm) reduction(+:sample_ct, fcoll_R, fcollm_R)
 #endif //INHOMO_FEEDBACK
 #else //MINI_HALO
 #pragma omp parallel shared(zpp,arr_num, R_ct, delNL0, Overdense_high_table, SFRD_z_high_table, second_derivs_Nion_zpp, SFRDLow_zpp_spline, SFRDLow_zpp_spline_acc) private(box_ct, delNL_zpp, fcoll, Splined_Fcoll) reduction(+:sample_ct, fcoll_R)
@@ -1301,6 +1304,7 @@ int main(int argc, char ** argv){
             logMcrit_LW = 5.;
         if (logMcrit_LW >10)
             logMcrit_LW = 10.;
+		logMcrit_LW_ave += logMcrit_LW;
 #endif
         if (delNL_zpp < 1.5){
           if (delNL_zpp < -1.) {
@@ -1350,7 +1354,7 @@ int main(int argc, char ** argv){
         //---------- interpolation for fcoll is done ----------
         fcoll_R += Splined_Fcoll;
 #ifdef MINI_HALO
-        fcoll_Rm += Splined_Fcollm;
+        fcollm_R += Splined_Fcollm;
 #endif
 #endif //SHARP_CUTOFF
       }
@@ -1358,7 +1362,10 @@ int main(int argc, char ** argv){
 
       fcoll_R /= (double) sample_ct;
 #ifdef MINI_HALO
-      fcoll_Rm /= (double) sample_ct;
+#ifdef INHOMO_FEEDBACK
+	  logMcrit_LW_ave /= (double) sample_ct;
+#endif
+      fcollm_R /= (double) sample_ct;
 #endif
 
 #ifdef SHARP_CUTOFF
@@ -1373,11 +1380,11 @@ int main(int argc, char ** argv){
       // This means that it might not be as good as in previous versions, because now the fluctuation in fcoll is also 
       // due to feedbacks in M_MINm. e.g. if the distribution of Mcrit_LW is too large
       // this is not interpolated value
-      SFRD_ST_zm(zpp,logMcrit_LW,&(Splined_SFRD_ST_zppm));
+      SFRD_ST_zm(zpp,logMcrit_LW_ave,&(Splined_SFRD_ST_zppm));
 #else
       SFRD_ST_zm(zpp,&(Splined_SFRD_ST_zppm));
 #endif //INHOMO_FEEDBACK
-      ST_over_PSm[R_ct] = Splined_SFRD_ST_zppm / fcoll_Rm; 
+      ST_over_PSm[R_ct] = Splined_SFRD_ST_zppm / fcollm_R; 
 #endif //MINI_HALO
 #endif //SHARP_CUTOFF
 

@@ -3053,7 +3053,7 @@ void initialise_SFRD_Conditional_tablem(int Nsteps_zp, int Nfilter, float z[], d
     //  Overdense_high_table[i] = overdense_large_low + (float)i/((float)NSFR_high-1.)*(overdense_large_high - overdense_large_low);
     //}
 #ifdef INHOMO_FEEDBACK
-#pragma omp parallel shared(log10_overdense_low_table_Mturn, Overdense_high_table_Mturn) private(i)
+#pragma omp parallel shared(logMturn, log10_overdense_low_table_Mturn, Overdense_high_table_Mturn) private(i)
 {
 #pragma omp for
     for (i=0; i<NMTURN;i++) {
