@@ -327,9 +327,9 @@ double spectral_emissivity(double nu_norm, int flag)
       if ((nu_norm >= nu_n[i]) && (nu_norm < nu_n[i+1])) {
         // We are in the correct spectral region
         if (Population == 2)
-          return N0_2[i] * alpha_S_2[i] / (alpha_S_2[i] + 1) * hplank * ( pow(nu_n[i+1], alpha_S_2[i]+1) - pow(nu_norm, alpha_S_2[i]+1) );
+          return N0_2[i] * alpha_S_2[i] / (alpha_S_2[i] + 1) * ( pow(nu_n[i+1], alpha_S_2[i]+1) - pow(nu_norm, alpha_S_2[i]+1) );
         else
-          return N0_3[i] * alpha_S_3[i] / (alpha_S_3[i] + 1) * hplank * ( pow(nu_n[i+1], alpha_S_3[i]+1) - pow(nu_norm, alpha_S_3[i]+1) );
+          return N0_3[i] * alpha_S_3[i] / (alpha_S_3[i] + 1) * ( pow(nu_n[i+1], alpha_S_3[i]+1) - pow(nu_norm, alpha_S_3[i]+1) );
       }
     }
     return 0;
@@ -528,6 +528,9 @@ void evolveInt(float zp, float curr_delNL0[], double freq_int_heat[],
       dxlya_dt      += zpp_integrand * freq_int_lya[zpp_ct];
       zpp_integrand  = dfcoll * (1+delNL_zpp) * pow(1+zp,2)*(1+zpp);
       dstarlya_dt   += zpp_integrand * sum_lyn[zpp_ct];
+#ifdef INHOMO_FEEDBACK
+      dstarlyLW_dt   += zpp_integrand  * sum_lyLWn[zpp_ct];
+#endif
     }
 #ifdef MINI_HALO
     zpp_integrandm    = dfcollm * (1+delNL_zpp) * pow(1+zpp, -X_RAY_SPEC_INDEX_MINI);
@@ -538,7 +541,6 @@ void evolveInt(float zp, float curr_delNL0[], double freq_int_heat[],
       zpp_integrandm  = dfcollm * (1+delNL_zpp) * pow(1+zp,2)*(1+zpp);
       dstarlya_dtm   += zpp_integrandm * sum_lynm[zpp_ct];
 #ifdef INHOMO_FEEDBACK
-      dstarlyLW_dt   += zpp_integrand  * sum_lyLWn[zpp_ct];
       dstarlyLW_dtm  += zpp_integrandm * sum_lyLWnm[zpp_ct];
 #endif
     }
@@ -552,8 +554,8 @@ void evolveInt(float zp, float curr_delNL0[], double freq_int_heat[],
     dxlya_dt      *= const_zp_prefactor*n_b;
     dstarlya_dt   *= F_STAR10 * C * N_b0 / FOURPI;
 #ifdef INHOMO_FEEDBACK
-    dstarlyLW_dt  *= F_STAR10 * C * N_b0 / FOURPI;
-    dstarlyLW_dtm *= F_STAR10 * C * N_b0 / FOURPI;
+    dstarlyLW_dt  *= F_STAR10 * C * N_b0 / FOURPI * (hplank * 1e21);
+    dstarlyLW_dtm *= F_STAR10 * C * N_b0 / FOURPI * (hplank * 1e21);
 #endif
 
     /*

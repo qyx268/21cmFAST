@@ -664,7 +664,7 @@ int main(int argc, char ** argv){
 
 #ifdef INHOMO_FEEDBACK
   J_21_LW  = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);
-  Mcrit_LW = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);
+  Mcrit_LW = (float *) malloc(sizeof(float)*HII_TOT_NUM_PIXELS);
   Mcrit_LW_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
   Mcrit_LW_filtered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
   if (!Mcrit_LW_unfiltered || !Mcrit_LW_filtered || !J_21_LW || !Mcrit_LW){
@@ -1478,7 +1478,7 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
         if (nuprime < NU_LW_THRESH)
           nuprime = NU_LW_THRESH;
         sum_lyLWn[R_ct]  += spectral_emissivity(nuprime, 3, 2);
-        sum_lyLWnm[R_ct] += spectral_emissivity(nuprime, 3, 2);
+        sum_lyLWnm[R_ct] += spectral_emissivity(nuprime, 3, 3);
 #endif
 #else
         sum_lyn[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0);
@@ -1657,7 +1657,7 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
           Xion_threads[omp_get_thread_num()] += dansdz[4];
 #ifdef INHOMO_FEEDBACK
           J_LW_tot = dansdz[5]; 
-          J_21_LW[box_ct] = J_LW_tot / 1e-21;
+          J_21_LW[box_ct] = J_LW_tot;
           J_LW_threads[omp_get_thread_num()] += J_LW_tot;
 #endif
         }
@@ -1702,7 +1702,7 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
 #endif
     // write to global evolution file
 #ifdef INHOMO_FEEDBACK
-    fprintf(GLOBAL_EVOL, "%f\t%f\t%f\t%e\t%f\t%f\t%e\t%e\t%e\t%e\t%e\n", zp, filling_factor_of_HI_zp, Tk_ave, x_e_ave, Ts_ave, T_cmb*(1+zp), J_alpha_ave, xalpha_ave, Xheat_ave, Xion_ave, J_LW_ave);
+    fprintf(GLOBAL_EVOL, "%f\t%f\t%f\t%e\t%f\t%f\t%e\t%e\t%e\t%e\t%e\n", zp, filling_factor_of_HI_zp, Tk_ave, x_e_ave, Ts_ave, T_cmb*(1+zp), J_alpha_ave, xalpha_ave, Xheat_ave, Xion_ave, J_LW_ave * 1e-21);
 #else
     fprintf(GLOBAL_EVOL, "%f\t%f\t%f\t%e\t%f\t%f\t%e\t%e\t%e\t%e\n", zp, filling_factor_of_HI_zp, Tk_ave, x_e_ave, Ts_ave, T_cmb*(1+zp), J_alpha_ave, xalpha_ave, Xheat_ave, Xion_ave);
 #endif
