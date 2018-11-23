@@ -2095,7 +2095,7 @@ void Nion_Spline_density(float Overdensity, float *splined_value)
         }
     }
     if(returned_value > 1.) returned_value = 1.;
-    *splined_value = returned_value;
+    *splined_value = returned_value > 0. ? returned_value : 1e-40;
 }
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
@@ -2142,7 +2142,7 @@ void Nion_Spline_densitym(float Overdensity, float *splined_value)
         }
     }
     if(returned_value > 1.) returned_value = 1.;
-    *splined_value = returned_value;
+    *splined_value = returned_value > 0. ? returned_value : 1e-40;
 }
 #endif //MINI_HALO
 
@@ -2686,7 +2686,7 @@ void DeltaNion_Spline_density(float Overdensity, float *splined_value)
             returned_value = 0.;
         }
     }
-    *splined_value = returned_value;
+    *splined_value = returned_value > 0. ? returned_value : 1e-40;
 }
 
 #ifdef MINI_HALO
@@ -2732,7 +2732,7 @@ void DeltaNion_Spline_densitym(float Overdensity, float *splined_value)
             returned_value = 0.;
         }
     }
-    *splined_value = returned_value;
+    *splined_value = returned_value > 0. ? returned_value : 1e-40;
 }
 #endif //MINI_HALO
 #endif //CONTEMPORANEOUS_DUTYCYCLE
@@ -2808,7 +2808,7 @@ void Nion_ST_z(float z, float *splined_value){
     float returned_value;
 
     returned_value = gsl_spline_eval(Nion_z_spline, z, Nion_z_spline_acc);
-    *splined_value = returned_value;
+    *splined_value = returned_value > 0. ? returned_value : 1e-40;
 }
 
 #ifdef MINI_HALO
@@ -2830,7 +2830,7 @@ void Nion_ST_zm(float z, float *splined_value)
 #else
     returned_value = gsl_spline_eval(Nion_z_splinem, z, Nion_z_spline_accm);
 #endif
-    *splined_value = returned_value;
+    *splined_value = returned_value > 0. ? returned_value : 1e-40;
 }
 #endif
 
@@ -2901,7 +2901,7 @@ void SFRD_ST_z(float z, float *splined_value){
     float returned_value;
 
     returned_value = gsl_spline_eval(SFRD_ST_z_spline, z, SFRD_ST_z_spline_acc);
-    *splined_value = returned_value;
+    *splined_value = returned_value > 0. ? returned_value : 1e-40;
 }
 
 #ifdef MINI_HALO
@@ -2923,7 +2923,7 @@ void SFRD_ST_zm(float z, float *splined_value)
 #else
     returned_value = gsl_spline_eval(SFRD_ST_z_splinem, z, SFRD_ST_z_spline_accm);
 #endif
-    *splined_value = returned_value;
+    *splined_value = returned_value > 0. ? returned_value : 1e-40;
 }
 #endif
 
