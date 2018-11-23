@@ -52,7 +52,7 @@ static double zpp_interp_table[zpp_interp_points], M_MINa_interp_table[zpp_inter
 double Mcrit_atom_interp_table[zpp_interp_points], Mcrit_RE_interp_table[zpp_interp_points];
 #ifdef INHOMO_FEEDBACK
 double Mcrit_atom_glob, logMcrit_LW_ave;
-static double log10_Mturn_interp_table[NMTURN];
+double log10_Mturn_interp_table[NMTURN];
 #else
 double Mcrit_LW_interp_table[zpp_interp_points], M_MINm_interp_table[zpp_interp_points];//New in v2.1
 #endif
@@ -96,12 +96,12 @@ double T_RECFAST(float z, int flag);
 
 /* Main driver for evolution */
 #ifdef MINI_HALO
-void evolveInt(float zp, float curr_delNL0[], double freq_int_heat[], 
+void evolveInt(float zp, int arr_num, float curr_delNL0[], double freq_int_heat[], 
            double freq_int_ion[], double freq_int_lya[], 
            double freq_int_heatm[], double freq_int_ionm[], double freq_int_lyam[],
            int COMPUTE_Ts, double y[], double deriv[]);
 #else
-void evolveInt(float zp, float curr_delNL0[], double freq_int_heat[], 
+void evolveInt(float zp, int arr_num,float curr_delNL0[], double freq_int_heat[], 
            double freq_int_ion[], double freq_int_lya[], 
            int COMPUTE_Ts, double y[], double deriv[]);
            //float Mturn, float ALPHA_STAR, float F_STAR10, float T_AST);
@@ -316,7 +316,7 @@ double spectral_emissivity(double nu_norm, int flag)
 {
   static int n[NSPEC_MAX];
   static float nu_n[NSPEC_MAX], alpha_S_2[NSPEC_MAX], alpha_S_3[NSPEC_MAX], N0_2[NSPEC_MAX], N0_3[NSPEC_MAX];
-  double n0_fac;
+  double n0_fac, result;
   int i;
   FILE *F;
 
@@ -326,10 +326,14 @@ double spectral_emissivity(double nu_norm, int flag)
     for (i=1;i<(NSPEC_MAX-1);i++) {
       if ((nu_norm >= nu_n[i]) && (nu_norm < nu_n[i+1])) {
         // We are in the correct spectral region
-        if (Population == 2)
-          return N0_2[i] * alpha_S_2[i] / (alpha_S_2[i] + 1) * ( pow(nu_n[i+1], alpha_S_2[i]+1) - pow(nu_norm, alpha_S_2[i]+1) );
-        else
-          return N0_3[i] * alpha_S_3[i] / (alpha_S_3[i] + 1) * ( pow(nu_n[i+1], alpha_S_3[i]+1) - pow(nu_norm, alpha_S_3[i]+1) );
+        if (Population == 2){
+          result = N0_2[i] * alpha_S_2[i] / (alpha_S_2[i] + 1) * ( pow(nu_n[i+1], alpha_S_2[i]+1) - pow(nu_norm, alpha_S_2[i]+1) );
+		  return result > 0 ? result:1e-40;
+		}
+        else{
+          result = N0_3[i] * alpha_S_3[i] / (alpha_S_3[i] + 1) * ( pow(nu_n[i+1], alpha_S_3[i]+1) - pow(nu_norm, alpha_S_3[i]+1) );
+		  return result > 0 ? result:1e-40;
+		}
       }
     }
 
@@ -398,12 +402,12 @@ double spectral_emissivity(double nu_norm, int flag)
   This function creates the d/dz' integrands
 *********************************************************************/
 #ifdef MINI_HALO
-void evolveInt(float zp, float curr_delNL0[], double freq_int_heat[], 
+void evolveInt(float zp, int arr_num,float curr_delNL0[], double freq_int_heat[], 
            double freq_int_ion[], double freq_int_lya[], 
            double freq_int_heatm[], double freq_int_ionm[], double freq_int_lyam[],
            int COMPUTE_Ts, double y[], double deriv[])
 #else
-void evolveInt(float zp, float curr_delNL0[], double freq_int_heat[], 
+void evolveInt(float zp, int arr_num,float curr_delNL0[], double freq_int_heat[], 
            double freq_int_ion[], double freq_int_lya[], 
            int COMPUTE_Ts, double y[], double deriv[])
 #endif
@@ -488,12 +492,12 @@ void evolveInt(float zp, float curr_delNL0[], double freq_int_heat[],
         // Usage of 0.99*Deltac arises due to the fact that close to the critical density, the collapsed fraction becomes a little unstable
         // However, such densities should always be collapsed, so just set f_coll to unity. 
         // Additionally, the fraction of points in this regime relative to the entire simulation volume is extremely small.
-        splint(Overdense_high_table-1,SFRD_z_high_table[zpp_ct]-1,second_derivs_Nion_zpp[zpp_ct]-1,NSFR_high,delNL_zpp,&(fcoll));
+        splint(Overdense_high_table-1,SFRD_z_high_table[arr_num+zpp_ct]-1,second_derivs_Nion_zpp[zpp_ct]-1,NSFR_high,delNL_zpp,&(fcoll));
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-        splint2d(Overdense_high_table,Overdense_high_table_Mturn,SFRD_z_high_tablem[zpp_ct],second_derivs_Nion_zppm[zpp_ct],NSFR_high,NMTURN,delNL_zpp,logMcrit_LW_ave,&(fcollm));
+        splint2d(Overdense_high_table,Overdense_high_table_Mturn,SFRD_z_high_tablem[arr_num+zpp_ct],second_derivs_Nion_zppm[zpp_ct],NSFR_high,NMTURN,delNL_zpp,logMcrit_LW_ave,&(fcollm));
 #else
-        splint(Overdense_high_table-1,SFRD_z_high_tablem[zpp_ct]-1,second_derivs_Nion_zppm[zpp_ct]-1,NSFR_high,delNL_zpp,&(fcollm));
+        splint(Overdense_high_table-1,SFRD_z_high_tablem[arr_num+zpp_ct]-1,second_derivs_Nion_zppm[zpp_ct]-1,NSFR_high,delNL_zpp,&(fcollm));
 #endif
 #endif
       }
