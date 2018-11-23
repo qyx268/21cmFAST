@@ -1348,9 +1348,13 @@ int main(int argc, char ** argv){
 #endif
           }    
         }
-        Splined_Fcoll = fcoll;
+		if (fcoll > 1.)
+			fcoll = 1.;
+        Splined_Fcoll = fcoll > 0 ? fcoll : 1e-40;
 #ifdef MINI_HALO
-        Splined_Fcollm = fcollm;
+		if (fcollm > 1.)
+			fcollm = 1.;
+        Splined_Fcollm = fcollm > 0 ? fcollm : 1e-40;
 #endif
         //---------- interpolation for fcoll is done ----------
         fcoll_R += Splined_Fcoll;
