@@ -328,12 +328,12 @@ double spectral_emissivity(double nu_norm, int flag)
         // We are in the correct spectral region
         if (Population == 2){
           result = N0_2[i] / (alpha_S_2[i] + 1) * ( pow(nu_n[i+1], alpha_S_2[i]+1) - pow(nu_norm, alpha_S_2[i]+1) );
-		  return result > 0 ? result:1e-40;
-		}
+          return result > 0 ? result:1e-40;
+        }
         else{
           result = N0_3[i] / (alpha_S_3[i] + 1) * ( pow(nu_n[i+1], alpha_S_3[i]+1) - pow(nu_norm, alpha_S_3[i]+1) );
-		  return result > 0 ? result:1e-40;
-		}
+          return result > 0 ? result:1e-40;
+        }
       }
     }
 
@@ -509,8 +509,10 @@ void evolveInt(float zp, int arr_num,float curr_delNL0[], double freq_int_heat[]
       }
     }
     if (fcoll > 1.) fcoll = 1.;
+    if (fcoll < 0.) fcoll = 1e-40;
 #ifdef MINI_HALO
     if (fcollm > 1.) fcollm = 1.;
+    if (fcollm < 0.) fcollm = 1e-40;
 #endif
     // Find Fcoll end ----------------------------------------------------------------------------------
 
