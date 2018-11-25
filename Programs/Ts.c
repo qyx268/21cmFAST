@@ -1097,16 +1097,17 @@ int main(int argc, char ** argv){
     // New in v2: initialise interpolation of SFRD over zpp and overdensity.
     arr_num = NUM_FILTER_STEPS_FOR_Ts*counter; // New
     fprintf(stderr, "\n [z=%.3f] constructing the interpolation table...", zp);
-#ifdef MINI_HALO
+/*#ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
 #pragma omp parallel shared(log10_overdense_low_table,log10_SFRD_z_low_table,arr_num,Overdense_high_table,SFRD_z_high_table,second_derivs_Nion_zpp, log10_overdense_low_table_Mturn,Overdense_high_table_Mturn,log10_SFRD_z_low_tablem, SFRD_z_high_tablem, second_derivs_Nion_zppm, SFRDLow_zpp_spline, SFRDLow_zpp_splinem) private(i)
 #else
 #pragma omp parallel shared(log10_overdense_low_table,log10_SFRD_z_low_table,arr_num,Overdense_high_table,SFRD_z_high_table,second_derivs_Nion_zpp, log10_SFRD_z_low_tablem, SFRD_z_high_tablem, second_derivs_Nion_zppm, SFRDLow_zpp_spline, SFRDLow_zpp_splinem) private(i)
 #endif
 #pragma omp parallel shared(log10_overdense_low_table,log10_SFRD_z_low_table,arr_num,Overdense_high_table,SFRD_z_high_table,second_derivs_Nion_zpp, SFRDLow_zpp_spline) private(i)
-#endif
+#endif*/
 {
-#pragma omp for
+//#pragma omp for
+//NOTE THAT this part seems to be not thread safe!!
     for (i=0; i<NUM_FILTER_STEPS_FOR_Ts; i++) {
       gsl_spline_init(SFRDLow_zpp_spline[i], log10_overdense_low_table, log10_SFRD_z_low_table[arr_num + i], NSFR_low);
       spline(Overdense_high_table-1,SFRD_z_high_table[arr_num + i]-1,NSFR_high,0,0,second_derivs_Nion_zpp[i]-1); 
