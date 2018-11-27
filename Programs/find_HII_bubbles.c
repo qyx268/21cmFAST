@@ -1854,14 +1854,14 @@ int main(int argc, char ** argv){
     fprintf(LOG, "end f_coll normalization, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
     
-#ifdef MINI_HALO
+/*#ifdef MINI_HALO
     fprintf(stderr, "fcoll(m)=%g(%g), ST_over_PS(m)=%g(%g), mean normalized fcoll(m)=%g(%g)\n", f_coll, f_collm, ST_over_PS, ST_over_PSm, f_coll*ST_over_PS, f_collm*ST_over_PSm);
-#endif
+#endif*/
 
     /****************************************************************************/
     /************  MAIN LOOP THROUGH THE BOX FOR THIS FILTER SCALE **************/
     /****************************************************************************/
-    fprintf(stderr, "Start of the main loop through the box for this filter scale (R=%fMpc)...",R);
+    //fprintf(stderr, "Start of the main loop through the box for this filter scale (R=%fMpc)...",R);
     fprintf(LOG, "Start of the main loop through the box for this filter scale (R=%fMpc), clock=%06.2f\n", R, (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
     // now lets scroll through the filtered box
@@ -2025,7 +2025,7 @@ int main(int argc, char ** argv){
       } // y
     } // x
 }
-    fprintf(stderr, "done\n");
+    //fprintf(stderr, "done\n");
     fprintf(LOG, "End of the main loop through the box for this filter scale, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
     R /= DELTA_R_HII_FACTOR;
