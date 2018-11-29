@@ -1829,14 +1829,21 @@ int main(int argc, char ** argv){
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
           // save the value of the collasped fraction into the Fcoll array
           if (flag_first_reionization == 0){
-            Fcoll[HII_R_FFT_INDEX(x,y,z)]  += *((float *)Fcoll_prev_filtered + HII_R_FFT_INDEX(x,y,z));
-            Fcollm[HII_R_FFT_INDEX(x,y,z)] += *((float *)Fcollm_prev_filtered + HII_R_FFT_INDEX(x,y,z));
+            Fcoll[HII_R_FFT_INDEX(x,y,z)]  = *((float *)Fcoll_prev_filtered + HII_R_FFT_INDEX(x,y,z)) + Splined_Fcoll;
+            Fcollm[HII_R_FFT_INDEX(x,y,z)] = *((float *)Fcollm_prev_filtered + HII_R_FFT_INDEX(x,y,z)) + Splined_Fcollm;
           }
+		  else{
+            Fcoll[HII_R_FFT_INDEX(x,y,z)]  = Splined_Fcoll;
+            Fcollm[HII_R_FFT_INDEX(x,y,z)] = Splined_Fcollm;
+		  }
+#else //CONTEMPORANEOUS_DUTYCYCLE
+          Fcoll[HII_R_FFT_INDEX(x,y,z)]  = Splined_Fcoll;
+#ifdef MINI_HALO
+          Fcollm[HII_R_FFT_INDEX(x,y,z)] = Splined_Fcollm;
+#endif //MINI_HALO
 #endif //CONTEMPORANEOUS_DUTYCYCLE
-          Fcoll[HII_R_FFT_INDEX(x,y,z)] += Splined_Fcoll;
           f_coll  += Fcoll[HII_R_FFT_INDEX(x,y,z)];
 #ifdef MINI_HALO
-          Fcollm[HII_R_FFT_INDEX(x,y,z)] += Splined_Fcollm;
           f_collm += Fcollm[HII_R_FFT_INDEX(x,y,z)];
 #endif
         }
