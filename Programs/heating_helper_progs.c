@@ -560,7 +560,7 @@ void evolveInt(float zp, int arr_num,float curr_delNL0[], double freq_int_heat[]
     dstarlya_dt   *= F_STAR10 * C * N_b0 / FOURPI;
 #ifdef INHOMO_FEEDBACK
     dstarlyLW_dt  *= F_STAR10 * C * N_b0 / FOURPI * (hplank * 1e21);
-    dstarlyLW_dtm *= F_STAR10 * C * N_b0 / FOURPI * (hplank * 1e21);
+    dstarlyLW_dtm *= F_STAR10m * C * N_b0 / FOURPI * (hplank * 1e21);
 #endif
 
     /*
