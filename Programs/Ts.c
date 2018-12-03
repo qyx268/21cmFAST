@@ -195,7 +195,7 @@ int main(int argc, char ** argv){
   float dz, zeta_ion_eff, Tk_BC, xe_BC, nu, zprev, zcurr, curr_delNL0[NUM_FILTER_STEPS_FOR_Ts];
   double *evolve_ans, ans[2], Tk_ave, J_alpha_ave, xalpha_ave, J_alpha_tot, Xheat_ave,Xion_ave;
 #ifdef INHOMO_FEEDBACK
-  double dansdz[6], J_LW_ave, J_LW_tot, nu_nplus1;
+  double dansdz[6], J_LW_ave, nu_nplus1;
 #else
   double dansdz[5];
 #endif
@@ -1539,12 +1539,16 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
     fprintf(LOG, "Looping through box at z'=%f, time elapsed  (total for all threads)= %06.2f min\n", zp, (double)clock()/CLOCKS_PER_SEC/60.0);
     fflush(NULL);
     time(&start_time);
-    for (ct=0; ct<NUMCORES; ct++)
+    for (ct=0; ct<NUMCORES; ct++){
       J_alpha_threads[ct] = xalpha_threads[ct] = Xheat_threads[ct] = Xion_threads[ct] = 0;
+#ifdef INHOMO_FEEDBACK
+      J_LW_threads[ct] = 0;
+#endif
+	}
     /***************  PARALLELIZED LOOP ******************************************************************/
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-#pragma omp parallel shared(COMPUTE_Ts, Tk_box, x_e_box, x_e_ave, delNL0, freq_int_heat_tbl, freq_int_ion_tbl, freq_int_lya_tbl,freq_int_heat_tblm, freq_int_ion_tblm, freq_int_lya_tblm, zp, dzp, Ts, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, growth_factor_zp, dgrowth_factor_dzp, NO_LIGHT, zpp_edge, sigma_atR, sigma_Tmin, ST_over_PS, ST_over_PSm, sum_lyn,sum_lynm,sum_lyLWn, sum_lyLWnm, const_zp_prefactor, const_zp_prefactorm, M_MIN_at_z, M_MIN_at_zp, dt_dzp, J_alpha_threads, J_LW_threads, xalpha_threads, Xheat_threads, Xion_threads, M_MIN, R_values, Mcrit_atom_glob,logMcrit_LW_ave,J_21_LW,arr_num) private(box_ct, ans, xHII_call, R_ct, curr_delNL0, m_xHII_low, m_xHII_high, freq_int_heat, freq_int_ion, freq_int_lya, freq_int_heatm, freq_int_ionm, freq_int_lyam, dansdz, J_alpha_tot, J_LW_tot, curr_xalpha)
+#pragma omp parallel shared(COMPUTE_Ts, Tk_box, x_e_box, x_e_ave, delNL0, freq_int_heat_tbl, freq_int_ion_tbl, freq_int_lya_tbl,freq_int_heat_tblm, freq_int_ion_tblm, freq_int_lya_tblm, zp, dzp, Ts, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, growth_factor_zp, dgrowth_factor_dzp, NO_LIGHT, zpp_edge, sigma_atR, sigma_Tmin, ST_over_PS, ST_over_PSm, sum_lyn,sum_lynm,sum_lyLWn, sum_lyLWnm, const_zp_prefactor, const_zp_prefactorm, M_MIN_at_z, M_MIN_at_zp, dt_dzp, J_alpha_threads, J_LW_threads, xalpha_threads, Xheat_threads, Xion_threads, M_MIN, R_values, Mcrit_atom_glob,logMcrit_LW_ave,J_21_LW,arr_num) private(box_ct, ans, xHII_call, R_ct, curr_delNL0, m_xHII_low, m_xHII_high, freq_int_heat, freq_int_ion, freq_int_lya, freq_int_heatm, freq_int_ionm, freq_int_lyam, dansdz, J_alpha_tot, curr_xalpha)
 #else
 #pragma omp parallel shared(COMPUTE_Ts, Tk_box, x_e_box, x_e_ave, delNL0, freq_int_heat_tbl, freq_int_ion_tbl, freq_int_lya_tbl,freq_int_heat_tblm, freq_int_ion_tblm, freq_int_lya_tblm, zp, dzp, Ts, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, growth_factor_zp, dgrowth_factor_dzp, NO_LIGHT, zpp_edge, sigma_atR, sigma_Tmin, ST_over_PS, ST_over_PSm, sum_lyn,sum_lynm, const_zp_prefactor, const_zp_prefactorm, M_MIN_at_z, M_MIN_at_zp, dt_dzp, J_alpha_threads, xalpha_threads, Xheat_threads, Xion_threads,arr_num) private(box_ct, ans, xHII_call, R_ct, curr_delNL0, m_xHII_low, m_xHII_high, freq_int_heat, freq_int_ion, freq_int_lya, freq_int_heatm, freq_int_ionm, freq_int_lyam, dansdz, J_alpha_tot, curr_xalpha)
 #endif
@@ -1662,9 +1666,8 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
           Xheat_threads[omp_get_thread_num()] += dansdz[3];
           Xion_threads[omp_get_thread_num()] += dansdz[4];
 #ifdef INHOMO_FEEDBACK
-          J_LW_tot = dansdz[5]; 
-          J_21_LW[box_ct] = J_LW_tot;
-          J_LW_threads[omp_get_thread_num()] += J_LW_tot;
+          J_21_LW[box_ct] = dansdz[5];
+          J_LW_threads[omp_get_thread_num()] += dansdz[5];
 #endif
         }
       }
