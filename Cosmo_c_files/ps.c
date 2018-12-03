@@ -89,7 +89,7 @@ static gsl_spline *NionLow_splinem;
 
 void initialiseGL_Nion(int n, float M_Min, float M_Max);
 #ifdef INHOMO_FEEDBACK
-void Nion_Spline_density(float Overdensity, float M_MINa, float *splined_value);
+void Nion_Spline_density(float Overdensity, float log10_M_MINa, float *splined_value);
 void initialise_Nion_spline(float z, float Mmax, float Mmin, float MMinTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc);
 #else //INHOMO_FEEDBACK
 void Nion_Spline_density(float Overdensity, float *splined_value);
@@ -2051,7 +2051,7 @@ void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, 
 
 // Find the number of IGM ionizing photons per baryon at a given overdensity using interpolation.
 #ifdef INHOMO_FEEDBACK
-void Nion_Spline_density(float Overdensity, float M_MINa, float *splined_value)
+void Nion_Spline_density(float Overdensity, float log10_M_MINa, float *splined_value)
 #else //INHOMO_FEEDBACK
 void Nion_Spline_density(float Overdensity, float *splined_value)
 #endif //INHOMO_FEEDBACK
@@ -2065,11 +2065,11 @@ void Nion_Spline_density(float Overdensity, float *splined_value)
         }
         else {
 #ifdef INHOMO_FEEDBACK
-            if (M_MINa>1e10)
+            if (log10_M_MINa>10)
               returned_value = gsl_spline2d_eval(NionLow_spline, log10(Overdensity+1.), 10, NionLow_spline_acc, NionLow_spline_acc_Mturn);
 
             else
-              returned_value = gsl_spline2d_eval(NionLow_spline, log10(Overdensity+1.), log10(M_MINa), NionLow_spline_acc, NionLow_spline_acc_Mturn);
+              returned_value = gsl_spline2d_eval(NionLow_spline, log10(Overdensity+1.), log10_M_MINa, NionLow_spline_acc, NionLow_spline_acc_Mturn);
 #else //INHOMO_FEEDBACK
             returned_value = gsl_spline_eval(NionLow_spline, log10(Overdensity+1.), NionLow_spline_acc);
 #endif //INHOMO_FEEDBACK
@@ -2082,10 +2082,10 @@ void Nion_Spline_density(float Overdensity, float *splined_value)
         // However, such densities should always be collapsed, so just set f_coll to unity. 
         // Additionally, the fraction of points in this regime relative to the entire simulation volume is extremely small.
 #ifdef INHOMO_FEEDBACK
-          if (M_MINa>1e10) 
+          if (log10_M_MINa>10) 
             splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFR_float,Nion_spline,second_derivs_Nion,NSFR_high,NMTURN,Overdensity,10,&(returned_value));
           else
-            splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFR_float,Nion_spline,second_derivs_Nion,NSFR_high,NMTURN,Overdensity,log10(M_MINa),&(returned_value));
+            splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFR_float,Nion_spline,second_derivs_Nion,NSFR_high,NMTURN,Overdensity,log10_M_MINa,&(returned_value));
 #else //INHOMO_FEEDBACK
           splint(Overdense_spline_SFR-1,Nion_spline-1,second_derivs_Nion-1,NSFR_high,Overdensity,&(returned_value));
 #endif //INHOMO_FEEDBACK
@@ -2099,7 +2099,7 @@ void Nion_Spline_density(float Overdensity, float *splined_value)
 }
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-void Nion_Spline_densitym(float Overdensity, float M_MINm, float *splined_value)
+void Nion_Spline_densitym(float Overdensity, float log10_M_MINm, float *splined_value)
 #else //INHOMO_FEEDBACK
 void Nion_Spline_densitym(float Overdensity, float *splined_value)
 #endif //INHOMO_FEEDBACK
@@ -2113,10 +2113,10 @@ void Nion_Spline_densitym(float Overdensity, float *splined_value)
         }
         else {
 #ifdef INHOMO_FEEDBACK
-            if (M_MINm>1e10)
+            if (log10_M_MINm>10)
               returned_value = gsl_spline2d_eval(NionLow_splinem, log10(Overdensity+1.), 10, NionLow_spline_accm, NionLow_spline_accm_Mturn);
             else
-              returned_value = gsl_spline2d_eval(NionLow_splinem, log10(Overdensity+1.), log10(M_MINm), NionLow_spline_accm, NionLow_spline_accm_Mturn);
+              returned_value = gsl_spline2d_eval(NionLow_splinem, log10(Overdensity+1.), log10_M_MINm, NionLow_spline_accm, NionLow_spline_accm_Mturn);
 #else //INHOMO_FEEDBACK
             returned_value = gsl_spline_eval(NionLow_splinem, log10(Overdensity+1.), NionLow_spline_accm);
 #endif //INHOMO_FEEDBACK
@@ -2129,10 +2129,10 @@ void Nion_Spline_densitym(float Overdensity, float *splined_value)
         // However, such densities should always be collapsed, so just set f_coll to unity. 
         // Additionally, the fraction of points in this regime relative to the entire simulation volume is extremely small.
 #ifdef INHOMO_FEEDBACK
-            if (M_MINm>1e10)
+            if (log10_M_MINm>10)
               splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFRm_float,Nion_splinem,second_derivs_Nionm,NSFR_high,NMTURN,Overdensity,10,&(returned_value));
             else
-              splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFRm_float,Nion_splinem,second_derivs_Nionm,NSFR_high,NMTURN,Overdensity,log10(M_MINm),&(returned_value));
+              splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFRm_float,Nion_splinem,second_derivs_Nionm,NSFR_high,NMTURN,Overdensity,log10_M_MINm,&(returned_value));
 #else //INHOMO_FEEDBACK
             splint(Overdense_spline_SFR-1,Nion_splinem-1,second_derivs_Nionm-1,NSFR_high,Overdensity,&(returned_value));
 #endif //INHOMO_FEEDBACK
@@ -2645,7 +2645,7 @@ void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, flo
 
 // Find the number of IGM ionizing photons per baryon at a given overdensity using interpolation.
 #ifdef INHOMO_FEEDBACK
-void DeltaNion_Spline_density(float Overdensity, float M_MINa, float *splined_value)
+void DeltaNion_Spline_density(float Overdensity, float log10_M_MINa, float *splined_value)
 #else //INHOMO_FEEDBACK
 void DeltaNion_Spline_density(float Overdensity, float *splined_value)
 #endif //INHOMO_FEEDBACK
@@ -2658,10 +2658,10 @@ void DeltaNion_Spline_density(float Overdensity, float *splined_value)
         }
         else {
 #ifdef INHOMO_FEEDBACK
-            if (M_MINa>1e10)
+            if (log10_M_MINa>10)
                 returned_value = gsl_spline2d_eval(NionLow_spline, log10(Overdensity+1), 10, NionLow_spline_acc, NionLow_spline_acc_Mturn);
             else
-                returned_value = gsl_spline2d_eval(NionLow_spline, log10(Overdensity+1), log10(M_MINa), NionLow_spline_acc, NionLow_spline_acc_Mturn);
+                returned_value = gsl_spline2d_eval(NionLow_spline, log10(Overdensity+1), log10_M_MINa, NionLow_spline_acc, NionLow_spline_acc_Mturn);
 #else //INHOMO_FEEDBACK
             returned_value = gsl_spline_eval(NionLow_spline, log10(Overdensity+1.), NionLow_spline_acc);
 #endif //INHOMO_FEEDBACK
@@ -2674,10 +2674,10 @@ void DeltaNion_Spline_density(float Overdensity, float *splined_value)
         // However, such densities should always be collapsed, so just set f_coll to unity. 
         // Additionally, the fraction of points in this regime relative to the entire simulation volume is extremely small.
 #ifdef INHOMO_FEEDBACK
-            if (M_MINa>1e10)
+            if (log10_M_MINa>10)
                 splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFR_float,Nion_spline,second_derivs_Nion,NSFR_high,NMTURN,Overdensity,10,&(returned_value));
             else
-                splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFR_float,Nion_spline,second_derivs_Nion,NSFR_high,NMTURN,Overdensity,log10(M_MINa),&(returned_value));
+                splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFR_float,Nion_spline,second_derivs_Nion,NSFR_high,NMTURN,Overdensity,log10_M_MINa,&(returned_value));
 #else //INHOMO_FEEDBACK
             splint(Overdense_spline_SFR-1,Nion_spline-1,second_derivs_Nion-1,NSFR_high,Overdensity,&(returned_value));
 #endif //INHOMO_FEEDBACK
@@ -2691,7 +2691,7 @@ void DeltaNion_Spline_density(float Overdensity, float *splined_value)
 
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-void DeltaNion_Spline_densitym(float Overdensity, float M_MINm, float *splined_value)
+void DeltaNion_Spline_densitym(float Overdensity, float log10_M_MINm, float *splined_value)
 #else //INHOMO_FEEDBACK
 void DeltaNion_Spline_densitym(float Overdensity, float *splined_value)
 #endif //INHOMO_FEEDBACK
@@ -2704,10 +2704,10 @@ void DeltaNion_Spline_densitym(float Overdensity, float *splined_value)
         }
         else {
 #ifdef INHOMO_FEEDBACK
-            if (M_MINm>1e10)
+            if (log10_M_MINm>10)
                 returned_value = gsl_spline2d_eval(NionLow_splinem, log10(Overdensity+1.), 10, NionLow_spline_accm, NionLow_spline_accm_Mturn);
             else
-                returned_value = gsl_spline2d_eval(NionLow_splinem, log10(Overdensity+1.), log10(M_MINm), NionLow_spline_accm, NionLow_spline_accm_Mturn);
+                returned_value = gsl_spline2d_eval(NionLow_splinem, log10(Overdensity+1.), log10_M_MINm, NionLow_spline_accm, NionLow_spline_accm_Mturn);
 #else //INHOMO_FEEDBACK
             returned_value = gsl_spline_eval(NionLow_splinem, log10(Overdensity+1.), NionLow_spline_accm);
 #endif //INHOMO_FEEDBACK
@@ -2720,10 +2720,10 @@ void DeltaNion_Spline_densitym(float Overdensity, float *splined_value)
         // However, such densities should always be collapsed, so just set f_coll to unity. 
         // Additionally, the fraction of points in this regime relative to the entire simulation volume is extremely small.
 #ifdef INHOMO_FEEDBACK
-            if (M_MINm>1e10)
+            if (log10_M_MINm>10)
                 splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFRm_float,Nion_splinem,second_derivs_Nionm,NSFR_high,NMTURN,Overdensity,10,&(returned_value));
             else
-                splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFRm_float,Nion_splinem,second_derivs_Nionm,NSFR_high,NMTURN,Overdensity,log10(M_MINm),&(returned_value));
+                splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFRm_float,Nion_splinem,second_derivs_Nionm,NSFR_high,NMTURN,Overdensity,log10_M_MINm,&(returned_value));
 #else //INHOMO_FEEDBACK
             splint(Overdense_spline_SFR-1,Nion_splinem-1,second_derivs_Nionm-1,NSFR_high,Overdensity,&(returned_value));
 #endif //INHOMO_FEEDBACK

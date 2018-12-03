@@ -439,10 +439,10 @@ int main(int argc, char ** argv){
   float f_coll_crit, pixel_volume,  density_over_mean, erfc_num, erfc_denom, erfc_denom_cell, res_xH, Splined_Fcoll;
   float *xH=NULL, TVIR_MIN, MFP, xHI_from_xrays, std_xrays, *z_re=NULL, *Gamma12=NULL, *mfp=NULL;
 #ifdef INHOMO_FEEDBACK
-  float *J_21_LW=NULL, Mcrit_mol;
-  fftwf_complex *M_MINa_unfiltered=NULL, *M_MINa_filtered=NULL;
-  fftwf_complex *M_MINm_unfiltered=NULL, *M_MINm_filtered=NULL;
-  float log10M_MINa_ave=0., log10M_MINm_ave=0.;
+  float *J_21_LW=NULL, log10_Mcrit_mol, log10_Mcrit_atom;
+  fftwf_complex *log10_M_MINa_unfiltered=NULL, *log10_M_MINa_filtered=NULL;
+  fftwf_complex *log10_M_MINm_unfiltered=NULL, *log10_M_MINm_filtered=NULL;
+  float log10_M_MINa_ave=0., log10_M_MINm_ave=0.;
 #endif 
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
   float *Fcoll_prev=NULL, *Fcollm_prev=NULL;
@@ -461,11 +461,12 @@ int main(int argc, char ** argv){
   float nua, dnua, temparg, Gamma_R, z_eff;
   float F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, Mlim_Fstar, Mlim_Fesc; //New in v2
 #ifdef MINI_HALO
-  float F_STAR10m, F_ESC10m, Mlim_Fstarm, ION_EFF_FACTOR_MINI,M_MINm, M_MINa, Splined_Fcollm, dfcolldtm,Gamma_R_prefactorm,ST_over_PSm,f_collm, Mcrit_atom;
+  float F_STAR10m, F_ESC10m, Mlim_Fstarm, ION_EFF_FACTOR_MINI,Splined_Fcollm, dfcolldtm,Gamma_R_prefactorm,ST_over_PSm,f_collm, Mcrit_atom;
   double mean_f_collm_st; //New in v2.1
   double X_LUMINOSITYm;
+  double  M_MINm, M_MINa;
 #ifdef INHOMO_FEEDBACK 
-  fftwf_complex *Mcrit_LW, *Mcrit_RE;
+  fftwf_complex *Mcrit_LW, *Mcrit_RE, log10_M_MINa, log10_M_MINm;
 #else
   float Mcrit_LW, Mcrit_RE;
 #endif
@@ -692,21 +693,22 @@ int main(int argc, char ** argv){
   Mcrit_atom          = atomic_cooling_threshold(REDSHIFT);
 #ifdef INHOMO_FEEDBACK
   // NOTE: Mcrit_atom  and Mcrit_mol are both at REDSHIFT not PREV_REDSHIFT!!!
-  Mcrit_mol         = lyman_werner_threshold(REDSHIFT, 0.);
-  Mcrit_RE          = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
-  Mcrit_LW          = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
-  M_MINa_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
-  M_MINa_filtered   = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
-  M_MINm_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
-  M_MINm_filtered   = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
-  if (!M_MINa_unfiltered || !M_MINa_filtered || !M_MINm_unfiltered || !M_MINm_filtered || !Mcrit_RE || !Mcrit_LW){
+  log10_Mcrit_atom = log10(Mcrit_atom);
+  log10_Mcrit_mol  = log10(lyman_werner_threshold(REDSHIFT, 0.));
+  Mcrit_RE  = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  Mcrit_LW  = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  log10_M_MINa_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  log10_M_MINa_filtered   = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  log10_M_MINm_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  log10_M_MINm_filtered   = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  if (!log10_M_MINa_unfiltered || !log10_M_MINa_filtered || !log10_M_MINm_unfiltered || !log10_M_MINm_filtered || !Mcrit_RE || !Mcrit_LW){
     strcpy(error_message, "find_HII_bubbles.c: Error allocating memory for M_MINa or M_MINm boxes\nAborting...\n");
     goto CLEANUP;
   }
   fprintf(stderr, "Calculating and outputting M_MIN boxes for atomic and molecular halos...");
   fprintf(LOG, "Calculating and outputting M_MIN boxes for atomic and molecular halos...");
   // use the average for check dark ages and do the ST/PS renormalization
-#pragma omp parallel shared(REDSHIFT,J_21_LW, Gamma12, z_re, M_MINa_unfiltered, M_MINm_unfiltered,Mcrit_atom,Mcrit_LW,Mcrit_RE) private(M_MINa, M_MINm,x,y,z) reduction(+: log10M_MINa_ave, log10M_MINm_ave)
+#pragma omp parallel shared(REDSHIFT,J_21_LW, Gamma12, z_re, log10_M_MINa_unfiltered, log10_M_MINm_unfiltered,Mcrit_atom,Mcrit_LW,Mcrit_RE) private(M_MINa, M_MINm,log10_M_MINa,log10_M_MINm,x,y,z) reduction(+: log10_M_MINa_ave, log10_M_MINm_ave)
 {
 #pragma omp for
   for (x=0; x<HII_DIM; x++){
@@ -716,21 +718,23 @@ int main(int argc, char ** argv){
         *((float *)Mcrit_LW + HII_R_FFT_INDEX(x,y,z)) = lyman_werner_threshold(REDSHIFT, J_21_LW[HII_R_INDEX(x, y, z)]);
         M_MINa   = *((float *)Mcrit_RE + HII_R_FFT_INDEX(x,y,z)) > Mcrit_atom                                    ? *((float *)Mcrit_RE + HII_R_FFT_INDEX(x,y,z)) : Mcrit_atom;
         M_MINm   = *((float *)Mcrit_RE + HII_R_FFT_INDEX(x,y,z)) > *((float *)Mcrit_LW + HII_R_FFT_INDEX(x,y,z)) ? *((float *)Mcrit_RE + HII_R_FFT_INDEX(x,y,z)) : *((float *)Mcrit_LW + HII_R_FFT_INDEX(x,y,z)) ;
+		log10_M_MINa   = log10(M_MINa);
+		log10_M_MINm   = log10(M_MINm);
 
-        *((float *)M_MINa_unfiltered + HII_R_FFT_INDEX(x,y,z)) = M_MINa;
-        *((float *)M_MINm_unfiltered + HII_R_FFT_INDEX(x,y,z)) = M_MINm;
+        *((float *)log10_M_MINa_unfiltered + HII_R_FFT_INDEX(x,y,z)) = log10_M_MINa;
+        *((float *)log10_M_MINm_unfiltered + HII_R_FFT_INDEX(x,y,z)) = log10_M_MINm;
 
-        log10M_MINa_ave += log10(M_MINa);
-        log10M_MINm_ave += log10(M_MINm);
+        log10_M_MINa_ave += log10_M_MINa;
+        log10_M_MINm_ave += log10_M_MINm;
       }
     }
   }
 }
 
-  log10M_MINa_ave /= HII_TOT_NUM_PIXELS;
-  log10M_MINm_ave /= HII_TOT_NUM_PIXELS;
-  M_MINa      = pow(10., log10M_MINa_ave);
-  M_MINm      = pow(10., log10M_MINm_ave);
+  log10_M_MINa_ave /= HII_TOT_NUM_PIXELS;
+  log10_M_MINm_ave /= HII_TOT_NUM_PIXELS;
+  M_MINa      = pow(10., log10_M_MINa_ave);
+  M_MINm      = pow(10., log10_M_MINm_ave);
   M_MIN       = 1e5;
 
   // Output M_MIN boxes for post checking
@@ -1302,9 +1306,9 @@ int main(int argc, char ** argv){
   fprintf(LOG, "begin initial ffts, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
   fflush(LOG);
 #ifdef INHOMO_FEEDBACK
-  plan = fftwf_plan_dft_r2c_3d(HII_DIM, HII_DIM, HII_DIM, (float *)M_MINa_unfiltered, (fftwf_complex *)M_MINa_unfiltered, FFTW_ESTIMATE);
+  plan = fftwf_plan_dft_r2c_3d(HII_DIM, HII_DIM, HII_DIM, (float *)log10_M_MINa_unfiltered, (fftwf_complex *)log10_M_MINa_unfiltered, FFTW_ESTIMATE);
   fftwf_execute(plan);
-  plan = fftwf_plan_dft_r2c_3d(HII_DIM, HII_DIM, HII_DIM, (float *)M_MINm_unfiltered, (fftwf_complex *)M_MINm_unfiltered, FFTW_ESTIMATE);
+  plan = fftwf_plan_dft_r2c_3d(HII_DIM, HII_DIM, HII_DIM, (float *)log10_M_MINm_unfiltered, (fftwf_complex *)log10_M_MINm_unfiltered, FFTW_ESTIMATE);
   fftwf_execute(plan);
 #endif //INHOMO_FEEDBACK
 #ifdef USE_HALO_FIELD
@@ -1328,12 +1332,12 @@ int main(int argc, char ** argv){
   //  real space to k-space
   // Note: we will leave off factor of VOLUME, in anticipation of the inverse FFT below
 #ifdef INHOMO_FEEDBACK
-#pragma omp parallel shared(M_MINa_unfiltered, M_MINm_unfiltered) private(ct)
+#pragma omp parallel shared(log10_M_MINa_unfiltered, log10_M_MINm_unfiltered) private(ct)
 {
 #pragma omp for
   for (ct=0; ct<HII_KSPACE_NUM_PIXELS; ct++){
-    M_MINa_unfiltered[ct] /= (double)HII_TOT_NUM_PIXELS;
-    M_MINm_unfiltered[ct] /= (double)HII_TOT_NUM_PIXELS;
+    log10_M_MINa_unfiltered[ct] /= (double)HII_TOT_NUM_PIXELS;
+    log10_M_MINm_unfiltered[ct] /= (double)HII_TOT_NUM_PIXELS;
   }
 }
 #endif //INHOMO_FEEDBACK
@@ -1381,10 +1385,10 @@ int main(int argc, char ** argv){
       fftwf_free(Gamma12);
 #ifdef INHOMO_FEEDBACK 
       fftwf_free(J_21_LW);
-      fftwf_free(M_MINa_unfiltered);
-      fftwf_free(M_MINa_filtered);
-      fftwf_free(M_MINm_unfiltered);
-      fftwf_free(M_MINm_filtered);
+      fftwf_free(log10_M_MINa_unfiltered);
+      fftwf_free(log10_M_MINa_filtered);
+      fftwf_free(log10_M_MINm_unfiltered);
+      fftwf_free(log10_M_MINm_filtered);
 #endif
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
       free(Fcoll_prev);
@@ -1443,8 +1447,8 @@ int main(int argc, char ** argv){
     fprintf(LOG, "begin memcpy, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
 #ifdef INHOMO_FEEDBACK
-    memcpy(M_MINa_filtered, M_MINa_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
-    memcpy(M_MINm_filtered, M_MINm_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+    memcpy(log10_M_MINa_filtered, log10_M_MINa_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+    memcpy(log10_M_MINm_filtered, log10_M_MINm_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
 #endif //INHOMO_FEEDBACK
 #ifdef USE_HALO_FIELD
     memcpy(M_coll_filtered, M_coll_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
@@ -1466,8 +1470,8 @@ int main(int argc, char ** argv){
       fprintf(LOG, "begin filter, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
       fflush(LOG);
 #ifdef INHOMO_FEEDBACK
-      HII_filter(M_MINa_filtered, HII_FILTER, R);
-      HII_filter(M_MINm_filtered, HII_FILTER, R);
+      HII_filter(log10_M_MINa_filtered, HII_FILTER, R);
+      HII_filter(log10_M_MINm_filtered, HII_FILTER, R);
 #endif //INHOMO_FEEDBACK
 #ifdef USE_HALO_FIELD
       HII_filter(M_coll_filtered, HII_FILTER, R);
@@ -1489,9 +1493,9 @@ int main(int argc, char ** argv){
     fprintf(LOG, "begin fft, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
 #ifdef INHOMO_FEEDBACK
-    plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)M_MINa_filtered, (float *)M_MINa_filtered, FFTW_ESTIMATE);
+    plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)log10_M_MINa_filtered, (float *)log10_M_MINa_filtered, FFTW_ESTIMATE);
     fftwf_execute(plan);
-    plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)M_MINm_filtered, (float *)M_MINm_filtered, FFTW_ESTIMATE);
+    plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)log10_M_MINm_filtered, (float *)log10_M_MINm_filtered, FFTW_ESTIMATE);
     fftwf_execute(plan);
 #endif //INHOMO_FEEDBACK
 #ifdef USE_HALO_FIELD
@@ -1545,22 +1549,22 @@ int main(int argc, char ** argv){
 #endif //INHOMO_RECO
         
 #ifdef INHOMO_FEEDBACK
-#pragma omp parallel shared(M_MINa_filtered, M_MINm_filtered) private(x, y, z)
+#pragma omp parallel shared(log10_M_MINa_filtered, log10_M_MINm_filtered) private(x, y, z)
 {
 #pragma omp for
     for (x=0; x<HII_DIM; x++){
       for (y=0; y<HII_DIM; y++){
         for (z=0; z<HII_DIM; z++){
           // M_MINa cannot be less than Mcrit_atom
-          if (*((float *)M_MINa_filtered + HII_R_FFT_INDEX(x,y,z)) < Mcrit_atom)
-            *((float *)M_MINa_filtered + HII_R_FFT_INDEX(x,y,z)) = Mcrit_atom;
-          if (*((float *)M_MINa_filtered + HII_R_FFT_INDEX(x,y,z)) > 1e10)
-            *((float *)M_MINa_filtered + HII_R_FFT_INDEX(x,y,z)) = 1e10;
+          if (*((float *)log10_M_MINa_filtered + HII_R_FFT_INDEX(x,y,z)) < log10_Mcrit_atom)
+            *((float *)log10_M_MINa_filtered + HII_R_FFT_INDEX(x,y,z)) = log10_Mcrit_atom;
+          if (*((float *)log10_M_MINa_filtered + HII_R_FFT_INDEX(x,y,z)) > 10)
+            *((float *)log10_M_MINa_filtered + HII_R_FFT_INDEX(x,y,z)) = 10;
           // M_MINa cannot be less than Mcrit_mol
-          if (*((float *)M_MINm_filtered + HII_R_FFT_INDEX(x,y,z)) < Mcrit_mol)
-            *((float *)M_MINm_filtered + HII_R_FFT_INDEX(x,y,z))  = Mcrit_mol;
-          if (*((float *)M_MINm_filtered + HII_R_FFT_INDEX(x,y,z)) > 1e10)
-            *((float *)M_MINm_filtered + HII_R_FFT_INDEX(x,y,z)) = 1e10;
+          if (*((float *)log10_M_MINm_filtered + HII_R_FFT_INDEX(x,y,z)) < log10_Mcrit_mol)
+            *((float *)log10_M_MINm_filtered + HII_R_FFT_INDEX(x,y,z))  = log10_Mcrit_mol;
+          if (*((float *)log10_M_MINm_filtered + HII_R_FFT_INDEX(x,y,z)) > 10)
+            *((float *)log10_M_MINm_filtered + HII_R_FFT_INDEX(x,y,z)) = 10;
         }
       }
     }
@@ -1659,13 +1663,13 @@ int main(int argc, char ** argv){
 #else
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
 #ifdef INHOMO_FEEDBACK
-#pragma omp parallel shared(deltax_filtered,  REDSHIFT, flag_first_reionization, Fcoll, Fcollm, Fcoll_prev, Fcollm_prev, M_MINa_filtered, M_MINm_filtered) private(x,y,z, density_over_mean, M_MINa, M_MINm, Splined_Fcoll, Splined_Fcollm) reduction(+:f_coll, f_collm)
+#pragma omp parallel shared(deltax_filtered,  REDSHIFT, flag_first_reionization, Fcoll, Fcollm, Fcoll_prev, Fcollm_prev, log10_M_MINa_filtered, log10_M_MINm_filtered) private(x,y,z, density_over_mean, log10_M_MINa, log10_M_MINm, Splined_Fcoll, Splined_Fcollm) reduction(+:f_coll, f_collm)
 #else
 #pragma omp parallel shared(deltax_filtered,  flag_first_reionization, Fcoll, Fcollm) private(x,y,z, density_over_mean, Splined_Fcoll, Splined_Fcollm) reduction(+:f_coll, f_collm)
 #endif
 #else//CONTEMPORANEOUS_DUTYCYCLE
 #ifdef INHOMO_FEEDBACK
-#pragma omp parallel shared(deltax_filtered,  REDSHIFT, Fcoll, Fcollm, M_MINa_filtered, M_MINm_filtered) private(x,y,z, density_over_mean, M_MINa, M_MINm, Splined_Fcoll, Splined_Fcollm) reduction(+:f_coll, f_collm)
+#pragma omp parallel shared(deltax_filtered,  REDSHIFT, Fcoll, Fcollm, log10_M_MINa_filtered, log10_M_MINm_filtered) private(x,y,z, density_over_mean, log10_M_MINa, log10_M_MINm, Splined_Fcoll, Splined_Fcollm) reduction(+:f_coll, f_collm)
 #else
 #ifdef MINI_HALO
 #pragma omp parallel shared(deltax_filtered,  Fcoll, Fcollm) private(x,y,z, density_over_mean, Splined_Fcoll, Splined_Fcollm) reduction(+:f_coll, f_collm)
@@ -1697,16 +1701,16 @@ int main(int argc, char ** argv){
             // unless it's the highest redshift then it's the same as ifndef CONTEMPORANEOUS_DUTYCYCLE
             // see ...
 #ifdef INHOMO_FEEDBACK
-            M_MINa = *((float *)M_MINa_filtered + HII_R_FFT_INDEX(x,y,z));
-            M_MINm = *((float *)M_MINm_filtered + HII_R_FFT_INDEX(x,y,z));
+            log10_M_MINa = *((float *)log10_M_MINa_filtered + HII_R_FFT_INDEX(x,y,z));
+            log10_M_MINm = *((float *)log10_M_MINm_filtered + HII_R_FFT_INDEX(x,y,z));
             if (flag_first_reionization == 0){
               // it's Splined value anymore, otherwise it's taking forever!
-              DeltaNion_Spline_density(density_over_mean - 1, M_MINa, &(Splined_Fcoll));
-              DeltaNion_Spline_densitym(density_over_mean - 1, M_MINm, &(Splined_Fcollm));
+              DeltaNion_Spline_density(density_over_mean - 1, log10_M_MINa, &(Splined_Fcoll));
+              DeltaNion_Spline_densitym(density_over_mean - 1, log10_M_MINm, &(Splined_Fcollm));
             }
             else{
-              Nion_Spline_density(density_over_mean - 1, M_MINa, &(Splined_Fcoll));
-              Nion_Spline_densitym(density_over_mean - 1, M_MINm, &(Splined_Fcollm));
+              Nion_Spline_density(density_over_mean - 1, log10_M_MINa, &(Splined_Fcoll));
+              Nion_Spline_densitym(density_over_mean - 1, log10_M_MINm, &(Splined_Fcollm));
             }
 #else //INHOMO_FEEDBACK
             if (flag_first_reionization == 0){
@@ -1723,11 +1727,11 @@ int main(int argc, char ** argv){
             // f_coll * ION_EFF_FACTOR = the number of IGM ionizing photon per baryon at a given overdensity.
             // see eq. (17) in Park et al. 2018
 #ifdef INHOMO_FEEDBACK
-            M_MINa = *((float *)M_MINa_filtered + HII_R_FFT_INDEX(x,y,z));
-            M_MINm = *((float *)M_MINm_filtered + HII_R_FFT_INDEX(x,y,z));
+            log10_M_MINa = *((float *)log10_M_MINa_filtered + HII_R_FFT_INDEX(x,y,z));
+            log10_M_MINm = *((float *)log10_M_MINm_filtered + HII_R_FFT_INDEX(x,y,z));
 
-            Nion_Spline_density(density_over_mean - 1, M_MINa, &(Splined_Fcoll));
-            Nion_Spline_densitym(density_over_mean - 1, M_MINm, &(Splined_Fcollm));
+            Nion_Spline_density(density_over_mean - 1, log10_M_MINa, &(Splined_Fcoll));
+            Nion_Spline_densitym(density_over_mean - 1, log10_M_MINm, &(Splined_Fcollm));
 #else //INHOMO_FEEDBACK
             Nion_Spline_density(density_over_mean - 1,&(Splined_Fcoll));
 #ifdef MINI_HALO
@@ -2225,10 +2229,10 @@ int main(int argc, char ** argv){
   fftwf_free(Gamma12);
 #ifdef INHOMO_FEEDBACK 
   fftwf_free(J_21_LW);
-  fftwf_free(M_MINa_unfiltered);
-  fftwf_free(M_MINa_filtered);
-  fftwf_free(M_MINm_unfiltered);
-  fftwf_free(M_MINm_filtered);
+  fftwf_free(log10_M_MINa_unfiltered);
+  fftwf_free(log10_M_MINa_filtered);
+  fftwf_free(log10_M_MINm_unfiltered);
+  fftwf_free(log10_M_MINm_filtered);
 #endif
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
   free(Fcoll_prev);
