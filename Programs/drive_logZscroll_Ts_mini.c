@@ -51,7 +51,7 @@ int main(int argc, char ** argv){
 #ifdef INHOMO_FEEDBACK
   system("rm ../Boxes/J_21_LW*");
   system("rm ../Boxes/Nion*");
-  system("rm ../Boxes/M_MIN*");
+  system("rm ../Boxes/Mcrit*");
 #endif
   system("rm ../Output_files/Deldel_T_power_spec/*");  
 
