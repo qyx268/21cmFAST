@@ -467,10 +467,10 @@ int main(int argc, char ** argv){
   double mean_f_collm_st; //New in v2.1
   double X_LUMINOSITYm;
   double  M_MINm, M_MINa;
-#ifdef INHOMO_FEEDBACK 
-  fftwf_complex *Mcrit_LW, *Mcrit_RE, log10_M_MINa, log10_M_MINm;
-#else
   float Mcrit_LW, Mcrit_RE;
+#ifdef INHOMO_FEEDBACK 
+  fftwf_complex *Mcrit_LW_grid, *Mcrit_RE_grid;
+  float log10_M_MINa, log10_M_MINm;
 #endif
 #ifdef REION_SM
   double REION_SM13_Z_RE, REION_SM13_DELTA_Z_RE, REION_SM13_DELTA_Z_SC;
@@ -697,29 +697,33 @@ int main(int argc, char ** argv){
   // NOTE: Mcrit_atom  and Mcrit_mol are both at REDSHIFT not PREV_REDSHIFT!!!
   log10_Mcrit_atom = log10(Mcrit_atom);
   log10_Mcrit_mol  = log10(lyman_werner_threshold(REDSHIFT, 0.));
-  Mcrit_RE  = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
-  Mcrit_LW  = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  Mcrit_RE_grid    = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  Mcrit_LW_grid    = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
   log10_M_MINa_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
   log10_M_MINa_filtered   = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
   log10_M_MINm_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
   log10_M_MINm_filtered   = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
-  if (!log10_M_MINa_unfiltered || !log10_M_MINa_filtered || !log10_M_MINm_unfiltered || !log10_M_MINm_filtered || !Mcrit_RE || !Mcrit_LW){
+  if (!log10_M_MINa_unfiltered || !log10_M_MINa_filtered || !log10_M_MINm_unfiltered || !log10_M_MINm_filtered || !Mcrit_RE_grid || !Mcrit_LW_grid){
     strcpy(error_message, "find_HII_bubbles.c: Error allocating memory for M_MINa or M_MINm boxes\nAborting...\n");
     goto CLEANUP;
   }
-  fprintf(stderr, "Calculating and outputting M_MIN boxes for atomic and molecular halos...");
-  fprintf(LOG, "Calculating and outputting M_MIN boxes for atomic and molecular halos...");
+  fprintf(stderr, "Calculating and outputting Mcrit boxes for atomic and molecular halos...");
+  fprintf(LOG, "Calculating and outputting Mcrit boxes for atomic and molecular halos...");
   // use the average for check dark ages and do the ST/PS renormalization
-#pragma omp parallel shared(REDSHIFT,J_21_LW, Gamma12, z_re, log10_M_MINa_unfiltered, log10_M_MINm_unfiltered,Mcrit_atom,Mcrit_LW,Mcrit_RE) private(M_MINa, M_MINm,log10_M_MINa,log10_M_MINm,x,y,z) reduction(+: log10_M_MINa_ave, log10_M_MINm_ave)
+#pragma omp parallel shared(REDSHIFT,J_21_LW, Gamma12, z_re, log10_M_MINa_unfiltered, log10_M_MINm_unfiltered,Mcrit_atom,Mcrit_LW_grid,Mcrit_RE_grid) private(M_MINa, M_MINm,log10_M_MINa,log10_M_MINm,x,y,z,Mcrit_LW, Mcrit_RE) reduction(+: log10_M_MINa_ave, log10_M_MINm_ave)
 {
 #pragma omp for
   for (x=0; x<HII_DIM; x++){
     for (y=0; y<HII_DIM; y++){
       for (z=0; z<HII_DIM; z++){
-        *((float *)Mcrit_RE + HII_R_FFT_INDEX(x,y,z)) = reionization_feedback(REDSHIFT, Gamma12[HII_R_INDEX(x, y, z)], z_re[HII_R_INDEX(x, y, z)]);
-        *((float *)Mcrit_LW + HII_R_FFT_INDEX(x,y,z)) = lyman_werner_threshold(REDSHIFT, J_21_LW[HII_R_INDEX(x, y, z)]);
-        M_MINa   = *((float *)Mcrit_RE + HII_R_FFT_INDEX(x,y,z)) > Mcrit_atom                                    ? *((float *)Mcrit_RE + HII_R_FFT_INDEX(x,y,z)) : Mcrit_atom;
-        M_MINm   = *((float *)Mcrit_RE + HII_R_FFT_INDEX(x,y,z)) > *((float *)Mcrit_LW + HII_R_FFT_INDEX(x,y,z)) ? *((float *)Mcrit_RE + HII_R_FFT_INDEX(x,y,z)) : *((float *)Mcrit_LW + HII_R_FFT_INDEX(x,y,z));
+
+		Mcrit_RE = reionization_feedback(REDSHIFT, Gamma12[HII_R_INDEX(x, y, z)], z_re[HII_R_INDEX(x, y, z)]);
+		Mcrit_LW = lyman_werner_threshold(REDSHIFT, J_21_LW[HII_R_INDEX(x, y, z)]);
+
+        *((float *)Mcrit_RE_grid + HII_R_FFT_INDEX(x,y,z)) = Mcrit_RE;
+        *((float *)Mcrit_LW_grid + HII_R_FFT_INDEX(x,y,z)) = Mcrit_LW;
+        M_MINa   = Mcrit_RE > Mcrit_atom ? Mcrit_RE : Mcrit_atom;
+        M_MINm   = Mcrit_RE > Mcrit_LW   ? Mcrit_RE : Mcrit_LW;
 		log10_M_MINa   = log10(M_MINa);
 		log10_M_MINm   = log10(M_MINm);
 
@@ -749,7 +753,7 @@ int main(int argc, char ** argv){
     for (i=0; i<HII_DIM; i++){
       for (j=0; j<HII_DIM; j++){
         for (k=0; k<HII_DIM; k++){
-          if(fwrite((float *)Mcrit_RE + HII_R_FFT_INDEX(i,j,k), sizeof(float), 1, F)!=1){
+          if(fwrite((float *)Mcrit_RE_grid + HII_R_FFT_INDEX(i,j,k), sizeof(float), 1, F)!=1){
             sprintf(error_message, "find_HII_bubbles.c: Write error occured while writting Mcrit_RE box.\n");
             goto CLEANUP;
           }
@@ -768,7 +772,7 @@ int main(int argc, char ** argv){
     for (i=0; i<HII_DIM; i++){
       for (j=0; j<HII_DIM; j++){
         for (k=0; k<HII_DIM; k++){
-          if(fwrite((float *)Mcrit_LW + HII_R_FFT_INDEX(i,j,k), sizeof(float), 1, F)!=1){
+          if(fwrite((float *)Mcrit_LW_grid + HII_R_FFT_INDEX(i,j,k), sizeof(float), 1, F)!=1){
             sprintf(error_message, "find_HII_bubbles.c: Write error occured while writting Mcrit_LW box.\n");
             goto CLEANUP;
           }
@@ -1696,7 +1700,7 @@ int main(int argc, char ** argv){
     if (flag_first_reionization == 0){
 #ifdef INHOMO_FEEDBACK
       initialise_DeltaNion_spline(REDSHIFT, PREV_REDSHIFT, massofscaleR,M_MIN,Mcrit_atom,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
-      initialise_DeltaNion_splinem(REDSHIFT, PREV_REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,lyman_werner_threshold(REDSHIFT,0),Mcrit_atom,F_STAR10m,Mlim_Fstarm);
+      initialise_DeltaNion_splinem(REDSHIFT, PREV_REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,log10_Mcrit_mol,Mcrit_atom,F_STAR10m,Mlim_Fstarm);
 #else //INHOMO_FEEDBACK
       initialise_DeltaNion_spline(REDSHIFT, PREV_REDSHIFT, massofscaleR,M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
       initialise_DeltaNion_splinem(REDSHIFT, PREV_REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,M_MINm,Mcrit_atom,F_STAR10m,Mlim_Fstarm);
@@ -1706,7 +1710,7 @@ int main(int argc, char ** argv){
       // so we calculation Nion instead of Delta Nion
 #ifdef INHOMO_FEEDBACK
       initialise_Nion_spline(REDSHIFT, massofscaleR,M_MIN,Mcrit_atom,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
-      initialise_Nion_splinem(REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,lyman_werner_threshold(REDSHIFT,0),Mcrit_atom,F_STAR10m,Mlim_Fstarm);
+      initialise_Nion_splinem(REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,log10_Mcrit_mol,Mcrit_atom,F_STAR10m,Mlim_Fstarm);
 #else //INHOMO_FEEDBACK
       initialise_Nion_spline(REDSHIFT, massofscaleR,M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
       initialise_Nion_splinem(REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,M_MINm,Mcrit_atom,F_STAR10m,Mlim_Fstarm);
@@ -1716,7 +1720,7 @@ int main(int argc, char ** argv){
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
     initialise_Nion_spline(REDSHIFT, massofscaleR,M_MIN,Mcrit_atom,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
-    initialise_Nion_splinem(REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,lyman_werner_threshold(REDSHIFT,0),Mcrit_atom,F_STAR10m,Mlim_Fstarm);
+    initialise_Nion_splinem(REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,log10_Mcrit_mol,Mcrit_atom,F_STAR10m,Mlim_Fstarm);
 #else //INHOMO_FEEDBACK
     initialise_Nion_spline(REDSHIFT, massofscaleR,M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
     initialise_Nion_splinem(REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,M_MINm,Mcrit_atom,F_STAR10m,Mlim_Fstarm);

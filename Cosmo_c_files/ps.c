@@ -1960,7 +1960,7 @@ void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover,
 
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, float MminTurnoverm, float Mcrit_atom, float Fstar10m, float Mlim_Fstarm)
+void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, float log10_MminTurnoverm, float Mcrit_atom, float Fstar10m, float Mlim_Fstarm)
 #else //INHOMO_FEEDBACK
 void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, float MassTurnoverm, float Mcrit_atom, float Fstar10m, float Mlim_Fstarm)
 #endif //INHOMO_FEEDBACK
@@ -1973,7 +1973,7 @@ void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, 
 #ifdef INHOMO_FEEDBACK
     double MassTurnoverm;
     double LogMassTurnover_high = 10. + 9e-8;
-    double LogMassTurnover_low = log10(MminTurnoverm) - 9e-8;
+    double LogMassTurnover_low = log10_MminTurnoverm - 9e-8;
 
     int j;
     NionLow_spline_accm_Mturn = gsl_interp_accel_alloc ();
@@ -2553,7 +2553,7 @@ void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, floa
 
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, float Alpha_star, float MminTurnoverm, float Mcrit_atom, float Fstar10m, float Mlim_Fstarm)
+void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, float Alpha_star, float log10_MminTurnoverm, float Mcrit_atom, float Fstar10m, float Mlim_Fstarm)
 #else //INHOMO_FEEDBACK    
 void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, float Alpha_star, float MassTurnoverm, float Mcrit_atom, float Fstar10m, float Mlim_Fstarm)
 #endif //INHOMO_FEEDBACK
@@ -2566,7 +2566,7 @@ void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, flo
 #ifdef INHOMO_FEEDBACK
     double MassTurnoverm;
     double LogMassTurnover_high = 10. + 9e-8;
-    double LogMassTurnover_low = log10(MminTurnoverm) - 9e-8;
+    double LogMassTurnover_low = log10_MminTurnoverm - 9e-8;
 
     int j;
     NionLow_spline_accm_Mturn = gsl_interp_accel_alloc ();
