@@ -212,8 +212,8 @@ int main(int argc, char ** argv){
   double nuprime, fcoll_R, Ts_ave;
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-  float *J_21_LW=NULL, logMcrit_LW, *Mcrit_LW, Mcrit_mol;
-  fftwf_complex *Mcrit_LW_unfiltered=NULL, *Mcrit_LW_filtered=NULL;
+  float *J_21_LW=NULL, *log10_Mcrit_LW, log10_Mcrit_mol;
+  fftwf_complex *log10_Mcrit_LW_unfiltered=NULL, *log10_Mcrit_LW_filtered=NULL;
 #endif
   double fcollm_R;
 #ifdef REION_SM
@@ -664,10 +664,10 @@ int main(int argc, char ** argv){
 
 #ifdef INHOMO_FEEDBACK
   J_21_LW  = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);
-  Mcrit_LW = (float *) malloc(sizeof(float)*HII_TOT_NUM_PIXELS);
-  Mcrit_LW_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
-  Mcrit_LW_filtered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
-  if (!Mcrit_LW_unfiltered || !Mcrit_LW_filtered || !J_21_LW || !Mcrit_LW){
+  log10_Mcrit_LW = (float *) malloc(sizeof(float)*HII_TOT_NUM_PIXELS);
+  log10_Mcrit_LW_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  log10_Mcrit_LW_filtered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  if (!log10_Mcrit_LW_unfiltered || !log10_Mcrit_LW_filtered || !J_21_LW || !log10_Mcrit_LW){
     fprintf(stderr, "Ts.c: Error allocating memory for feedback boxes\nAborting...\n");
     return -1;
   }
@@ -1141,7 +1141,7 @@ int main(int argc, char ** argv){
     Nion_ST_z(zp,&(Splined_Nion_ST_zp));
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-    Mcrit_mol = lyman_werner_threshold(zp, 0.);
+    log10_Mcrit_mol = log10(lyman_werner_threshold(zp, 0.));
     sprintf(filename, "../Boxes/J_21_LW_z%06.2f_L_X%.1e_alphaX%.1f_f_star%06.4f_alpha_star%06.4f_f_esc%06.4f_alpha_esc%06.4f_t_star%06.4f_f_star10m%06.4f_f_esc10m%06.4f_L_Xm%.1e_alphaXm%.1f_%i_%.0fMpc", prev_zp, X_LUMINOSITY, X_RAY_SPEC_INDEX, F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, T_AST, F_STAR10m, F_ESC10m, X_LUMINOSITYm, X_RAY_SPEC_INDEX_MINI, HII_DIM, BOX_LEN); 
     if (F=fopen(filename, "rb")){
       if (mod_fread(J_21_LW, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
@@ -1154,36 +1154,36 @@ int main(int argc, char ** argv){
       for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++)
         J_21_LW[ct] = 0.0;
     }
-    logMcrit_LW_ave = 0;
-#pragma omp parallel shared(zp, Mcrit_LW_unfiltered, J_21_LW) private(i,j,k) reduction(+:logMcrit_LW_ave)
+    log10_Mcrit_LW_ave = 0;
+#pragma omp parallel shared(zp, log10_Mcrit_LW_unfiltered, J_21_LW) private(i,j,k) reduction(+:log10_Mcrit_LW_ave)
 {
 #pragma omp for
   for (i=0; i<HII_DIM; i++){
     for (j=0; j<HII_DIM; j++){
       for (k=0; k<HII_DIM; k++){
-        *((float *)Mcrit_LW_unfiltered + HII_R_FFT_INDEX(i,j,k)) = lyman_werner_threshold(zp, J_21_LW[HII_R_INDEX(i,j,k)]);;
-        logMcrit_LW_ave += log10(*((float *)Mcrit_LW_unfiltered + HII_R_FFT_INDEX(i,j,k)));
+        *((float *)log10_Mcrit_LW_unfiltered + HII_R_FFT_INDEX(i,j,k)) = log10(lyman_werner_threshold(zp, J_21_LW[HII_R_INDEX(i,j,k)]));
+        log10_Mcrit_LW_ave += *((float *)log10_Mcrit_LW_unfiltered + HII_R_FFT_INDEX(i,j,k));
       }
     }
   }
 }
-    logMcrit_LW_ave /= HII_TOT_NUM_PIXELS;
+    log10_Mcrit_LW_ave /= HII_TOT_NUM_PIXELS;
     Mcrit_atom_glob  = atomic_cooling_threshold(zp);
-    Nion_ST_zm(zp,logMcrit_LW_ave,&(Splined_Nion_ST_zpm));
+    Nion_ST_zm(zp,log10_Mcrit_LW_ave,&(Splined_Nion_ST_zpm));
 
     // NEED TO FILTER Mcrit_LW!!!
     /*** Transform unfiltered box to k-space to prepare for filtering ***/
-    plan = fftwf_plan_dft_r2c_3d(HII_DIM, HII_DIM, HII_DIM, (float *)Mcrit_LW_unfiltered, (fftwf_complex *)Mcrit_LW_unfiltered, FFTW_ESTIMATE);
+    plan = fftwf_plan_dft_r2c_3d(HII_DIM, HII_DIM, HII_DIM, (float *)log10_Mcrit_LW_unfiltered, (fftwf_complex *)log10_Mcrit_LW_unfiltered, FFTW_ESTIMATE);
     fftwf_execute(plan);
     fftwf_destroy_plan(plan);
     fftwf_cleanup();
     // remember to add the factor of VOLUME/TOT_NUM_PIXELS when converting from real space to k-space
     // Note: we will leave off factor of VOLUME, in anticipation of the inverse FFT below
-#pragma omp parallel shared(Mcrit_LW_unfiltered) private(ct)
+#pragma omp parallel shared(log10_Mcrit_LW_unfiltered) private(ct)
 {
 #pragma omp for
     for (ct=0; ct<HII_KSPACE_NUM_PIXELS; ct++)
-      Mcrit_LW_unfiltered[ct] /= (float)HII_TOT_NUM_PIXELS;
+      log10_Mcrit_LW_unfiltered[ct] /= (float)HII_TOT_NUM_PIXELS;
 }
 
 #else //INHOMO_FEEDBACK
@@ -1237,29 +1237,29 @@ int main(int argc, char ** argv){
 
 #ifdef INHOMO_FEEDBACK
       // copy over unfiltered box
-      memcpy(Mcrit_LW_filtered, Mcrit_LW_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+      memcpy(log10_Mcrit_LW_filtered, log10_Mcrit_LW_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
       if (R_ct > 0){// don't filter on cell size
-        HII_filter(Mcrit_LW_filtered, HEAT_FILTER, R_values[R_ct]);
+        HII_filter(log10_Mcrit_LW_filtered, HEAT_FILTER, R_values[R_ct]);
 	  }
 
       // now fft back to real space
-      plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)Mcrit_LW_filtered, (float *)Mcrit_LW_filtered, FFTW_ESTIMATE);
+      plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)log10_Mcrit_LW_filtered, (float *)log10_Mcrit_LW_filtered, FFTW_ESTIMATE);
       fftwf_execute(plan);
       fftwf_destroy_plan(plan);
       fftwf_cleanup();
 
       // I don't know how box_ct_increment works... so just do the same copying thing...
-#pragma omp parallel shared(Mcrit_LW, Mcrit_LW_filtered, Mcrit_mol) private(i, j, k)
+#pragma omp parallel shared(log10_Mcrit_LW, log10_Mcrit_LW_filtered, log10_Mcrit_mol) private(i, j, k)
 {
 #pragma omp for
       for (i=0; i<HII_DIM; i++){
         for (j=0; j<HII_DIM; j++){
           for (k=0; k<HII_DIM; k++){
-            Mcrit_LW[HII_R_INDEX(i,j,k)] = *((float *) Mcrit_LW_filtered + HII_R_FFT_INDEX(i,j,k));
-            if(Mcrit_LW[HII_R_INDEX(i,j,k)] < Mcrit_mol)
-              Mcrit_LW[HII_R_INDEX(i,j,k)] = Mcrit_mol;
-            if (Mcrit_LW[HII_R_INDEX(i,j,k)] > 1e10)
-              Mcrit_LW[HII_R_INDEX(i,j,k)] = 1e10;
+            log10_Mcrit_LW[HII_R_INDEX(i,j,k)] = *((float *) log10_Mcrit_LW_filtered + HII_R_FFT_INDEX(i,j,k));
+            if(log10_Mcrit_LW[HII_R_INDEX(i,j,k)] < log10_Mcrit_mol)
+              log10_Mcrit_LW[HII_R_INDEX(i,j,k)] = log10_Mcrit_mol;
+            if (log10_Mcrit_LW[HII_R_INDEX(i,j,k)] > 10)
+              log10_Mcrit_LW[HII_R_INDEX(i,j,k)] = 10;
           }
         }
       }
@@ -1271,7 +1271,7 @@ int main(int argc, char ** argv){
       fcoll_R = 0;
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-	  logMcrit_LW_ave = 0;
+	  log10_Mcrit_LW_ave = 0;
 #endif
       fcollm_R = 0;
 #endif
@@ -1281,7 +1281,7 @@ int main(int argc, char ** argv){
 #else //SHARP_CUTOFF
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-#pragma omp parallel shared(zpp,arr_num, R_ct, delNL0, Overdense_high_table, SFRD_z_high_table, SFRD_z_high_tablem, second_derivs_Nion_zpp, second_derivs_Nion_zppm, Mcrit_LW, Overdense_high_table_Mturn, SFRDLow_zpp_spline, SFRDLow_zpp_spline_acc, SFRDLow_zpp_splinem, SFRDLow_zpp_spline_accm, SFRDLow_zpp_spline_accm_Mturn) private(box_ct, delNL_zpp, fcoll, Splined_Fcoll, fcollm, Splined_Fcollm, logMcrit_LW) reduction(+:sample_ct, fcoll_R, fcollm_R, logMcrit_LW_ave)
+#pragma omp parallel shared(zpp,arr_num, R_ct, delNL0, Overdense_high_table, SFRD_z_high_table, SFRD_z_high_tablem, second_derivs_Nion_zpp, second_derivs_Nion_zppm, log10_Mcrit_LW, Overdense_high_table_Mturn, SFRDLow_zpp_spline, SFRDLow_zpp_spline_acc, SFRDLow_zpp_splinem, SFRDLow_zpp_spline_accm, SFRDLow_zpp_spline_accm_Mturn) private(box_ct, delNL_zpp, fcoll, Splined_Fcoll, fcollm, Splined_Fcollm) reduction(+:sample_ct, fcoll_R, fcollm_R, log10_Mcrit_LW_ave)
 #else //INHOMO_FEEDBACK
 #pragma omp parallel shared(zpp,arr_num, R_ct, delNL0, Overdense_high_table, SFRD_z_high_table, SFRD_z_high_tablem, second_derivs_Nion_zpp, second_derivs_Nion_zppm, SFRDLow_zpp_spline, SFRDLow_zpp_spline_acc, SFRDLow_zpp_splinem, SFRDLow_zpp_spline_accm) private(box_ct, delNL_zpp, fcoll, Splined_Fcoll, fcollm, Splined_Fcollm) reduction(+:sample_ct, fcoll_R, fcollm_R)
 #endif //INHOMO_FEEDBACK
@@ -1301,12 +1301,7 @@ int main(int argc, char ** argv){
         //---------- interpolation for fcoll starts ----------
         // Here 'fcoll' is not the collpased fraction, but leave this name as is to simplify the variable name.
 #ifdef INHOMO_FEEDBACK
-        logMcrit_LW = log10(Mcrit_LW[box_ct]);
-        if (logMcrit_LW < 5)
-            logMcrit_LW = 5.;
-        if (logMcrit_LW >10)
-            logMcrit_LW = 10.;
-		logMcrit_LW_ave += logMcrit_LW;
+		log10_Mcrit_LW_ave += log10_Mcrit_LW[box_ct];
 #endif
         if (delNL_zpp < 1.5){
           if (delNL_zpp < -1.) {
@@ -1320,7 +1315,7 @@ int main(int argc, char ** argv){
             fcoll = pow(10., fcoll);
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-            fcollm = gsl_spline2d_eval(SFRDLow_zpp_splinem[R_ct], log10(delNL_zpp+1.), logMcrit_LW, SFRDLow_zpp_spline_accm[R_ct], SFRDLow_zpp_spline_accm_Mturn[R_ct]);
+            fcollm = gsl_spline2d_eval(SFRDLow_zpp_splinem[R_ct], log10(delNL_zpp+1.), log10_Mcrit_LW[box_ct], SFRDLow_zpp_spline_accm[R_ct], SFRDLow_zpp_spline_accm_Mturn[R_ct]);
 #else 
             fcollm = gsl_spline_eval(SFRDLow_zpp_splinem[R_ct], log10(delNL_zpp+1.), SFRDLow_zpp_spline_accm[R_ct]);
 #endif //INHOMO_FEEDBACK
@@ -1336,7 +1331,7 @@ int main(int argc, char ** argv){
             splint(Overdense_high_table-1,SFRD_z_high_table[arr_num+R_ct]-1,second_derivs_Nion_zpp[R_ct]-1,NSFR_high,delNL_zpp,&(fcoll));
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-            splint2d(Overdense_high_table,Overdense_high_table_Mturn,SFRD_z_high_tablem[arr_num+R_ct],second_derivs_Nion_zppm[R_ct],NSFR_high,NMTURN,delNL_zpp,logMcrit_LW,&(fcollm));
+            splint2d(Overdense_high_table,Overdense_high_table_Mturn,SFRD_z_high_tablem[arr_num+R_ct],second_derivs_Nion_zppm[R_ct],NSFR_high,NMTURN,delNL_zpp,log10_Mcrit_LW[box_ct],&(fcollm));
 #else //INHOMO_FEEDBACK
             splint(Overdense_high_table-1,SFRD_z_high_tablem[arr_num+R_ct]-1,second_derivs_Nion_zppm[R_ct]-1,NSFR_high,delNL_zpp,&(fcollm));
 #endif //INHOMO_FEEDBACK
@@ -1369,7 +1364,7 @@ int main(int argc, char ** argv){
       fcoll_R /= (double) sample_ct;
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-	  logMcrit_LW_ave /= (double) sample_ct;
+	  log10_Mcrit_LW_ave /= (double) sample_ct;
 #endif
       fcollm_R /= (double) sample_ct;
 #endif
@@ -1386,7 +1381,7 @@ int main(int argc, char ** argv){
       // This means that it might not be as good as in previous versions, because now the fluctuation in fcoll is also 
       // due to feedbacks in M_MINm. e.g. if the distribution of Mcrit_LW is too large
       // this is not interpolated value
-      SFRD_ST_zm(zpp,logMcrit_LW_ave,&(Splined_SFRD_ST_zppm));
+      SFRD_ST_zm(zpp,log10_Mcrit_LW_ave,&(Splined_SFRD_ST_zppm));
 #else
       SFRD_ST_zm(zpp,&(Splined_SFRD_ST_zppm));
 #endif //INHOMO_FEEDBACK
@@ -1548,7 +1543,7 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
     /***************  PARALLELIZED LOOP ******************************************************************/
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-#pragma omp parallel shared(COMPUTE_Ts, Tk_box, x_e_box, x_e_ave, delNL0, freq_int_heat_tbl, freq_int_ion_tbl, freq_int_lya_tbl,freq_int_heat_tblm, freq_int_ion_tblm, freq_int_lya_tblm, zp, dzp, Ts, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, growth_factor_zp, dgrowth_factor_dzp, NO_LIGHT, zpp_edge, sigma_atR, sigma_Tmin, ST_over_PS, ST_over_PSm, sum_lyn,sum_lynm,sum_lyLWn, sum_lyLWnm, const_zp_prefactor, const_zp_prefactorm, M_MIN_at_z, M_MIN_at_zp, dt_dzp, J_alpha_threads, J_LW_threads, xalpha_threads, Xheat_threads, Xion_threads, M_MIN, R_values, Mcrit_atom_glob,logMcrit_LW_ave,J_21_LW,arr_num) private(box_ct, ans, xHII_call, R_ct, curr_delNL0, m_xHII_low, m_xHII_high, freq_int_heat, freq_int_ion, freq_int_lya, freq_int_heatm, freq_int_ionm, freq_int_lyam, dansdz, J_alpha_tot, curr_xalpha)
+#pragma omp parallel shared(COMPUTE_Ts, Tk_box, x_e_box, x_e_ave, delNL0, freq_int_heat_tbl, freq_int_ion_tbl, freq_int_lya_tbl,freq_int_heat_tblm, freq_int_ion_tblm, freq_int_lya_tblm, zp, dzp, Ts, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, growth_factor_zp, dgrowth_factor_dzp, NO_LIGHT, zpp_edge, sigma_atR, sigma_Tmin, ST_over_PS, ST_over_PSm, sum_lyn,sum_lynm,sum_lyLWn, sum_lyLWnm, const_zp_prefactor, const_zp_prefactorm, M_MIN_at_z, M_MIN_at_zp, dt_dzp, J_alpha_threads, J_LW_threads, xalpha_threads, Xheat_threads, Xion_threads, M_MIN, R_values, Mcrit_atom_glob,log10_Mcrit_LW_ave,J_21_LW,arr_num) private(box_ct, ans, xHII_call, R_ct, curr_delNL0, m_xHII_low, m_xHII_high, freq_int_heat, freq_int_ion, freq_int_lya, freq_int_heatm, freq_int_ionm, freq_int_lyam, dansdz, J_alpha_tot, curr_xalpha)
 #else
 #pragma omp parallel shared(COMPUTE_Ts, Tk_box, x_e_box, x_e_ave, delNL0, freq_int_heat_tbl, freq_int_ion_tbl, freq_int_lya_tbl,freq_int_heat_tblm, freq_int_ion_tblm, freq_int_lya_tblm, zp, dzp, Ts, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, growth_factor_zp, dgrowth_factor_dzp, NO_LIGHT, zpp_edge, sigma_atR, sigma_Tmin, ST_over_PS, ST_over_PSm, sum_lyn,sum_lynm, const_zp_prefactor, const_zp_prefactorm, M_MIN_at_z, M_MIN_at_zp, dt_dzp, J_alpha_threads, xalpha_threads, Xheat_threads, Xion_threads,arr_num) private(box_ct, ans, xHII_call, R_ct, curr_delNL0, m_xHII_low, m_xHII_high, freq_int_heat, freq_int_ion, freq_int_lya, freq_int_heatm, freq_int_ionm, freq_int_lyam, dansdz, J_alpha_tot, curr_xalpha)
 #endif
@@ -1847,9 +1842,9 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
 #ifndef SHARP_CUTOFF
   destroy_21cmMC_arrays();
 #ifdef INHOMO_FEEDBACK
-  fftwf_free(Mcrit_LW_unfiltered);
-  fftwf_free(Mcrit_LW_filtered);
-  free(Mcrit_LW);
+  fftwf_free(log10_Mcrit_LW_unfiltered);
+  fftwf_free(log10_Mcrit_LW_filtered);
+  free(log10_Mcrit_LW);
   free(J_21_LW);
 #endif
 #endif

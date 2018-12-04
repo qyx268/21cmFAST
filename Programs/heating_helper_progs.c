@@ -51,7 +51,7 @@ static double zpp_interp_table[zpp_interp_points], M_MINa_interp_table[zpp_inter
 #ifdef MINI_HALO
 double Mcrit_atom_interp_table[zpp_interp_points], Mcrit_RE_interp_table[zpp_interp_points];
 #ifdef INHOMO_FEEDBACK
-double Mcrit_atom_glob, logMcrit_LW_ave;
+double Mcrit_atom_glob, log10_Mcrit_LW_ave;
 double log10_Mturn_interp_table[NMTURN];
 #else
 double Mcrit_LW_interp_table[zpp_interp_points], M_MINm_interp_table[zpp_interp_points];//New in v2.1
@@ -479,7 +479,7 @@ void evolveInt(float zp, int arr_num,float curr_delNL0[], double freq_int_heat[]
         fcoll = pow(10., fcoll);
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-        fcollm = gsl_spline2d_eval(SFRDLow_zpp_splinem[zpp_ct], log10(delNL_zpp+1.), logMcrit_LW_ave, SFRDLow_zpp_spline_accm[zpp_ct], SFRDLow_zpp_spline_accm_Mturn[zpp_ct]);
+        fcollm = gsl_spline2d_eval(SFRDLow_zpp_splinem[zpp_ct], log10(delNL_zpp+1.), log10_Mcrit_LW_ave, SFRDLow_zpp_spline_accm[zpp_ct], SFRDLow_zpp_spline_accm_Mturn[zpp_ct]);
 #else
         fcollm = gsl_spline_eval(SFRDLow_zpp_splinem[zpp_ct], log10(delNL_zpp+1.), SFRDLow_zpp_spline_accm[zpp_ct]);
 #endif
@@ -495,7 +495,7 @@ void evolveInt(float zp, int arr_num,float curr_delNL0[], double freq_int_heat[]
         splint(Overdense_high_table-1,SFRD_z_high_table[arr_num+zpp_ct]-1,second_derivs_Nion_zpp[zpp_ct]-1,NSFR_high,delNL_zpp,&(fcoll));
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-        splint2d(Overdense_high_table,Overdense_high_table_Mturn,SFRD_z_high_tablem[arr_num+zpp_ct],second_derivs_Nion_zppm[zpp_ct],NSFR_high,NMTURN,delNL_zpp,logMcrit_LW_ave,&(fcollm));
+        splint2d(Overdense_high_table,Overdense_high_table_Mturn,SFRD_z_high_tablem[arr_num+zpp_ct],second_derivs_Nion_zppm[zpp_ct],NSFR_high,NMTURN,delNL_zpp,log10_Mcrit_LW_ave,&(fcollm));
 #else
         splint(Overdense_high_table-1,SFRD_z_high_tablem[arr_num+zpp_ct]-1,second_derivs_Nion_zppm[zpp_ct]-1,NSFR_high,delNL_zpp,&(fcollm));
 #endif
@@ -916,7 +916,7 @@ double tauX_integrand(double zhat, void *params){
   fcoll = Splined_ans;
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-  Nion_ST_zm(zhat,logMcrit_LW_ave,&(Splined_ansm));
+  Nion_ST_zm(zhat,log10_Mcrit_LW_ave,&(Splined_ansm));
 #else
   Nion_ST_zm(zhat,&(Splined_ansm));
 #endif
