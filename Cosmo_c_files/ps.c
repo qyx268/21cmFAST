@@ -90,7 +90,7 @@ static gsl_spline *NionLow_splinem;
 void initialiseGL_Nion(int n, float M_Min, float M_Max);
 #ifdef INHOMO_FEEDBACK
 void Nion_Spline_density(float Overdensity, float log10_M_MINa, float *splined_value);
-void initialise_Nion_spline(float z, float Mmax, float Mmin, float MMinTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc);
+void initialise_Nion_spline(float z, float Mmax, float Mmin, float log10_MminTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc);
 #else //INHOMO_FEEDBACK
 void Nion_Spline_density(float Overdensity, float *splined_value);
 void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc);
@@ -1873,7 +1873,7 @@ double Nion_ConditionalMm(double z, double M1, double M2, double delta1, double 
 // Note this function DO NOT include ION_EFF_FACTOR, defined as f_{\ast,10}*f_{esc,10}*N_{\gamma/b}. 
 // The actual Nion in eq. (17) is the value multiplied by ION_EFF_FACTOR.
 #ifdef INHOMO_FEEDBACK
-void initialise_Nion_spline(float z, float Mmax, float Mmin, float MMinTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc)
+void initialise_Nion_spline(float z, float Mmax, float Mmin, float log10_MminTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc)
 #else //INHOMO_FEEDBACK
 void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc)
 #endif //INHOMO_FEEDBACK
@@ -1887,7 +1887,7 @@ void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover,
 #ifdef INHOMO_FEEDBACK
     double MassTurnover;
     double LogMassTurnover_high = 10. + 9e-8;
-    double LogMassTurnover_low = log10(MMinTurnover) - 9e-8;
+    double LogMassTurnover_low = log10_MminTurnover - 9e-8;
 
     int j;
     NionLow_spline_acc_Mturn = gsl_interp_accel_alloc ();
@@ -2462,7 +2462,7 @@ double DeltaNion_ConditionalMm(double z, double zp, double M1, double M2, double
 #endif
 
 #ifdef INHOMO_FEEDBACK
-void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, float MminTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc)
+void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, float log10_MminTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc)
 #else //INHOMO_FEEDBACK
 void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, float MassTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc)
 #endif //INHOMO_FEEDBACK
@@ -2476,7 +2476,7 @@ void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, floa
 #ifdef INHOMO_FEEDBACK
     double MassTurnover;
     double LogMassTurnover_high = 10. + 9e-8;
-    double LogMassTurnover_low = log10(MminTurnover) - 9e-8;
+    double LogMassTurnover_low = log10_MminTurnover - 9e-8;
 
     int j;
     NionLow_spline_acc_Mturn = gsl_interp_accel_alloc ();

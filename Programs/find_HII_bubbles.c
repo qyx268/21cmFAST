@@ -1699,7 +1699,7 @@ int main(int argc, char ** argv){
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
     if (flag_first_reionization == 0){
 #ifdef INHOMO_FEEDBACK
-      initialise_DeltaNion_spline(REDSHIFT, PREV_REDSHIFT, massofscaleR,M_MIN,Mcrit_atom,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
+      initialise_DeltaNion_spline(REDSHIFT, PREV_REDSHIFT, massofscaleR,M_MIN,log10_Mcrit_atom,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
       initialise_DeltaNion_splinem(REDSHIFT, PREV_REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,log10_Mcrit_mol,Mcrit_atom,F_STAR10m,Mlim_Fstarm);
 #else //INHOMO_FEEDBACK
       initialise_DeltaNion_spline(REDSHIFT, PREV_REDSHIFT, massofscaleR,M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
@@ -1709,7 +1709,7 @@ int main(int argc, char ** argv){
     else{ // this is the first call (highest redshift)
       // so we calculation Nion instead of Delta Nion
 #ifdef INHOMO_FEEDBACK
-      initialise_Nion_spline(REDSHIFT, massofscaleR,M_MIN,Mcrit_atom,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
+      initialise_Nion_spline(REDSHIFT, massofscaleR,M_MIN,log10_Mcrit_atom,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
       initialise_Nion_splinem(REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,log10_Mcrit_mol,Mcrit_atom,F_STAR10m,Mlim_Fstarm);
 #else //INHOMO_FEEDBACK
       initialise_Nion_spline(REDSHIFT, massofscaleR,M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
@@ -1719,7 +1719,7 @@ int main(int argc, char ** argv){
 #else //CONTEMPORANEOUS_DUTYCYCLE
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-    initialise_Nion_spline(REDSHIFT, massofscaleR,M_MIN,Mcrit_atom,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
+    initialise_Nion_spline(REDSHIFT, massofscaleR,M_MIN,log10_Mcrit_atom,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
     initialise_Nion_splinem(REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,log10_Mcrit_mol,Mcrit_atom,F_STAR10m,Mlim_Fstarm);
 #else //INHOMO_FEEDBACK
     initialise_Nion_spline(REDSHIFT, massofscaleR,M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
