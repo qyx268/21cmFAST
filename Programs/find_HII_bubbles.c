@@ -463,9 +463,14 @@ int main(int argc, char ** argv){
   float nua, dnua, temparg, Gamma_R, z_eff;
   float F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, Mlim_Fstar, Mlim_Fesc; //New in v2
 #ifdef MINI_HALO
-  float F_STAR10m, F_ESC10m, Mlim_Fstarm, ION_EFF_FACTOR_MINI,M_MINm, M_MINa, Splined_Fcollm, dfcolldtm,Gamma_R_prefactorm,ST_over_PSm,f_collm, Mcrit_atom, Mcrit_LW, Mcrit_RE;
+  float F_STAR10m, F_ESC10m, Mlim_Fstarm, ION_EFF_FACTOR_MINI,M_MINm, M_MINa, Splined_Fcollm, dfcolldtm,Gamma_R_prefactorm,ST_over_PSm,f_collm, Mcrit_atom;
   double mean_f_collm_st; //New in v2.1
   double X_LUMINOSITYm;
+#ifdef INHOMO_FEEDBACK
+  fftwf_complex *Mcrit_LW, *Mcrit_RE;
+#else
+  float Mcrit_LW, Mcrit_RE;
+#endif
 #ifdef REION_SM
   double REION_SM13_Z_RE, REION_SM13_DELTA_Z_RE, REION_SM13_DELTA_Z_SC;
 #endif //REION_SM
@@ -689,28 +694,30 @@ int main(int argc, char ** argv){
   Mcrit_atom          = atomic_cooling_threshold(REDSHIFT);
 #ifdef INHOMO_FEEDBACK
   // NOTE: Mcrit_atom  and Mcrit_mol are both at REDSHIFT not PREV_REDSHIFT!!!
-  Mcrit_mol           = lyman_werner_threshold(REDSHIFT, 0.);
+  Mcrit_mol         = lyman_werner_threshold(REDSHIFT, 0.);
+  Mcrit_RE          = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  Mcrit_LW          = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
   M_MINa_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
-  M_MINa_filtered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  M_MINa_filtered   = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
   M_MINm_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
-  M_MINm_filtered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
-  if (!M_MINa_unfiltered || !M_MINa_filtered || !M_MINm_unfiltered || !M_MINm_filtered){
+  M_MINm_filtered   = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  if (!M_MINa_unfiltered || !M_MINa_filtered || !M_MINm_unfiltered || !M_MINm_filtered || !Mcrit_RE || !Mcrit_LW){
     strcpy(error_message, "find_HII_bubbles.c: Error allocating memory for M_MINa or M_MINm boxes\nAborting...\n");
     goto CLEANUP;
   }
   fprintf(stderr, "Calculating and outputting M_MIN boxes for atomic and molecular halos...");
   fprintf(LOG, "Calculating and outputting M_MIN boxes for atomic and molecular halos...");
   // use the average for check dark ages and do the ST/PS renormalization
-#pragma omp parallel shared(REDSHIFT,J_21_LW, Gamma12, z_re, M_MINa_unfiltered, M_MINm_unfiltered,Mcrit_atom) private(Mcrit_RE, Mcrit_LW,M_MINa, M_MINm,x,y,z) reduction(+: log10M_MINa_ave, log10M_MINm_ave)
+#pragma omp parallel shared(REDSHIFT,J_21_LW, Gamma12, z_re, M_MINa_unfiltered, M_MINm_unfiltered,Mcrit_atom,Mcrit_LW,Mcrit_RE) private(M_MINa, M_MINm,x,y,z) reduction(+: log10M_MINa_ave, log10M_MINm_ave)
 {
 #pragma omp for
   for (x=0; x<HII_DIM; x++){
     for (y=0; y<HII_DIM; y++){
       for (z=0; z<HII_DIM; z++){
-        Mcrit_RE = reionization_feedback(REDSHIFT, Gamma12[HII_R_INDEX(x, y, z)], z_re[HII_R_INDEX(x, y, z)]);
-        Mcrit_LW = lyman_werner_threshold(REDSHIFT, J_21_LW[HII_R_INDEX(x, y, z)]);
-        M_MINa   = Mcrit_RE > Mcrit_atom ? Mcrit_RE : Mcrit_atom;
-        M_MINm   = Mcrit_RE > Mcrit_LW   ? Mcrit_RE : Mcrit_LW;
+        *((float *)Mcrit_RE + HII_R_FFT_INDEX(x,y,z)) = reionization_feedback(REDSHIFT, Gamma12[HII_R_INDEX(x, y, z)], z_re[HII_R_INDEX(x, y, z)]);
+        *((float *)Mcrit_LW + HII_R_FFT_INDEX(x,y,z)) = lyman_werner_threshold(REDSHIFT, J_21_LW[HII_R_INDEX(x, y, z)]);
+        M_MINa   = *((float *)Mcrit_RE + HII_R_FFT_INDEX(x,y,z)) > Mcrit_atom                                    ? *((float *)Mcrit_RE + HII_R_FFT_INDEX(x,y,z)) : Mcrit_atom;
+        M_MINm   = *((float *)Mcrit_RE + HII_R_FFT_INDEX(x,y,z)) > *((float *)Mcrit_LW + HII_R_FFT_INDEX(x,y,z)) ? *((float *)Mcrit_RE + HII_R_FFT_INDEX(x,y,z)) : *((float *)Mcrit_LW + HII_R_FFT_INDEX(x,y,z));
 
         *((float *)M_MINa_unfiltered + HII_R_FFT_INDEX(x,y,z)) = M_MINa;
         *((float *)M_MINm_unfiltered + HII_R_FFT_INDEX(x,y,z)) = M_MINm;
@@ -729,17 +736,17 @@ int main(int argc, char ** argv){
   M_MIN       = 1e5;
 
   // Output M_MIN boxes for post checking
-  sprintf(filename, "../Boxes/M_MINa_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT,HII_FILTER, MFP, HII_DIM, BOX_LEN);
+  sprintf(filename, "../Boxes/Mcrit_RE_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT,HII_FILTER, MFP, HII_DIM, BOX_LEN);
   if (!(F = fopen(filename, "wb"))){
-    sprintf(error_message, "find_HII_bubbles: ERROR: unable to open file for writting M_MINa box!\n");
+    sprintf(error_message, "find_HII_bubbles: ERROR: unable to open file for writting Mcrit_RE box!\n");
     goto CLEANUP;
   }
   else{
     for (i=0; i<HII_DIM; i++){
       for (j=0; j<HII_DIM; j++){
         for (k=0; k<HII_DIM; k++){
-          if(fwrite((float *)M_MINa_unfiltered + HII_R_FFT_INDEX(i,j,k), sizeof(float), 1, F)!=1){
-            sprintf(error_message, "find_HII_bubbles.c: Write error occured while writting M_MINa box.\n");
+          if(fwrite((float *)Mcrit_RE + HII_R_FFT_INDEX(i,j,k), sizeof(float), 1, F)!=1){
+            sprintf(error_message, "find_HII_bubbles.c: Write error occured while writting Mcrit_RE box.\n");
             goto CLEANUP;
           }
         }
@@ -748,17 +755,17 @@ int main(int argc, char ** argv){
     fclose(F);
     F = NULL;
   }
-  sprintf(filename, "../Boxes/M_MINm_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT,HII_FILTER, MFP, HII_DIM, BOX_LEN);
+  sprintf(filename, "../Boxes/Mcrit_LW_z%06.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT,HII_FILTER, MFP, HII_DIM, BOX_LEN);
   if (!(F = fopen(filename, "wb"))){
-    sprintf(error_message, "find_HII_bubbles: ERROR: unable to open file for writting M_MINm box!\n");
+    sprintf(error_message, "find_HII_bubbles: ERROR: unable to open file for writting Mcrit_LW box!\n");
     goto CLEANUP;
   }
   else{
     for (i=0; i<HII_DIM; i++){
       for (j=0; j<HII_DIM; j++){
         for (k=0; k<HII_DIM; k++){
-          if(fwrite((float *)M_MINm_unfiltered + HII_R_FFT_INDEX(i,j,k), sizeof(float), 1, F)!=1){
-            sprintf(error_message, "find_HII_bubbles.c: Write error occured while writting M_MINm box.\n");
+          if(fwrite((float *)Mcrit_LW + HII_R_FFT_INDEX(i,j,k), sizeof(float), 1, F)!=1){
+            sprintf(error_message, "find_HII_bubbles.c: Write error occured while writting Mcrit_LW box.\n");
             goto CLEANUP;
           }
         }
@@ -1730,7 +1737,7 @@ int main(int argc, char ** argv){
 #endif
 #else//CONTEMPORANEOUS_DUTYCYCLE
 #ifdef INHOMO_FEEDBACK
-#pragma omp parallel shared(deltax_filtered,  REDSHIFT, Fcoll, Fcollm, M_MINa_filtered, M_MINm_filtered) private(x,y,z, density_over_mean, Mcrit_RE, M_MINa, M_MINm, Splined_Fcoll, Splined_Fcollm) reduction(+:f_coll, f_collm)
+#pragma omp parallel shared(deltax_filtered,  REDSHIFT, Fcoll, Fcollm, M_MINa_filtered, M_MINm_filtered) private(x,y,z, density_over_mean, M_MINa, M_MINm, Splined_Fcoll, Splined_Fcollm) reduction(+:f_coll, f_collm)
 #else
 #ifdef MINI_HALO
 #pragma omp parallel shared(deltax_filtered,  Fcoll, Fcollm) private(x,y,z, density_over_mean, Splined_Fcoll, Splined_Fcollm) reduction(+:f_coll, f_collm)
