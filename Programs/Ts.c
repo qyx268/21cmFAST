@@ -226,7 +226,7 @@ int main(int argc, char ** argv){
   double J_alpha_threads[NUMCORES], xalpha_threads[NUMCORES], Xheat_threads[NUMCORES],
    Xion_threads[NUMCORES], lower_int_limit;
 #ifdef INHOMO_FEEDBACK
-  double J_LW_threads[NUMCORES];
+  double J_LW_threads[NUMCORES], lower_int_limit_LW;
 #endif
   float Splined_Nion_ST_zp, Splined_SFRD_ST_zpp,ION_EFF_FACTOR,fcoll; // New in v2
 #ifdef MINI_HALO
@@ -1240,7 +1240,7 @@ int main(int argc, char ** argv){
       memcpy(log10_Mcrit_LW_filtered, log10_Mcrit_LW_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
       if (R_ct > 0){// don't filter on cell size
         HII_filter(log10_Mcrit_LW_filtered, HEAT_FILTER, R_values[R_ct]);
-	  }
+      }
 
       // now fft back to real space
       plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)log10_Mcrit_LW_filtered, (float *)log10_Mcrit_LW_filtered, FFTW_ESTIMATE);
@@ -1271,7 +1271,7 @@ int main(int argc, char ** argv){
       fcoll_R = 0;
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-	  log10_Mcrit_LW_ave = 0;
+      log10_Mcrit_LW_ave = 0;
 #endif
       fcollm_R = 0;
 #endif
@@ -1301,7 +1301,7 @@ int main(int argc, char ** argv){
         //---------- interpolation for fcoll starts ----------
         // Here 'fcoll' is not the collpased fraction, but leave this name as is to simplify the variable name.
 #ifdef INHOMO_FEEDBACK
-		log10_Mcrit_LW_ave += log10_Mcrit_LW[box_ct];
+        log10_Mcrit_LW_ave += log10_Mcrit_LW[box_ct];
 #endif
         if (delNL_zpp < 1.5){
           if (delNL_zpp < -1.) {
@@ -1344,12 +1344,12 @@ int main(int argc, char ** argv){
 #endif
           }    
         }
-		if (fcoll > 1.)
-			fcoll = 1.;
+        if (fcoll > 1.)
+            fcoll = 1.;
         Splined_Fcoll = fcoll > 0 ? fcoll : 1e-40;
 #ifdef MINI_HALO
-		if (fcollm > 1.)
-			fcollm = 1.;
+        if (fcollm > 1.)
+            fcollm = 1.;
         Splined_Fcollm = fcollm > 0 ? fcollm : 1e-40;
 #endif
         //---------- interpolation for fcoll is done ----------
@@ -1364,7 +1364,7 @@ int main(int argc, char ** argv){
       fcoll_R /= (double) sample_ct;
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-	  log10_Mcrit_LW_ave /= (double) sample_ct;
+      log10_Mcrit_LW_ave /= (double) sample_ct;
 #endif
       fcollm_R /= (double) sample_ct;
 #endif
@@ -1427,7 +1427,12 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
       lower_int_limit = FMAX(nu_tau_one(zp, zpp, x_e_ave, filling_factor_of_HI_zp), NU_X_THRESH);
 #else //SHARP_CUTOFF
 #ifdef MINI_HALO
+#ifdef INHOMO_FEEDBACK
+      lower_int_limit_LW = FMAX(nu_tau_one(zp, zpp, x_e_ave, filling_factor_of_HI_zp, ION_EFF_FACTOR, ION_EFF_FACTOR_MINI), NU_LW_THRESH);
+      lower_int_limit = FMAX(lower_int_limit_LW, NU_X_THRESH);
+#else
       lower_int_limit = FMAX(nu_tau_one(zp, zpp, x_e_ave, filling_factor_of_HI_zp, ION_EFF_FACTOR, ION_EFF_FACTOR_MINI), NU_X_THRESH);
+#endif
 #else //MINI_HALO
       lower_int_limit = FMAX(nu_tau_one(zp, zpp, x_e_ave, filling_factor_of_HI_zp, ION_EFF_FACTOR), NU_X_THRESH);
 #endif //MINI_HALO
@@ -1436,7 +1441,11 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
 /***************  PARALLELIZED LOOP ******************************************************************/
       // set up frequency integral table for later interpolation for the cell's x_e value
 #ifdef MINI_HALO
+#ifdef INHOMO_FEEDBACK
+#pragma omp parallel shared(freq_int_heat_tbl, freq_int_ion_tbl, COMPUTE_Ts, freq_int_lya_tbl, freq_int_heat_tblm, freq_int_ion_tblm, freq_int_lya_tblm, zp, R_ct, x_e_ave, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, lower_int_limit, lower_int_limit_LW) private(x_e_ct)
+#else
 #pragma omp parallel shared(freq_int_heat_tbl, freq_int_ion_tbl, COMPUTE_Ts, freq_int_lya_tbl, freq_int_heat_tblm, freq_int_ion_tblm, freq_int_lya_tblm, zp, R_ct, x_e_ave, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, lower_int_limit) private(x_e_ct)
+#endif
 #else
 #pragma omp parallel shared(freq_int_heat_tbl, freq_int_ion_tbl, COMPUTE_Ts, freq_int_lya_tbl, zp, R_ct, x_e_ave, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, lower_int_limit) private(x_e_ct)
 #endif
@@ -1476,8 +1485,10 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
         sum_lynm[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0, 3);
 #ifdef INHOMO_FEEDBACK
         nu_nplus1 = nu_n(n_ct + 1);
-        if (nuprime < NU_LW_THRESH)
-          nuprime = NU_LW_THRESH;
+        if (nuprime < lower_int_limit_LW / NUIONIZATION)
+          nuprime = lower_int_limit_LW / NUIONIZATION;
+        if (nuprime >= nu_nplus1)
+            continue;
         sum_lyLWn[R_ct]  += spectral_emissivity(nuprime, 3, 2);
         sum_lyLWnm[R_ct] += spectral_emissivity(nuprime, 3, 3);
 #endif
@@ -1537,9 +1548,9 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
     for (ct=0; ct<NUMCORES; ct++){
       J_alpha_threads[ct] = xalpha_threads[ct] = Xheat_threads[ct] = Xion_threads[ct] = 0;
 #ifdef INHOMO_FEEDBACK
-	  J_LW_threads[ct] = 0;
+      J_LW_threads[ct] = 0;
 #endif
-	}
+    }
     /***************  PARALLELIZED LOOP ******************************************************************/
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
