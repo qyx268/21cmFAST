@@ -158,6 +158,9 @@
   #endif  // end of ifdef MINI_HALO
 #endif // end of ifdef SHARP_CUTOFF
 
+#define OUTPUT_SPLINE
+// ifdef then output the splined results to ../Output_files/Splined_results/ for accuracy checking
+
 /*
   Typical star-formation timescale, in units of the Hubble time.  This is used to compute the UVB if inhomo_reco is on.
   This is also used when comparing againts observed UV LF w. 21CMMC, 

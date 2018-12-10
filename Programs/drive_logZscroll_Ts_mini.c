@@ -39,6 +39,9 @@ int main(int argc, char ** argv){
   system("mkdir -p ../Output_files/Deldel_T_power_spec");
   system("mkdir -p ../Redshift_interpolate_filelists");
   //  system("mkdir -p ../Lighttravel_filelists");
+#ifdef OUTPUT_SPLINE
+  system("mkdir -p ../Output_files/Splined_results");
+#endif
 
   // remove some of the previous (astro) files which might conflict with current run
   system("rm ../Boxes/Ts_evolution/*");
