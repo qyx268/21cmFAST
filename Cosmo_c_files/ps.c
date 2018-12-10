@@ -1993,7 +1993,7 @@ void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover,
             MassTurnover = LogMassTurnover_low + (double)j/((double)NMTURN * 100 -1.)*(LogMassTurnover_high-LogMassTurnover_low);
             True_result = GaussLegendreQuad_Nion(NGL_SFR,z,log(Mmax),Deltac, overdense_val, pow(10., MassTurnover) ,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
             Nion_Spline_density(overdense_val, MassTurnover, &Splined_result);
-            fprintf(F, "%g %g %g %g\n", overdense_val, MassTurnover, True_result, Splined_result);
+            fprintf(F, "%15.9g %15.9g %15.9g %15.9g\n", overdense_val, MassTurnover, True_result, Splined_result);
         }
     }
     fclose(F);
@@ -2010,7 +2010,7 @@ void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover,
             MassTurnover = LogMassTurnover_low + (double)j/((double)NMTURN * 100 -1.)*(LogMassTurnover_high-LogMassTurnover_low);
             True_result = Nion_ConditionalM(z,log(Mmin),log(Mmax),Deltac,overdense_val, pow(10., MassTurnover),Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
             Nion_Spline_density(overdense_val, MassTurnover, &Splined_result);
-            fprintf(F, "%g %g %g %g\n", overdense_val, MassTurnover, True_result, Splined_result);
+            fprintf(F, "%15.9g %15.9g %15.9g %15.9g\n", overdense_val, MassTurnover, True_result, Splined_result);
         }
     }
     fclose(F);
@@ -2033,7 +2033,7 @@ void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover,
         overdense_val = pow(10., overdense_val) - 1.;
         True_result = GaussLegendreQuad_Nion(NGL_SFR,z,log(Mmax),Deltac, overdense_val, MassTurnover ,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
         Nion_Spline_density(overdense_val, &Splined_result);
-        fprintf(F, "%g %g %g\n", overdense_val, True_result, Splined_result);
+        fprintf(F, "%15.9g %15.9g %15.9g\n", overdense_val, True_result, Splined_result);
     }
     fclose(F);
 	F = NULL;
@@ -2047,7 +2047,7 @@ void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover,
         overdense_val = overdense_large_low + (float)i/((float)NSFR_high *100-1.)*(overdense_large_high - overdense_large_low);
         True_result = Nion_ConditionalM(z,log(Mmin),log(Mmax),Deltac,overdense_val, MassTurnover,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
         Nion_Spline_density(overdense_val, &Splined_result);
-        fprintf(F, "%g %g %g\n", overdense_val, True_result, Splined_result);
+        fprintf(F, "%15.9g %15.9g %15.9g\n", overdense_val, True_result, Splined_result);
     }
     fclose(F);
 	F = NULL;
@@ -2159,7 +2159,7 @@ void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, 
             MassTurnoverm = LogMassTurnover_low + (double)j/((double)NMTURN * 100 -1.)*(LogMassTurnover_high-LogMassTurnover_low);
             True_result = GaussLegendreQuad_Nionm(NGL_SFR,z,log(Mmax),Deltac, overdense_val, Alpha_star,pow(10., MassTurnoverm),Mcrit_atom,Fstar10m,Mlim_Fstarm);
             Nion_Spline_densitym(overdense_val, MassTurnoverm, &Splined_result);
-            fprintf(F, "%g %g %g %g\n", overdense_val, MassTurnoverm, True_result, Splined_result);
+            fprintf(F, "%15.9g %15.9g %15.9g %15.9g\n", overdense_val, MassTurnoverm, True_result, Splined_result);
         }
     }
     fclose(F);
@@ -2176,7 +2176,7 @@ void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, 
             MassTurnoverm = LogMassTurnover_low + (double)j/((double)NMTURN * 100 -1.)*(LogMassTurnover_high-LogMassTurnover_low);
             True_result = Nion_ConditionalMm(z,log(Mmin),log(Mmax),Deltac,overdense_val, Alpha_star,pow(10., MassTurnoverm),Mcrit_atom,Fstar10m,Mlim_Fstarm);
             Nion_Spline_densitym(overdense_val, MassTurnoverm, &Splined_result);
-            fprintf(F, "%g %g %g %g\n", overdense_val, MassTurnoverm, True_result, Splined_result);
+            fprintf(F, "%15.9g %15.9g %15.9g %15.9g\n", overdense_val, MassTurnoverm, True_result, Splined_result);
         }
     }
     fclose(F);
@@ -2199,7 +2199,7 @@ void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, 
         overdense_val = pow(10., overdense_val) - 1.;
         True_result = GaussLegendreQuad_Nionm(NGL_SFR,z,log(Mmax),Deltac, overdense_val, Alpha_star, MassTurnoverm,Mcrit_atom,Fstar10m,Mlim_Fstarm);
         Nion_Spline_densitym(overdense_val, &Splined_result);
-        fprintf(F, "%g %g %g\n", overdense_val, True_result, Splined_result);
+        fprintf(F, "%15.9g %15.9g %15.9g\n", overdense_val, True_result, Splined_result);
     }
     fclose(F);
 	F = NULL;
@@ -2213,7 +2213,7 @@ void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, 
         overdense_val = overdense_large_low + (float)i/((float)NSFR_high *100-1.)*(overdense_large_high - overdense_large_low);
         True_result = Nion_ConditionalMm(z,log(Mmin),log(Mmax),Deltac,overdense_val, Alpha_star,MassTurnoverm,Mcrit_atom,Fstar10m,Mlim_Fstarm);
         Nion_Spline_densitym(overdense_val, &Splined_result);
-        fprintf(F, "%g %g %g\n", overdense_val, True_result, Splined_result);
+        fprintf(F, "%15.9g %15.9g %15.9g\n", overdense_val, True_result, Splined_result);
     }
     fclose(F);
 	F = NULL;
@@ -2736,7 +2736,7 @@ void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, floa
             MassTurnover = LogMassTurnover_low + (double)j/((double)NMTURN * 100 -1.)*(LogMassTurnover_high-LogMassTurnover_low);
             True_result = GaussLegendreQuad_DeltaNion(NGL_SFR,z,zp,log(Mmax),Deltac, overdense_val, pow(10., MassTurnover) ,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
             DeltaNion_Spline_density(overdense_val, MassTurnover, &Splined_result);
-            fprintf(F, "%g %g %g %g\n", overdense_val, MassTurnover, True_result, Splined_result);
+            fprintf(F, "%15.9g %15.9g %15.9g %15.9g\n", overdense_val, MassTurnover, True_result, Splined_result);
         }
     }
     sprintf(filename, "../Output_files/Splined_results/initialise_DeltaNion_spline_high_2d_z%06.2f_zp%06.2f_Mmax%06.2f", z, zp, Mmax);
@@ -2751,7 +2751,7 @@ void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, floa
             MassTurnover = LogMassTurnover_low + (double)j/((double)NMTURN * 100 -1.)*(LogMassTurnover_high-LogMassTurnover_low);
             True_result = DeltaNion_ConditionalM(z,zp,log(Mmin),log(Mmax),Deltac,overdense_val, pow(10., MassTurnover),Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
             DeltaNion_Spline_density(overdense_val, MassTurnover, &Splined_result);
-            fprintf(F, "%g %g %g %g\n", overdense_val, MassTurnover, True_result, Splined_result);
+            fprintf(F, "%15.9g %15.9g %15.9g %15.9g\n", overdense_val, MassTurnover, True_result, Splined_result);
         }
     }
     fclose(F);
@@ -2774,7 +2774,7 @@ void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, floa
         overdense_val = pow(10., overdense_val) - 1.;
         True_result = GaussLegendreQuad_DeltaNion(NGL_SFR,z,zp,log(Mmax),Deltac, overdense_val, MassTurnover ,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
         DeltaNion_Spline_density(overdense_val, &Splined_result);
-        fprintf(F, "%g %g %g\n", overdense_val, True_result, Splined_result);
+        fprintf(F, "%15.9g %15.9g %15.9g\n", overdense_val, True_result, Splined_result);
     }
     fclose(F);
 	F = NULL;
@@ -2788,7 +2788,7 @@ void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, floa
         overdense_val = overdense_large_low + (float)i/((float)NSFR_high *100-1.)*(overdense_large_high - overdense_large_low);
         True_result = DeltaNion_ConditionalM(z,zp,log(Mmin),log(Mmax),Deltac,overdense_val, MassTurnover,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
         DeltaNion_Spline_density(overdense_val, &Splined_result);
-        fprintf(F, "%g %g %g\n", overdense_val, True_result, Splined_result);
+        fprintf(F, "%15.9g %15.9g %15.9g\n", overdense_val, True_result, Splined_result);
     }
     fclose(F);
 	F = NULL;
@@ -2901,7 +2901,7 @@ void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, flo
             MassTurnoverm = LogMassTurnover_low + (double)j/((double)NMTURN * 100 -1.)*(LogMassTurnover_high-LogMassTurnover_low);
             True_result = GaussLegendreQuad_DeltaNionm(NGL_SFR,z,zp,log(Mmax),Deltac, overdense_val, Alpha_star,pow(10., MassTurnoverm),Mcrit_atom,Fstar10m,Mlim_Fstarm);
             DeltaNion_Spline_densitym(overdense_val, MassTurnoverm, &Splined_result);
-            fprintf(F, "%g %g %g %g\n", overdense_val, MassTurnoverm, True_result, Splined_result);
+            fprintf(F, "%15.9g %15.9g %15.9g %15.9g\n", overdense_val, MassTurnoverm, True_result, Splined_result);
         }
     }
     fclose(F);
@@ -2918,7 +2918,7 @@ void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, flo
             MassTurnoverm = LogMassTurnover_low + (double)j/((double)NMTURN * 100 -1.)*(LogMassTurnover_high-LogMassTurnover_low);
             True_result = DeltaNion_ConditionalMm(z,zp,log(Mmin),log(Mmax),Deltac,overdense_val, Alpha_star,pow(10., MassTurnoverm), Mcrit_atom,Fstar10m,Mlim_Fstarm);
             DeltaNion_Spline_densitym(overdense_val, MassTurnoverm, &Splined_result);
-            fprintf(F, "%g %g %g %g\n", overdense_val, MassTurnoverm, True_result, Splined_result);
+            fprintf(F, "%15.9g %15.9g %15.9g %15.9g\n", overdense_val, MassTurnoverm, True_result, Splined_result);
         }
     }
     fclose(F);
@@ -2941,7 +2941,7 @@ void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, flo
         overdense_val = pow(10., overdense_val) - 1.;
         True_result = GaussLegendreQuad_DeltaNionm(NGL_SFR,z,zp,log(Mmax),Deltac, overdense_val, Alpha_star, MassTurnoverm, Mcrit_atom,Fstar10m,Mlim_Fstarm);
         DeltaNion_Spline_densitym(overdense_val, &Splined_result);
-        fprintf(F, "%g %g %g\n", overdense_val, True_result, Splined_result);
+        fprintf(F, "%15.9g %15.9g %15.9g\n", overdense_val, True_result, Splined_result);
     }
     fclose(F);
 	F = NULL;
@@ -2955,7 +2955,7 @@ void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, flo
         overdense_val = overdense_large_low + (float)i/((float)NSFR_high *100-1.)*(overdense_large_high - overdense_large_low);
         True_result = DeltaNion_ConditionalMm(z,zp,log(Mmin),log(Mmax),Deltac,overdense_val, Alpha_star,MassTurnoverm,Mcrit_atom,Fstar10m,Mlim_Fstarm);
         DeltaNion_Spline_densitym(overdense_val, &Splined_result);
-        fprintf(F, "%g %g %g\n", overdense_val, True_result, Splined_result);
+        fprintf(F, "%15.9g %15.9g %15.9g\n", overdense_val, True_result, Splined_result);
     }
     fclose(F);
 	F = NULL;
