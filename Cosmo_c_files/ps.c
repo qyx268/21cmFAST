@@ -1944,51 +1944,8 @@ void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover,
 }
 #ifdef INHOMO_FEEDBACK
     gsl_spline2d_init(NionLow_spline, log10_overdense_spline_SFR, log10_Mturn_spline_SFR, log10_Nion_spline, NSFR_low, NMTURN);
-#ifdef OUTPUT_SPLINE
-    FILE *F;
-    char filename[1000];
-    float Splined_result, True_result;
-    sprintf(filename, "../Output_files/Splined_results/initialise_Nion_spline_low_2d_z%06.2f_Mmax%06.2f", z, Mmax);
-    if (!(F = fopen(filename, "w"))){
-        fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
-        exit(-1);
-    }
-    fprintf(F, "#overdense-1 log10_MassTurnover result splined\n");
-    for (i=0; i<NSFR_low * 100; i++){
-        overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low * 100 -1.) * (log10(1.+overdense_small_high)-log10(1.+overdense_small_low));
-        overdense_val = pow(10., overdense_val) - 1.;
-        for (j=0; j<NMTURN * 100; j++){
-            MassTurnover = LogMassTurnover_low + (double)j/((double)NMTURN * 100 -1.)*(LogMassTurnover_high-LogMassTurnover_low);
-            True_result = GaussLegendreQuad_Nion(NGL_SFR,z,log(Mmax),Deltac, overdense_val, pow(10., MassTurnover) ,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
-            Nion_Spline_density(overdense_val, MassTurnover, &Splined_result);
-            fprintf(F, "%g %g %g %g\n", overdense_val, MassTurnover, True_result, Splined_result);
-        }
-    }
-    fclose(F);
-	F = NULL;
-#endif
 #else //INHOMO_FEEDBACK
     gsl_spline_init(NionLow_spline, log10_overdense_spline_SFR, log10_Nion_spline, NSFR_low);
-#ifdef OUTPUT_SPLINE
-    FILE *F;
-    char filename[1000];
-    float Splined_result, True_result;
-    sprintf(filename, "../Output_files/Splined_results/initialise_Nion_spline_low_1d_z%06.2f_Mmax%06.2f", z, Mmax);
-    if (!(F = fopen(filename, "w"))){
-        fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
-        exit(-1);
-    }
-    fprintf(F, "#overdense-1 result splined\n");
-    for (i=0; i<NSFR_low * 100; i++){
-        overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low * 100 -1.) * (log10(1.+overdense_small_high)-log10(1.+overdense_small_low));
-        overdense_val = pow(10., overdense_val) - 1.;
-        True_result = GaussLegendreQuad_Nion(NGL_SFR,z,log(Mmax),Deltac, overdense_val, MassTurnover ,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
-        Nion_Spline_density(overdense_val, &Splined_result);
-        fprintf(F, "%g %g %g\n", overdense_val, True_result, Splined_result);
-    }
-    fclose(F);
-	F = NULL;
-#endif
 #endif //INHOMO_FEEDBACK
 
 #ifdef INHOMO_FEEDBACK
@@ -2020,6 +1977,27 @@ void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover,
 #ifdef INHOMO_FEEDBACK
     spline2d(Overdense_spline_SFR,log10_Mturn_spline_SFR_float, Nion_spline,NSFR_high, NMTURN,second_derivs_Nion);
 #ifdef OUTPUT_SPLINE
+    FILE *F;
+    char filename[1000];
+    float Splined_result, True_result;
+    sprintf(filename, "../Output_files/Splined_results/initialise_Nion_spline_low_2d_z%06.2f_Mmax%06.2f", z, Mmax);
+    if (!(F = fopen(filename, "w"))){
+        fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
+        exit(-1);
+    }
+    fprintf(F, "#overdense-1 log10_MassTurnover result splined\n");
+    for (i=0; i<NSFR_low * 100; i++){
+        overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low * 100 -1.) * (log10(1.+overdense_small_high)-log10(1.+overdense_small_low));
+        overdense_val = pow(10., overdense_val) - 1.;
+        for (j=0; j<NMTURN * 100; j++){
+            MassTurnover = LogMassTurnover_low + (double)j/((double)NMTURN * 100 -1.)*(LogMassTurnover_high-LogMassTurnover_low);
+            True_result = GaussLegendreQuad_Nion(NGL_SFR,z,log(Mmax),Deltac, overdense_val, pow(10., MassTurnover) ,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
+            Nion_Spline_density(overdense_val, MassTurnover, &Splined_result);
+            fprintf(F, "%g %g %g %g\n", overdense_val, MassTurnover, True_result, Splined_result);
+        }
+    }
+    fclose(F);
+	F = NULL;
     sprintf(filename, "../Output_files/Splined_results/initialise_Nion_spline_high_2d_z%06.2f_Mmax%06.2f", z, Mmax);
     if (!(F = fopen(filename, "w"))){
         fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
@@ -2041,6 +2019,24 @@ void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover,
 #else //INHOMO_FEEDBACK
     spline(Overdense_spline_SFR-1,Nion_spline-1,NSFR_high,0,0,second_derivs_Nion-1);
 #ifdef OUTPUT_SPLINE
+    FILE *F;
+    char filename[1000];
+    float Splined_result, True_result;
+    sprintf(filename, "../Output_files/Splined_results/initialise_Nion_spline_low_1d_z%06.2f_Mmax%06.2f", z, Mmax);
+    if (!(F = fopen(filename, "w"))){
+        fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
+        exit(-1);
+    }
+    fprintf(F, "#overdense-1 result splined\n");
+    for (i=0; i<NSFR_low * 100; i++){
+        overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low * 100 -1.) * (log10(1.+overdense_small_high)-log10(1.+overdense_small_low));
+        overdense_val = pow(10., overdense_val) - 1.;
+        True_result = GaussLegendreQuad_Nion(NGL_SFR,z,log(Mmax),Deltac, overdense_val, MassTurnover ,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
+        Nion_Spline_density(overdense_val, &Splined_result);
+        fprintf(F, "%g %g %g\n", overdense_val, True_result, Splined_result);
+    }
+    fclose(F);
+	F = NULL;
     sprintf(filename, "../Output_files/Splined_results/initialise_Nion_spline_high_1d_z%06.2f_Mmax%06.2f", z, Mmax);
     if (!(F = fopen(filename, "w"))){
         fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
@@ -2114,51 +2110,8 @@ void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, 
 }
 #ifdef INHOMO_FEEDBACK
     gsl_spline2d_init(NionLow_splinem, log10_overdense_spline_SFR, log10_Mturn_spline_SFRm, log10_Nion_splinem, NSFR_low, NMTURN);
-#ifdef OUTPUT_SPLINE
-    FILE *F;
-    char filename[1000];
-    float Splined_result, True_result;
-    sprintf(filename, "../Output_files/Splined_results/initialise_Nion_splinem_low_2d_z%06.2f_Mmax%06.2f", z, Mmax);
-    if (!(F = fopen(filename, "w"))){
-        fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
-        exit(-1);
-    }
-    fprintf(F, "#overdense-1 log10_MassTurnover result splined\n");
-    for (i=0; i<NSFR_low * 100; i++){
-        overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low * 100 -1.) * (log10(1.+overdense_small_high)-log10(1.+overdense_small_low));
-        overdense_val = pow(10., overdense_val) - 1.;
-        for (j=0; j<NMTURN * 100; j++){
-            MassTurnoverm = LogMassTurnover_low + (double)j/((double)NMTURN * 100 -1.)*(LogMassTurnover_high-LogMassTurnover_low);
-            True_result = GaussLegendreQuad_Nionm(NGL_SFR,z,log(Mmax),Deltac, overdense_val, Alpha_star,pow(10., MassTurnoverm),Mcrit_atom,Fstar10m,Mlim_Fstarm);
-            Nion_Spline_densitym(overdense_val, MassTurnoverm, &Splined_result);
-            fprintf(F, "%g %g %g %g\n", overdense_val, MassTurnoverm, True_result, Splined_result);
-        }
-    }
-    fclose(F);
-	F = NULL;
-#endif
 #else //INHOMO_FEEDBACK
     gsl_spline_init(NionLow_splinem, log10_overdense_spline_SFR, log10_Nion_splinem, NSFR_low);
-#ifdef OUTPUT_SPLINE
-    FILE *F;
-    char filename[1000];
-    float Splined_result, True_result;
-    sprintf(filename, "../Output_files/Splined_results/initialise_Nion_splinem_low_1d_z%06.2f_Mmax%06.2f", z, Mmax);
-    if (!(F = fopen(filename, "w"))){
-        fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
-        exit(-1);
-    }
-    fprintf(F, "#overdense-1 result splined\n");
-    for (i=0; i<NSFR_low * 100; i++){
-        overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low * 100 -1.) * (log10(1.+overdense_small_high)-log10(1.+overdense_small_low));                                                                                                             
-        overdense_val = pow(10., overdense_val) - 1.;
-        True_result = GaussLegendreQuad_Nionm(NGL_SFR,z,log(Mmax),Deltac, overdense_val, Alpha_star, MassTurnoverm,Mcrit_atom,Fstar10m,Mlim_Fstarm);
-        Nion_Spline_densitym(overdense_val, &Splined_result);
-        fprintf(F, "%g %g %g\n", overdense_val, True_result, Splined_result);
-    }
-    fclose(F);
-	F = NULL;
-#endif
 #endif //INHOMO_FEEDBACK
 
 #ifdef INHOMO_FEEDBACK
@@ -2190,6 +2143,27 @@ void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, 
 #ifdef INHOMO_FEEDBACK
     spline2d(Overdense_spline_SFR,log10_Mturn_spline_SFRm_float, Nion_splinem,NSFR_high, NMTURN,second_derivs_Nionm);
 #ifdef OUTPUT_SPLINE
+    FILE *F;
+    char filename[1000];
+    float Splined_result, True_result;
+    sprintf(filename, "../Output_files/Splined_results/initialise_Nion_splinem_low_2d_z%06.2f_Mmax%06.2f", z, Mmax);
+    if (!(F = fopen(filename, "w"))){
+        fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
+        exit(-1);
+    }
+    fprintf(F, "#overdense-1 log10_MassTurnover result splined\n");
+    for (i=0; i<NSFR_low * 100; i++){
+        overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low * 100 -1.) * (log10(1.+overdense_small_high)-log10(1.+overdense_small_low));
+        overdense_val = pow(10., overdense_val) - 1.;
+        for (j=0; j<NMTURN * 100; j++){
+            MassTurnoverm = LogMassTurnover_low + (double)j/((double)NMTURN * 100 -1.)*(LogMassTurnover_high-LogMassTurnover_low);
+            True_result = GaussLegendreQuad_Nionm(NGL_SFR,z,log(Mmax),Deltac, overdense_val, Alpha_star,pow(10., MassTurnoverm),Mcrit_atom,Fstar10m,Mlim_Fstarm);
+            Nion_Spline_densitym(overdense_val, MassTurnoverm, &Splined_result);
+            fprintf(F, "%g %g %g %g\n", overdense_val, MassTurnoverm, True_result, Splined_result);
+        }
+    }
+    fclose(F);
+	F = NULL;
     sprintf(filename, "../Output_files/Splined_results/initialise_Nion_splinem_high_2d_z%06.2f_Mmax%06.2f", z, Mmax);
     if (!(F = fopen(filename, "w"))){
         fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
@@ -2211,6 +2185,24 @@ void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, 
 #else //INHOMO_FEEDBACK
     spline(Overdense_spline_SFR-1,Nion_splinem-1,NSFR_high,0,0,second_derivs_Nionm-1);
 #ifdef OUTPUT_SPLINE
+    FILE *F;
+    char filename[1000];
+    float Splined_result, True_result;
+    sprintf(filename, "../Output_files/Splined_results/initialise_Nion_splinem_low_1d_z%06.2f_Mmax%06.2f", z, Mmax);
+    if (!(F = fopen(filename, "w"))){
+        fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
+        exit(-1);
+    }
+    fprintf(F, "#overdense-1 result splined\n");
+    for (i=0; i<NSFR_low * 100; i++){
+        overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low * 100 -1.) * (log10(1.+overdense_small_high)-log10(1.+overdense_small_low));                                                                                                             
+        overdense_val = pow(10., overdense_val) - 1.;
+        True_result = GaussLegendreQuad_Nionm(NGL_SFR,z,log(Mmax),Deltac, overdense_val, Alpha_star, MassTurnoverm,Mcrit_atom,Fstar10m,Mlim_Fstarm);
+        Nion_Spline_densitym(overdense_val, &Splined_result);
+        fprintf(F, "%g %g %g\n", overdense_val, True_result, Splined_result);
+    }
+    fclose(F);
+	F = NULL;
     sprintf(filename, "../Output_files/Splined_results/initialise_Nion_splinem_high_1d_z%06.2f_Mmax%06.2f", z, Mmax);
     if (!(F = fopen(filename, "w"))){
         fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
@@ -2695,49 +2687,8 @@ void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, floa
 }
 #ifdef INHOMO_FEEDBACK
     gsl_spline2d_init(NionLow_spline, log10_overdense_spline_SFR, log10_Mturn_spline_SFR, log10_Nion_spline, NSFR_low, NMTURN);
-#ifdef OUTPUT_SPLINE
-    FILE *F;
-    char filename[1000];
-    float Splined_result, True_result;
-    sprintf(filename, "../Output_files/Splined_results/initialise_DeltaNion_spline_low_2d_z%06.2f_zp%06.2f_Mmax%06.2f", z, zp, Mmax);
-    if (!(F = fopen(filename, "w"))){
-        fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
-        exit(-1);
-    }
-    fprintf(F, "#overdense-1 log10_MassTurnover result splined\n");
-    for (i=0; i<NSFR_low * 100; i++){
-        overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low * 100 -1.) * (log10(1.+overdense_small_high)-log10(1.+overdense_small_low));
-        overdense_val = pow(10., overdense_val) - 1.;
-        for (j=0; j<NMTURN * 100; j++){
-            MassTurnover = LogMassTurnover_low + (double)j/((double)NMTURN * 100 -1.)*(LogMassTurnover_high-LogMassTurnover_low);
-            True_result = GaussLegendreQuad_DeltaNion(NGL_SFR,z,zp,log(Mmax),Deltac, overdense_val, pow(10., MassTurnover) ,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
-            DeltaNion_Spline_density(overdense_val, MassTurnover, &Splined_result);
-            fprintf(F, "%g %g %g %g\n", overdense_val, MassTurnover, True_result, Splined_result);
-        }
-    }
-#endif
 #else //INHOMO_FEEDBACK
     gsl_spline_init(NionLow_spline, log10_overdense_spline_SFR, log10_Nion_spline, NSFR_low);
-#ifdef OUTPUT_SPLINE
-    FILE *F;
-    char filename[1000];
-    float Splined_result, True_result;
-    sprintf(filename, "../Output_files/Splined_results/initialise_DeltaNion_spline_low_1d_z%06.2f_zp%06.2f_Mmax%06.2f", z, zp, Mmax);
-    if (!(F = fopen(filename, "w"))){
-        fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
-        exit(-1);
-    }
-    fprintf(F, "#overdense-1 result splined\n");
-    for (i=0; i<NSFR_low * 100; i++){
-        overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low * 100 -1.) * (log10(1.+overdense_small_high)-log10(1.+overdense_small_low));
-        overdense_val = pow(10., overdense_val) - 1.;
-        True_result = GaussLegendreQuad_DeltaNion(NGL_SFR,z,zp,log(Mmax),Deltac, overdense_val, MassTurnover ,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
-        DeltaNion_Spline_density(overdense_val, &Splined_result);
-        fprintf(F, "%g %g %g\n", overdense_val, True_result, Splined_result);
-    }
-    fclose(F);
-	F = NULL;
-#endif
 #endif //INHOMO_FEEDBACK
 
 #ifdef INHOMO_FEEDBACK
@@ -2769,6 +2720,25 @@ void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, floa
 #ifdef INHOMO_FEEDBACK
     spline2d(Overdense_spline_SFR,log10_Mturn_spline_SFR_float, Nion_spline,NSFR_high, NMTURN,second_derivs_Nion);
 #ifdef OUTPUT_SPLINE
+    FILE *F;
+    char filename[1000];
+    float Splined_result, True_result;
+    sprintf(filename, "../Output_files/Splined_results/initialise_DeltaNion_spline_low_2d_z%06.2f_zp%06.2f_Mmax%06.2f", z, zp, Mmax);
+    if (!(F = fopen(filename, "w"))){
+        fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
+        exit(-1);
+    }
+    fprintf(F, "#overdense-1 log10_MassTurnover result splined\n");
+    for (i=0; i<NSFR_low * 100; i++){
+        overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low * 100 -1.) * (log10(1.+overdense_small_high)-log10(1.+overdense_small_low));
+        overdense_val = pow(10., overdense_val) - 1.;
+        for (j=0; j<NMTURN * 100; j++){
+            MassTurnover = LogMassTurnover_low + (double)j/((double)NMTURN * 100 -1.)*(LogMassTurnover_high-LogMassTurnover_low);
+            True_result = GaussLegendreQuad_DeltaNion(NGL_SFR,z,zp,log(Mmax),Deltac, overdense_val, pow(10., MassTurnover) ,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
+            DeltaNion_Spline_density(overdense_val, MassTurnover, &Splined_result);
+            fprintf(F, "%g %g %g %g\n", overdense_val, MassTurnover, True_result, Splined_result);
+        }
+    }
     sprintf(filename, "../Output_files/Splined_results/initialise_DeltaNion_spline_high_2d_z%06.2f_zp%06.2f_Mmax%06.2f", z, zp, Mmax);
     if (!(F = fopen(filename, "w"))){
         fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
@@ -2790,6 +2760,24 @@ void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, floa
 #else //INHOMO_FEEDBACK
     spline(Overdense_spline_SFR-1,Nion_spline-1,NSFR_high,0,0,second_derivs_Nion-1);
 #ifdef OUTPUT_SPLINE
+    FILE *F;
+    char filename[1000];
+    float Splined_result, True_result;
+    sprintf(filename, "../Output_files/Splined_results/initialise_DeltaNion_spline_low_1d_z%06.2f_zp%06.2f_Mmax%06.2f", z, zp, Mmax);
+    if (!(F = fopen(filename, "w"))){
+        fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
+        exit(-1);
+    }
+    fprintf(F, "#overdense-1 result splined\n");
+    for (i=0; i<NSFR_low * 100; i++){
+        overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low * 100 -1.) * (log10(1.+overdense_small_high)-log10(1.+overdense_small_low));
+        overdense_val = pow(10., overdense_val) - 1.;
+        True_result = GaussLegendreQuad_DeltaNion(NGL_SFR,z,zp,log(Mmax),Deltac, overdense_val, MassTurnover ,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
+        DeltaNion_Spline_density(overdense_val, &Splined_result);
+        fprintf(F, "%g %g %g\n", overdense_val, True_result, Splined_result);
+    }
+    fclose(F);
+	F = NULL;
     sprintf(filename, "../Output_files/Splined_results/initialise_DeltaNion_spline_high_1d_z%06.2f_zp%06.2f_Mmax%06.2f", z, zp, Mmax);
     if (!(F = fopen(filename, "w"))){
         fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
@@ -2863,51 +2851,8 @@ void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, flo
 }
 #ifdef INHOMO_FEEDBACK
     gsl_spline2d_init(NionLow_splinem, log10_overdense_spline_SFR, log10_Mturn_spline_SFRm, log10_Nion_splinem, NSFR_low, NMTURN);   
-#ifdef OUTPUT_SPLINE
-    FILE *F;
-    char filename[1000];
-    float Splined_result, True_result;
-    sprintf(filename, "../Output_files/Splined_results/initialise_DeltaNion_splinem_low_2d_z%06.2f_zp%06.2f_Mmax%06.2f", z, zp, Mmax);
-    if (!(F = fopen(filename, "w"))){
-        fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
-        exit(-1);
-    }
-    fprintf(F, "#overdense-1 log10_MassTurnover result splined\n");
-    for (i=0; i<NSFR_low * 100; i++){
-        overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low * 100 -1.) * (log10(1.+overdense_small_high)-log10(1.+overdense_small_low));
-        overdense_val = pow(10., overdense_val) - 1.;
-        for (j=0; j<NMTURN * 100; j++){
-            MassTurnoverm = LogMassTurnover_low + (double)j/((double)NMTURN * 100 -1.)*(LogMassTurnover_high-LogMassTurnover_low);
-            True_result = GaussLegendreQuad_DeltaNionm(NGL_SFR,z,zp,log(Mmax),Deltac, overdense_val, Alpha_star,pow(10., MassTurnoverm),Mcrit_atom,Fstar10m,Mlim_Fstarm);
-            DeltaNion_Spline_densitym(overdense_val, MassTurnoverm, &Splined_result);
-            fprintf(F, "%g %g %g %g\n", overdense_val, MassTurnoverm, True_result, Splined_result);
-        }
-    }
-    fclose(F);
-	F = NULL;
-#endif
 #else //INHOMO_FEEDBACK
     gsl_spline_init(NionLow_splinem, log10_overdense_spline_SFR, log10_Nion_splinem, NSFR_low);
-#ifdef OUTPUT_SPLINE
-    FILE *F;
-    char filename[1000];
-    float Splined_result, True_result;
-    sprintf(filename, "../Output_files/Splined_results/initialise_DeltaNion_splinem_low_1d_z%06.2f_zp%06.2f_Mmax%06.2f", z, zp, Mmax);
-    if (!(F = fopen(filename, "w"))){
-        fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
-        exit(-1);
-    }
-    fprintf(F, "#overdense-1 result splined\n");
-    for (i=0; i<NSFR_low * 100; i++){
-        overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low * 100 -1.) * (log10(1.+overdense_small_high)-log10(1.+overdense_small_low));
-        overdense_val = pow(10., overdense_val) - 1.;
-        True_result = GaussLegendreQuad_DeltaNionm(NGL_SFR,z,zp,log(Mmax),Deltac, overdense_val, Alpha_star, MassTurnoverm, Mcrit_atom,Fstar10m,Mlim_Fstarm);
-        DeltaNion_Spline_densitym(overdense_val, &Splined_result);
-        fprintf(F, "%g %g %g\n", overdense_val, True_result, Splined_result);
-    }
-    fclose(F);
-	F = NULL;
-#endif
 #endif //INHOMO_FEEDBACK
 
 
@@ -2940,6 +2885,27 @@ void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, flo
 #ifdef INHOMO_FEEDBACK
     spline2d(Overdense_spline_SFR,log10_Mturn_spline_SFRm_float, Nion_splinem,NSFR_high, NMTURN,second_derivs_Nionm);
 #ifdef OUTPUT_SPLINE
+    FILE *F;
+    char filename[1000];
+    float Splined_result, True_result;
+    sprintf(filename, "../Output_files/Splined_results/initialise_DeltaNion_splinem_low_2d_z%06.2f_zp%06.2f_Mmax%06.2f", z, zp, Mmax);
+    if (!(F = fopen(filename, "w"))){
+        fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
+        exit(-1);
+    }
+    fprintf(F, "#overdense-1 log10_MassTurnover result splined\n");
+    for (i=0; i<NSFR_low * 100; i++){
+        overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low * 100 -1.) * (log10(1.+overdense_small_high)-log10(1.+overdense_small_low));
+        overdense_val = pow(10., overdense_val) - 1.;
+        for (j=0; j<NMTURN * 100; j++){
+            MassTurnoverm = LogMassTurnover_low + (double)j/((double)NMTURN * 100 -1.)*(LogMassTurnover_high-LogMassTurnover_low);
+            True_result = GaussLegendreQuad_DeltaNionm(NGL_SFR,z,zp,log(Mmax),Deltac, overdense_val, Alpha_star,pow(10., MassTurnoverm),Mcrit_atom,Fstar10m,Mlim_Fstarm);
+            DeltaNion_Spline_densitym(overdense_val, MassTurnoverm, &Splined_result);
+            fprintf(F, "%g %g %g %g\n", overdense_val, MassTurnoverm, True_result, Splined_result);
+        }
+    }
+    fclose(F);
+	F = NULL;
     sprintf(filename, "../Output_files/Splined_results/initialise_DeltaNion_splinem_high_2d_z%06.2f_zp%06.2f_Mmax%06.2f", z, zp, Mmax);
     if (!(F = fopen(filename, "w"))){
         fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
@@ -2961,6 +2927,24 @@ void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, flo
 #else //INHOMO_FEEDBACK
     spline(Overdense_spline_SFR-1,Nion_splinem-1,NSFR_high,0,0,second_derivs_Nionm-1);
 #ifdef OUTPUT_SPLINE
+    FILE *F;
+    char filename[1000];
+    float Splined_result, True_result;
+    sprintf(filename, "../Output_files/Splined_results/initialise_DeltaNion_splinem_low_1d_z%06.2f_zp%06.2f_Mmax%06.2f", z, zp, Mmax);
+    if (!(F = fopen(filename, "w"))){
+        fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
+        exit(-1);
+    }
+    fprintf(F, "#overdense-1 result splined\n");
+    for (i=0; i<NSFR_low * 100; i++){
+        overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low * 100 -1.) * (log10(1.+overdense_small_high)-log10(1.+overdense_small_low));
+        overdense_val = pow(10., overdense_val) - 1.;
+        True_result = GaussLegendreQuad_DeltaNionm(NGL_SFR,z,zp,log(Mmax),Deltac, overdense_val, Alpha_star, MassTurnoverm, Mcrit_atom,Fstar10m,Mlim_Fstarm);
+        DeltaNion_Spline_densitym(overdense_val, &Splined_result);
+        fprintf(F, "%g %g %g\n", overdense_val, True_result, Splined_result);
+    }
+    fclose(F);
+	F = NULL;
     sprintf(filename, "../Output_files/Splined_results/initialise_DeltaNion_splinem_high_1d_z%06.2f_zp%06.2f_Mmax%06.2f", z, zp, Mmax);
     if (!(F = fopen(filename, "w"))){
         fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
