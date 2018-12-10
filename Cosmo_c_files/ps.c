@@ -1964,6 +1964,8 @@ void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover,
             fprintf(F, "%g %g %g %g\n", overdense_val, MassTurnover, True_result, Splined_result);
         }
     }
+    fclose(F);
+	F = NULL;
 #endif
 #else //INHOMO_FEEDBACK
     gsl_spline_init(NionLow_spline, log10_overdense_spline_SFR, log10_Nion_spline, NSFR_low);
@@ -1984,6 +1986,8 @@ void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover,
         Nion_Spline_density(overdense_val, &Splined_result);
         fprintf(F, "%g %g %g\n", overdense_val, True_result, Splined_result);
     }
+    fclose(F);
+	F = NULL;
 #endif
 #endif //INHOMO_FEEDBACK
 
@@ -2031,6 +2035,8 @@ void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover,
             fprintf(F, "%g %g %g %g\n", overdense_val, MassTurnover, True_result, Splined_result);
         }
     }
+    fclose(F);
+	F = NULL;
 #endif
 #else //INHOMO_FEEDBACK
     spline(Overdense_spline_SFR-1,Nion_spline-1,NSFR_high,0,0,second_derivs_Nion-1);
@@ -2047,6 +2053,8 @@ void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover,
         Nion_Spline_density(overdense_val, &Splined_result);
         fprintf(F, "%g %g %g\n", overdense_val, True_result, Splined_result);
     }
+    fclose(F);
+	F = NULL;
 #endif
 #endif //INHOMO_FEEDBACK
 }
@@ -2126,6 +2134,8 @@ void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, 
             fprintf(F, "%g %g %g %g\n", overdense_val, MassTurnoverm, True_result, Splined_result);
         }
     }
+    fclose(F);
+	F = NULL;
 #endif
 #else //INHOMO_FEEDBACK
     gsl_spline_init(NionLow_splinem, log10_overdense_spline_SFR, log10_Nion_splinem, NSFR_low);
@@ -2146,6 +2156,8 @@ void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, 
         Nion_Spline_densitym(overdense_val, &Splined_result);
         fprintf(F, "%g %g %g\n", overdense_val, True_result, Splined_result);
     }
+    fclose(F);
+	F = NULL;
 #endif
 #endif //INHOMO_FEEDBACK
 
@@ -2193,6 +2205,8 @@ void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, 
             fprintf(F, "%g %g %g %g\n", overdense_val, MassTurnoverm, True_result, Splined_result);
         }
     }
+    fclose(F);
+	F = NULL;
 #endif
 #else //INHOMO_FEEDBACK
     spline(Overdense_spline_SFR-1,Nion_splinem-1,NSFR_high,0,0,second_derivs_Nionm-1);
@@ -2209,6 +2223,8 @@ void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, 
         Nion_Spline_densitym(overdense_val, &Splined_result);
         fprintf(F, "%g %g %g\n", overdense_val, True_result, Splined_result);
     }
+    fclose(F);
+	F = NULL;
 #endif
 #endif //INHOMO_FEEDBACK
 }
@@ -2719,6 +2735,8 @@ void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, floa
         DeltaNion_Spline_density(overdense_val, &Splined_result);
         fprintf(F, "%g %g %g\n", overdense_val, True_result, Splined_result);
     }
+    fclose(F);
+	F = NULL;
 #endif
 #endif //INHOMO_FEEDBACK
 
@@ -2766,6 +2784,8 @@ void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, floa
             fprintf(F, "%g %g %g %g\n", overdense_val, MassTurnover, True_result, Splined_result);
         }
     }
+    fclose(F);
+	F = NULL;
 #endif
 #else //INHOMO_FEEDBACK
     spline(Overdense_spline_SFR-1,Nion_spline-1,NSFR_high,0,0,second_derivs_Nion-1);
@@ -2782,6 +2802,8 @@ void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, floa
         DeltaNion_Spline_density(overdense_val, &Splined_result);
         fprintf(F, "%g %g %g\n", overdense_val, True_result, Splined_result);
     }
+    fclose(F);
+	F = NULL;
 #endif
 #endif //INHOMO_FEEDBACK
 }
@@ -2861,6 +2883,8 @@ void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, flo
             fprintf(F, "%g %g %g %g\n", overdense_val, MassTurnoverm, True_result, Splined_result);
         }
     }
+    fclose(F);
+	F = NULL;
 #endif
 #else //INHOMO_FEEDBACK
     gsl_spline_init(NionLow_splinem, log10_overdense_spline_SFR, log10_Nion_splinem, NSFR_low);
@@ -2881,6 +2905,8 @@ void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, flo
         DeltaNion_Spline_densitym(overdense_val, &Splined_result);
         fprintf(F, "%g %g %g\n", overdense_val, True_result, Splined_result);
     }
+    fclose(F);
+	F = NULL;
 #endif
 #endif //INHOMO_FEEDBACK
 
@@ -2929,6 +2955,8 @@ void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, flo
             fprintf(F, "%g %g %g %g\n", overdense_val, MassTurnoverm, True_result, Splined_result);
         }
     }
+    fclose(F);
+	F = NULL;
 #endif
 #else //INHOMO_FEEDBACK
     spline(Overdense_spline_SFR-1,Nion_splinem-1,NSFR_high,0,0,second_derivs_Nionm-1);
@@ -2945,6 +2973,8 @@ void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, flo
         DeltaNion_Spline_densitym(overdense_val, &Splined_result);
         fprintf(F, "%g %g %g\n", overdense_val, True_result, Splined_result);
     }
+    fclose(F);
+	F = NULL;
 #endif
 #endif //INHOMO_FEEDBACK
 }
