@@ -1725,6 +1725,8 @@ int main(int argc, char ** argv){
     initialise_Nion_spline(REDSHIFT, massofscaleR,M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
     initialise_Nion_splinem(REDSHIFT, massofscaleR,M_MIN,ALPHA_STAR,M_MINm,Mcrit_atom,F_STAR10m,Mlim_Fstarm);
 #endif //INHOMO_FEEDBACK
+#else //MINI_HALO
+    initialise_Nion_spline(REDSHIFT, massofscaleR,M_MIN,M_MINa,ALPHA_STAR,ALPHA_ESC,F_STAR10,F_ESC10,Mlim_Fstar,Mlim_Fesc);
 #endif //MINI_HALO
 #endif //CONTEMPORANEOUS_DUTYCYCLE
 #endif //SHARP_CUTOFF
