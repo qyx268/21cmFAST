@@ -1902,8 +1902,8 @@ void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover,
 #endif //INHOMO_FEEDBACK
 {
     double overdense_val;
-    double overdense_large_high = Deltac, overdense_large_low = 1.5;
-    double overdense_small_high = 1.5, overdense_small_low = -1. + 9e-8;
+    double overdense_large_high = Deltac, overdense_large_low = 1.5-9e-8;
+    double overdense_small_high = 1.5+9e-8, overdense_small_low = -1. + 9e-8;
 
     int i;
     NionLow_spline_acc = gsl_interp_accel_alloc ();
@@ -2064,8 +2064,8 @@ void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, 
 {
 #ifdef OUTPUT_SPLINE
     double overdense_val;
-    double overdense_large_high = Deltac, overdense_large_low = 1.5;
-    double overdense_small_high = 1.5, overdense_small_low = -1. + 9e-8;
+    double overdense_large_high = Deltac, overdense_large_low = 1.5-9e-8;
+    double overdense_small_high = 1.5+9e-8, overdense_small_low = -1. + 9e-8;
 #endif
     int i;
     NionLow_spline_accm = gsl_interp_accel_alloc ();
@@ -2641,8 +2641,8 @@ void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, floa
 #endif //INHOMO_FEEDBACK
 {
     double overdense_val;
-    double overdense_large_high = Deltac, overdense_large_low = 1.5;
-    double overdense_small_high = 1.5, overdense_small_low = -1. + 9e-8;
+    double overdense_large_high = Deltac, overdense_large_low = 1.5-9e-8;
+    double overdense_small_high = 1.5+9e-8, overdense_small_low = -1. + 9e-8;
 
     int i;
     NionLow_spline_acc = gsl_interp_accel_alloc ();
@@ -2805,8 +2805,8 @@ void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, flo
 {
 #ifdef OUTPUT_SPLINE
     double overdense_val;
-    double overdense_large_high = Deltac, overdense_large_low = 1.5;
-    double overdense_small_high = 1.5, overdense_small_low = -1. + 9e-8;
+    double overdense_large_high = Deltac, overdense_large_low = 1.5-9e-8;
+    double overdense_small_high = 1.5+9e-8, overdense_small_low = -1. + 9e-8;
 #endif
     int i;
     NionLow_spline_accm = gsl_interp_accel_alloc ();
@@ -3259,8 +3259,8 @@ void initialise_SFRD_Conditional_table(int Nsteps_zp, int Nfilter, float z[], do
 #endif
 {
     double overdense_val;
-    double overdense_large_high = Deltac, overdense_large_low = 1.5;
-    double overdense_small_high = 1.5, overdense_small_low = -1. + 9e-8;
+    double overdense_large_high = Deltac, overdense_large_low = 1.5-9e-8;
+    double overdense_small_high = 1.5+9e-8, overdense_small_low = -1. + 9e-8;
     double overdense_low_table[NSFR_low];
     float Mmax,Mlim_Fstar;
     int i,j,k,i_tot;
@@ -3345,8 +3345,8 @@ void initialise_SFRD_Conditional_tablem(int Nsteps_zp, int Nfilter, float z[], d
 #endif
 {
 //    double overdense_val;
-//    double overdense_large_high = Deltac, overdense_large_low = 1.5;
-//    double overdense_small_high = 1.5, overdense_small_low = -1. + 9e-8;
+//    double overdense_large_high = Deltac, overdense_large_low = 1.5-9e-8;
+//    double overdense_small_high = 1.5+9e-8, overdense_small_low = -1. + 9e-8;
     double overdense_low_table[NSFR_low];
     float Mmax,Mlim_Fstarm;
     int i,j,k,i_tot;
