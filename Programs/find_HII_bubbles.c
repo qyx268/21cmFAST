@@ -42,9 +42,19 @@ void init_21cmMC_arrays() { // defined in Cosmo_c_files/ps.c
     second_derivs_Nion[0] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
     second_derivs_Nion[1] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
     second_derivs_Nion[2] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
+    Nion_prev_spline = calloc(NSFR_high*NMTURN,sizeof(float));
+    second_derivs_Nion_prev[0] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
+    second_derivs_Nion_prev[1] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
+    second_derivs_Nion_prev[2] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
+#endif //CONTEMPORANEOUS_DUTYCYCLE
 #else //INHOMO_FEEDBACK
     Nion_spline = calloc(NSFR_high,sizeof(float));
     second_derivs_Nion = calloc(NSFR_high,sizeof(float));
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
+    Nion_prev_spline = calloc(NSFR_high,sizeof(float));
+    second_derivs_Nion_prev = calloc(NSFR_high,sizeof(float));
+#endif //CONTEMPORANEOUS_DUTYCYCLE
 #endif //INHOMO_FEEDBACK
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
@@ -52,9 +62,19 @@ void init_21cmMC_arrays() { // defined in Cosmo_c_files/ps.c
     second_derivs_Nionm[0] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
     second_derivs_Nionm[1] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
     second_derivs_Nionm[2] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
+    Nion_prev_splinem = calloc(NSFR_high*NMTURN,sizeof(float));
+    second_derivs_Nionm_prev[0] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
+    second_derivs_Nionm_prev[1] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
+    second_derivs_Nionm_prev[2] = (float *) malloc(NSFR_high*NMTURN*sizeof(float));
+#endif //CONTEMPORANEOUS_DUTYCYCLE
 #else //INHOMO_FEEDBACK
     Nion_splinem = calloc(NSFR_high,sizeof(float));
     second_derivs_Nionm = calloc(NSFR_high,sizeof(float));
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
+    Nion_prev_splinem = calloc(NSFR_high,sizeof(float));
+    second_derivs_Nionm_prev = calloc(NSFR_high,sizeof(float));
+#endif //CONTEMPORANEOUS_DUTYCYCLE
 #endif //INHOMO_FEEDBACK
 #endif //MINI_HALO
     xi_SFR = calloc((NGL_SFR+1),sizeof(float));
@@ -71,6 +91,9 @@ void destroy_21cmMC_arrays() {
 
     free(Overdense_spline_SFR); // New in v2
     free(Nion_spline);
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
+    free(Nion_prev_spline);
+#endif //CONTEMPORANEOUS_DUTYCYCLE
 #ifdef INHOMO_FEEDBACK
     free(Nion_splinem);
     free(second_derivs_Nion[0]);
@@ -79,11 +102,27 @@ void destroy_21cmMC_arrays() {
     free(second_derivs_Nionm[0]);
     free(second_derivs_Nionm[1]);
     free(second_derivs_Nionm[2]);
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
+    free(Nion_prev_splinem);
+    free(second_derivs_Nion_prev[0]);
+    free(second_derivs_Nion_prev[1]);
+    free(second_derivs_Nion_prev[2]);
+    free(second_derivs_Nionm_prev[0]);
+    free(second_derivs_Nionm_prev[1]);
+    free(second_derivs_Nionm_prev[2]);
+#endif //CONTEMPORANEOUS_DUTYCYCLE
 #else
     free(second_derivs_Nion);
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
+    free(second_derivs_Nion_prev);
+#endif //CONTEMPORANEOUS_DUTYCYCLE
 #ifdef MINI_HALO
     free(Nion_splinem);
     free(second_derivs_Nionm);
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
+    free(Nion_prev_splinem);
+    free(second_derivs_Nionm_prev);
+#endif //CONTEMPORANEOUS_DUTYCYCLE
 #endif //MINI_HALO
 #endif
     free(xi_SFR);
