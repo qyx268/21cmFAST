@@ -1067,18 +1067,18 @@ double nu_tau_one(double zp, double zpp, double x_e, double HI_filling_factor_zp
 
   //check if lower bound has null
 #ifdef SHARP_CUTOFF
-  if (tauX(NU_LW_THRESH, x_e, zp, zpp, HI_filling_factor_zp) < 1)
+  if (tauX(HeI_NUIONIZATION, x_e, zp, zpp, HI_filling_factor_zp) < 1)
 #else //SHARP_CUTOFF
 #ifdef MINI_HALO
-  if (tauX(NU_LW_THRESH, x_e, zp, zpp, HI_filling_factor_zp, ion_eff, ion_effm) < 1)
+  if (tauX(HeI_NUIONIZATION, x_e, zp, zpp, HI_filling_factor_zp, ion_eff, ion_effm) < 1)
 #else //MINI_HALO
-  if (tauX(NU_LW_THRESH, x_e, zp, zpp, HI_filling_factor_zp, ion_eff) < 1)
+  if (tauX(HeI_NUIONIZATION, x_e, zp, zpp, HI_filling_factor_zp, ion_eff) < 1)
 #endif //MINI_HALO
 #endif //SHARP_CUTOFF
-    return NU_LW_THRESH;
+    return HeI_NUIONIZATION;
 
   // set frequency boundary values
-  x_lo= NU_LW_THRESH;
+  x_lo= HeI_NUIONIZATION;
   x_hi = 1e6 * NU_over_EV;
 
   // select function we wish to solve

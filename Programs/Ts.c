@@ -226,7 +226,7 @@ int main(int argc, char ** argv){
   double J_alpha_threads[NUMCORES], xalpha_threads[NUMCORES], Xheat_threads[NUMCORES],
    Xion_threads[NUMCORES], lower_int_limit;
 #ifdef INHOMO_FEEDBACK
-  double J_LW_threads[NUMCORES], lower_int_limit_LW;
+  double J_LW_threads[NUMCORES];
 #endif
   float Splined_Nion_ST_zp, Splined_SFRD_ST_zpp,ION_EFF_FACTOR,fcoll; // New in v2
 #ifdef MINI_HALO
@@ -1428,8 +1428,7 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
 #else //SHARP_CUTOFF
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-      lower_int_limit_LW = FMAX(nu_tau_one(zp, zpp, x_e_ave, filling_factor_of_HI_zp, ION_EFF_FACTOR, ION_EFF_FACTOR_MINI), NU_LW_THRESH);
-      lower_int_limit = FMAX(lower_int_limit_LW, NU_X_THRESH);
+      lower_int_limit = FMAX(nu_tau_one(zp, zpp, x_e_ave, filling_factor_of_HI_zp, ION_EFF_FACTOR, ION_EFF_FACTOR_MINI), NU_X_THRESH);
 #else
       lower_int_limit = FMAX(nu_tau_one(zp, zpp, x_e_ave, filling_factor_of_HI_zp, ION_EFF_FACTOR, ION_EFF_FACTOR_MINI), NU_X_THRESH);
 #endif
@@ -1442,7 +1441,7 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
       // set up frequency integral table for later interpolation for the cell's x_e value
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-#pragma omp parallel shared(freq_int_heat_tbl, freq_int_ion_tbl, COMPUTE_Ts, freq_int_lya_tbl, freq_int_heat_tblm, freq_int_ion_tblm, freq_int_lya_tblm, zp, R_ct, x_e_ave, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, lower_int_limit, lower_int_limit_LW) private(x_e_ct)
+#pragma omp parallel shared(freq_int_heat_tbl, freq_int_ion_tbl, COMPUTE_Ts, freq_int_lya_tbl, freq_int_heat_tblm, freq_int_ion_tblm, freq_int_lya_tblm, zp, R_ct, x_e_ave, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, lower_int_limit) private(x_e_ct)
 #else
 #pragma omp parallel shared(freq_int_heat_tbl, freq_int_ion_tbl, COMPUTE_Ts, freq_int_lya_tbl, freq_int_heat_tblm, freq_int_ion_tblm, freq_int_lya_tblm, zp, R_ct, x_e_ave, x_int_XHII, x_int_Energy, x_int_fheat, x_int_n_Lya, x_int_nion_HI, x_int_nion_HeI, x_int_nion_HeII, lower_int_limit) private(x_e_ct)
 #endif
@@ -1485,8 +1484,8 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
         sum_lynm[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0, 3);
 #ifdef INHOMO_FEEDBACK
         nu_nplus1 = nu_n(n_ct + 1);
-        if (nuprime < lower_int_limit_LW / NUIONIZATION)
-          nuprime = lower_int_limit_LW / NUIONIZATION;
+        if (nuprime < NU_LW_THRESH / NUIONIZATION)
+          nuprime = NU_LW_THRESH / NUIONIZATION;
         if (nuprime >= nu_nplus1)
             continue;
         sum_lyLWn[R_ct]  += spectral_emissivity(nuprime, 3, 2);
