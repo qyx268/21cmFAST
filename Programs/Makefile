@@ -1,5 +1,5 @@
 # C compiler and flags
-CPPFLAGS = -I/usr/local/include -I/astro/home/yuxiang.qin/3rd_party/include
+CPPFLAGS = -I$(HOME)/3rd_party/include
 LDFLAGS = -L$(HOME)/3rd_party/lib -lgsl -lgslcblas -lfftw3f_omp -lfftw3f -lm
 #CC      = gcc -fopenmp #-mtune=core2 -march=core2 -m64 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_THREAD_SAFE #for my mac pro 64bit
 CC      = gcc -fopenmp -O3 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_THREAD_SAFE #for my mac pro 64bit
