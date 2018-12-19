@@ -1542,7 +1542,7 @@ int main(int argc, char ** argv){
     // NOTE we do not check whether mean_f_coll_st*ION_EFF_FACTOR + mean_f_collm_st*ION_EFF_FACTOR_MINI 
     // decreases during the dark ages, which is unlikely to happen
     fprintf(LOG, "begin reading in Fcoll_prev boxes, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
-    sprintf(filename, "../Boxes/Nion_evolution/z%06.2f/f_coll_ps_R%.0f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", PREV_REDSHIFT, R, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+    sprintf(filename, "../Boxes/Nion_evolution/z%06.2f/f_coll_ps_R%.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", PREV_REDSHIFT, R, HII_FILTER, MFP, HII_DIM, BOX_LEN);
     if(F = fopen(filename, "rb")){
       for (i=0; i<HII_DIM; i++){
         for (j=0; j<HII_DIM; j++){
@@ -1561,7 +1561,7 @@ int main(int argc, char ** argv){
     else
       flag_first_reionization = 1;
 
-    sprintf(filename, "../Boxes/Nion_evolution/z%06.2f/f_collm_ps_R%.0f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", PREV_REDSHIFT, R, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+    sprintf(filename, "../Boxes/Nion_evolution/z%06.2f/f_collm_ps_R%.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", PREV_REDSHIFT, R, HII_FILTER, MFP, HII_DIM, BOX_LEN);
     if(F = fopen(filename, "rb")){
       if (flag_first_reionization == 1){
         strcpy(error_message, "find_HII_bubbles.c: read Nionm box but not Nion box???\n");
@@ -1848,7 +1848,7 @@ int main(int argc, char ** argv){
 #endif*/
 
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
-    sprintf(filename, "../Boxes/Nion_evolution/z%06.2f/f_coll_ps_R%.0f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, R, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+    sprintf(filename, "../Boxes/Nion_evolution/z%06.2f/f_coll_ps_R%.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, R, HII_FILTER, MFP, HII_DIM, BOX_LEN);
     if (!(F = fopen(filename, "wb"))){
       sprintf(error_message, "find_HII_bubbles: ERROR: unable to open file for writting Nion (i.e. Fcoll) box!\n");
       goto CLEANUP;
@@ -1868,7 +1868,7 @@ int main(int argc, char ** argv){
       F = NULL;
     }
 
-    sprintf(filename, "../Boxes/Nion_evolution/z%06.2f/f_collm_ps_R%.0f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, R, HII_FILTER, MFP, HII_DIM, BOX_LEN);
+    sprintf(filename, "../Boxes/Nion_evolution/z%06.2f/f_collm_ps_R%.2f_HIIfilter%i_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, R, HII_FILTER, MFP, HII_DIM, BOX_LEN);
     if (!(F = fopen(filename, "wb"))){
       sprintf(error_message, "find_HII_bubbles: ERROR: unable to open file for writting Nionm (i.e. Fcollm) box!\n");
       goto CLEANUP;
