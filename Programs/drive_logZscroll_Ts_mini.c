@@ -51,9 +51,11 @@ int main(int argc, char ** argv){
   system("rm ../Boxes/Nrec_*");
   system("rm ../Boxes/Gamma12*");
   system("rm ../Boxes/z_first*");
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
+  system("rm -r ../Boxes/Nion_evolution/");
+#endif
 #ifdef INHOMO_FEEDBACK
   system("rm ../Boxes/J_21_LW*");
-  system("rm ../Boxes/Nion*");
   system("rm ../Boxes/Mcrit*");
 #endif
   system("rm ../Output_files/Deldel_T_power_spec/*");  

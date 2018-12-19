@@ -38,10 +38,10 @@ int main(int argc, char ** argv){
   system("mkdir -p ../Output_files/Size_distributions");
   system("mkdir -p ../Output_files/Deldel_T_power_spec");
   system("mkdir -p ../Redshift_interpolate_filelists");
+  //  system("mkdir -p ../Lighttravel_filelists");
 #ifdef OUTPUT_SPLINE
   system("mkdir -p ../Output_files/Splined_results");
 #endif
-  //  system("mkdir -p ../Lighttravel_filelists");
 
   // remove some of the previous (astro) files which might conflict with current run
   system("rm ../Boxes/Ts_evolution/*");
@@ -51,10 +51,12 @@ int main(int argc, char ** argv){
   system("rm ../Boxes/Nrec_*");
   system("rm ../Boxes/Gamma12*");
   system("rm ../Boxes/z_first*");
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
+  system("rm -r ../Boxes/Nion_evolution/");
+#endif
 #ifdef INHOMO_FEEDBACK
   system("rm ../Boxes/J_21_LW*");
-  system("rm ../Boxes/Nion*");
-  system("rm ../Boxes/M_MIN*");
+  system("rm ../Boxes/Mcrit*");
 #endif
   system("rm ../Output_files/Deldel_T_power_spec/*");  
 
