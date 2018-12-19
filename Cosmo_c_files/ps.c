@@ -2273,10 +2273,11 @@ void Nion_Spline_density(float Overdensity, float *splined_value)
         }
     }
     else {
-        if(Overdensity<0.99*Deltac) {
+        if(Overdensity<0.9*Deltac) {
         // Usage of 0.99*Deltac arises due to the fact that close to the critical density, the collapsed fraction becomes a little unstable
         // However, such densities should always be collapsed, so just set f_coll to unity. 
         // Additionally, the fraction of points in this regime relative to the entire simulation volume is extremely small.
+		// YQ:set it to 0.9 (confirmed by AM)
 #ifdef INHOMO_FEEDBACK
           if (log10_M_MINa>10) 
             splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFR_float,Nion_spline,second_derivs_Nion,NSFR_high,NMTURN,Overdensity,10,&(returned_value));
@@ -2320,7 +2321,7 @@ void Nion_Spline_densitym(float Overdensity, float *splined_value)
         }
     }
     else {
-        if(Overdensity<0.99*Deltac) {
+        if(Overdensity<0.9*Deltac) {
         // Usage of 0.99*Deltac arises due to the fact that close to the critical density, the collapsed fraction becomes a little unstable
         // However, such densities should always be collapsed, so just set f_coll to unity. 
         // Additionally, the fraction of points in this regime relative to the entire simulation volume is extremely small.
@@ -2768,7 +2769,7 @@ void DeltaNion_Spline_density(float Overdensity, float *splined_value)
         }
     }
     else {
-        if(Overdensity<0.99*Deltac) {
+        if(Overdensity<0.9*Deltac) {
         // Usage of 0.99*Deltac arises due to the fact that close to the critical density, the collapsed fraction becomes a little unstable
         // However, such densities should always be collapsed, so just set f_coll to unity. 
         // Additionally, the fraction of points in this regime relative to the entire simulation volume is extremely small.
@@ -2828,7 +2829,7 @@ void DeltaNion_Spline_densitym(float Overdensity, float *splined_value)
         }
     }
     else {
-        if(Overdensity<0.99*Deltac) {
+        if(Overdensity<0.9*Deltac) {
         // Usage of 0.99*Deltac arises due to the fact that close to the critical density, the collapsed fraction becomes a little unstable
         // However, such densities should always be collapsed, so just set f_coll to unity. 
         // Additionally, the fraction of points in this regime relative to the entire simulation volume is extremely small.
