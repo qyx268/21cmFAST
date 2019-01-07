@@ -1787,8 +1787,8 @@ int main(int argc, char ** argv){
           else { // the entrire cell belongs to a collpased halo...  this is rare...
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
             if (flag_first_reionization == 0){
-              Splined_Fcoll  = 0.0;
-              Splined_Fcollm = 0.0;
+              Splined_Fcoll  = 1. - Fcoll_prev[HII_R_FFT_INDEX(x,y,z)];
+              Splined_Fcollm = 1. - Fcollm_prev[HII_R_FFT_INDEX(x,y,z)];
             }
             else{
               Splined_Fcoll  = 1.0;
@@ -1813,6 +1813,10 @@ int main(int argc, char ** argv){
           if (flag_first_reionization == 0){
             Fcoll[HII_R_FFT_INDEX(x,y,z)]  = Fcoll_prev[HII_R_FFT_INDEX(x,y,z)] + Splined_Fcoll;
             Fcollm[HII_R_FFT_INDEX(x,y,z)] = Fcollm_prev[HII_R_FFT_INDEX(x,y,z)] + Splined_Fcollm;
+			if (Fcoll[HII_R_FFT_INDEX(x,y,z)] > 1.)
+				Fcoll[HII_R_FFT_INDEX(x,y,z)] = 1.;
+			if (Fcollm[HII_R_FFT_INDEX(x,y,z)] > 1.)
+				Fcollm[HII_R_FFT_INDEX(x,y,z)] = 1.;
           }
           else{
             Fcoll[HII_R_FFT_INDEX(x,y,z)]  = Splined_Fcoll;
