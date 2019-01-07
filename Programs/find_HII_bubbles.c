@@ -485,7 +485,9 @@ int main(int argc, char ** argv){
 #endif 
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
   char cmnd[1000];
+  float prev_density_over_mean;
   float *Fcoll_prev=NULL, *Fcollm_prev=NULL;
+  fftwf_complex *deltax_prev_unfiltered=NULL, *deltax_prev_filtered=NULL;
   double mean_f_coll_prev_st, mean_f_collm_prev_st;
   int flag_first_reionization = 0;
 #endif
@@ -1278,6 +1280,39 @@ int main(int argc, char ** argv){
   fprintf(LOG, "done\n");
 
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
+  // ALLOCATE AND READ-IN THE EVOLVED DENSITY FIELD at PREV_REDSHIFT
+  deltax_prev_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  deltax_prev_filtered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  if (!deltax_prev_unfiltered || !deltax_prev_filtered){
+    strcpy(error_message, "find_HII_bubbles.c: Error allocating memory for prev deltax boxes\nAborting...\n");
+    goto CLEANUP;
+  }
+  fprintf(stderr, "Reading in prev deltax box...");
+  fprintf(LOG, "Reading in prev deltax box...");
+
+  sprintf(filename, "../Boxes/updated_smoothed_deltax_z%06.2f_%i_%.0fMpc", PREV_REDSHIFT, HII_DIM, BOX_LEN);
+  F = fopen(filename, "rb");
+  if (!F){
+    strcpy(error_message, "find_HII_bubbles.c: Unable to open file: ");
+    strcat(error_message, filename);
+    strcat(error_message, "\nAborting...\n");
+    goto CLEANUP;
+  }
+  for (i=0; i<HII_DIM; i++){
+    for (j=0; j<HII_DIM; j++){
+      for (k=0; k<HII_DIM; k++){
+        if (fread((float *)deltax_prev_unfiltered + HII_R_FFT_INDEX(i,j,k), sizeof(float), 1, F)!=1){
+          strcpy(error_message, "find_HII_bubbles.c: Read error occured while reading prev deltax box.\n");
+          goto CLEANUP;
+        }
+      }
+    }
+  }
+  fclose(F);
+  F = NULL;
+  fprintf(stderr, "done\n");
+  fprintf(LOG, "done\n");
+
   // ALLOCATE THE PREV FCOLL FIELDS
   Fcoll_prev = (float *) malloc(sizeof(float)*HII_TOT_FFT_NUM_PIXELS);
   Fcollm_prev = (float *) malloc(sizeof(float)*HII_TOT_FFT_NUM_PIXELS);
@@ -1310,6 +1345,10 @@ int main(int argc, char ** argv){
   plan = fftwf_plan_dft_r2c_3d(HII_DIM, HII_DIM, HII_DIM, (float *)N_rec_unfiltered, (fftwf_complex *)N_rec_unfiltered, FFTW_ESTIMATE);
   fftwf_execute(plan);
 #endif //INHOMO_RECO
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
+  plan = fftwf_plan_dft_r2c_3d(HII_DIM, HII_DIM, HII_DIM, (float *)deltax_prev_unfiltered, (fftwf_complex *)deltax_prev_unfiltered, FFTW_ESTIMATE);
+  fftwf_execute(plan);
+#endif //CONTEMPORANEOUS_DUTYCYCLE
   plan = fftwf_plan_dft_r2c_3d(HII_DIM, HII_DIM, HII_DIM, (float *)deltax_unfiltered, (fftwf_complex *)deltax_unfiltered, FFTW_ESTIMATE);
   fftwf_execute(plan);
   fftwf_destroy_plan(plan);
@@ -1352,6 +1391,14 @@ int main(int argc, char ** argv){
     N_rec_unfiltered[ct] /= (double)HII_TOT_NUM_PIXELS;
 }
 #endif //INHOMO_RECO
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
+#pragma omp parallel shared(deltax_prev_unfiltered) private(ct)
+{
+#pragma omp for
+  for (ct=0; ct<HII_KSPACE_NUM_PIXELS; ct++)
+    deltax_prev_unfiltered[ct] /= (HII_TOT_NUM_PIXELS+0.0);
+}
+#endif //CONTEMPORANEOUS_DUTYCYCLE
 #pragma omp parallel shared(deltax_unfiltered) private(ct)
 {
 #pragma omp for
@@ -1380,6 +1427,8 @@ int main(int argc, char ** argv){
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
       free(Fcoll_prev);
       free(Fcollm_prev);
+      fftwf_free(deltax_prev_unfiltered);
+      fftwf_free(deltax_prev_filtered);
 #endif
       fclose(LOG);
       fftwf_free(deltax_unfiltered);
@@ -1447,6 +1496,9 @@ int main(int argc, char ** argv){
 #ifdef INHOMO_RECO
     memcpy(N_rec_filtered, N_rec_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
 #endif //INHOMO_RECO
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
+    memcpy(deltax_prev_filtered, deltax_prev_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+#endif //CONTEMPORANEOUS_DUTYCYCLE
     memcpy(deltax_filtered, deltax_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
 //    fprintf(stderr, "done  ");
     fprintf(LOG, "end memcpy, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
@@ -1470,6 +1522,9 @@ int main(int argc, char ** argv){
 #ifdef INHOMO_RECO
       HII_filter(N_rec_filtered, HII_FILTER, R);
 #endif //INHOMO_RECO
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
+      HII_filter(deltax_prev_filtered, HII_FILTER, R);
+#endif //CONTEMPORANEOUS_DUTYCYCLE
       HII_filter(deltax_filtered, HII_FILTER, R);
 //      fprintf(stderr, "done  ");
       fprintf(LOG, "end filter, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
@@ -1498,6 +1553,10 @@ int main(int argc, char ** argv){
     plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)N_rec_filtered, (float *)N_rec_filtered, FFTW_ESTIMATE);
     fftwf_execute(plan);
 #endif //INHOMO_RECO
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
+    plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)deltax_prev_filtered, (float *)deltax_prev_filtered, FFTW_ESTIMATE);
+    fftwf_execute(plan);
+#endif //CONTEMPORANEOUS_DUTYCYCLE
     plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)deltax_filtered, (float *)deltax_filtered, FFTW_ESTIMATE);
     fftwf_execute(plan);
 //    fprintf(stderr, "done  ");
@@ -1537,6 +1596,20 @@ int main(int argc, char ** argv){
 #endif //INHOMO_RECO
         
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
+#pragma omp parallel shared(deltax_prev_filtered) private(x, y, z)
+{
+#pragma omp for
+    for (x=0; x<HII_DIM; x++){
+      for (y=0; y<HII_DIM; y++){
+        for (z=0; z<HII_DIM; z++){
+          // delta cannot be less than -1
+          if (*((float *)deltax_prev_filtered + HII_R_FFT_INDEX(x,y,z)) < -1+FRACT_FLOAT_ERR)
+            *((float *)deltax_prev_filtered + HII_R_FFT_INDEX(x,y,z)) = -1+FRACT_FLOAT_ERR;
+        }
+      }
+    }
+}
+
     // READ-IN THE PREV FCOLL FIELDS
     // add the modification term to make sure dNion/dt > 0
     // NOTE we do not check whether mean_f_coll_st*ION_EFF_FACTOR + mean_f_collm_st*ION_EFF_FACTOR_MINI 
@@ -1548,7 +1621,7 @@ int main(int argc, char ** argv){
         for (j=0; j<HII_DIM; j++){
           for (k=0; k<HII_DIM; k++){
             if (fread((float *)Fcoll_prev + HII_R_FFT_INDEX(i,j,k), sizeof(float), 1, F)!=1){
-              strcpy(error_message, "find_HII_bubbles.c: Read error occured while reading deltax box.\n");
+              strcpy(error_message, "find_HII_bubbles.c: Read error occured while reading Fcoll_prev box.\n");
               goto CLEANUP;
             }
           }
@@ -1571,7 +1644,7 @@ int main(int argc, char ** argv){
         for (j=0; j<HII_DIM; j++){
           for (k=0; k<HII_DIM; k++){
             if (fread((float *)Fcollm_prev + HII_R_FFT_INDEX(i,j,k), sizeof(float), 1, F)!=1){
-              strcpy(error_message, "find_HII_bubbles.c: Read error occured while reading deltax box.\n");
+              strcpy(error_message, "find_HII_bubbles.c: Read error occured while reading Fcollm_prev box.\n");
               goto CLEANUP;
             }
           }
@@ -1706,9 +1779,9 @@ int main(int argc, char ** argv){
 #else
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
 #ifdef INHOMO_FEEDBACK
-#pragma omp parallel shared(deltax_filtered,  REDSHIFT, flag_first_reionization, Fcoll, Fcollm, Fcoll_prev, Fcollm_prev, log10_M_MINa_filtered, log10_M_MINm_filtered) private(x,y,z, density_over_mean, M_MINa, M_MINm, Splined_Fcoll, Splined_Fcollm) reduction(+:f_coll, f_collm)
+#pragma omp parallel shared(deltax_filtered,  deltax_prev_filtered, REDSHIFT, flag_first_reionization, Fcoll, Fcollm, Fcoll_prev, Fcollm_prev, log10_M_MINa_filtered, log10_M_MINm_filtered) private(x,y,z, density_over_mean, M_MINa, M_MINm, Splined_Fcoll, Splined_Fcollm) reduction(+:f_coll, f_collm)
 #else
-#pragma omp parallel shared(deltax_filtered,  flag_first_reionization, Fcoll, Fcollm) private(x,y,z, density_over_mean, Splined_Fcoll, Splined_Fcollm) reduction(+:f_coll, f_collm)
+#pragma omp parallel shared(deltax_filtered,  deltax_prev_filtered, flag_first_reionization, Fcoll, Fcollm) private(x,y,z, density_over_mean, Splined_Fcoll, Splined_Fcollm) reduction(+:f_coll, f_collm)
 #endif
 #else//CONTEMPORANEOUS_DUTYCYCLE
 #ifdef INHOMO_FEEDBACK
@@ -1733,6 +1806,9 @@ int main(int argc, char ** argv){
           Splined_Fcoll *= (4/3.0)*PI*pow(R,3) / pixel_volume;
 #else //USE_HALO_FIELD
           density_over_mean = 1.0 + *((float *)deltax_filtered + HII_R_FFT_INDEX(x,y,z));
+#ifdef CONTEMPORANEOUS_DUTYCYCLE
+          prev_density_over_mean = 1.0 + *((float *)deltax_prev_filtered + HII_R_FFT_INDEX(x,y,z));
+#endif //CONTEMPORANEOUS_DUTYCYCLE
           if ( (density_over_mean - 1) < Deltac){ // we are not resolving collapsed structures
 #ifdef SHARP_CUTOFF
             erfc_num = (Deltac - (density_over_mean-1)) /  growth_factor;
@@ -1748,8 +1824,8 @@ int main(int argc, char ** argv){
             log10_M_MINm = *((float *)log10_M_MINm_filtered + HII_R_FFT_INDEX(x,y,z));
             if (flag_first_reionization == 0){
               // it's Splined value anymore, otherwise it's taking forever!
-              DeltaNion_Spline_density(density_over_mean - 1, log10_M_MINa, &(Splined_Fcoll));
-              DeltaNion_Spline_densitym(density_over_mean - 1, log10_M_MINm, &(Splined_Fcollm));
+              DeltaNion_Spline_density(density_over_mean - 1, prev_density_over_mean - 1, log10_M_MINa, &(Splined_Fcoll));
+              DeltaNion_Spline_densitym(density_over_mean - 1, prev_density_over_mean - 1, log10_M_MINm, &(Splined_Fcollm));
             }
             else{
               Nion_Spline_density(density_over_mean - 1, log10_M_MINa, &(Splined_Fcoll));
@@ -1757,8 +1833,8 @@ int main(int argc, char ** argv){
             }
 #else //INHOMO_FEEDBACK
             if (flag_first_reionization == 0){
-              DeltaNion_Spline_density(density_over_mean - 1,&(Splined_Fcoll));
-              DeltaNion_Spline_densitym(density_over_mean - 1,&(Splined_Fcollm));
+              DeltaNion_Spline_density(density_over_mean - 1,prev_density_over_mean - 1,&(Splined_Fcoll));
+              DeltaNion_Spline_densitym(density_over_mean - 1,prev_density_over_mean - 1,&(Splined_Fcollm));
             }
             else{
               Nion_Spline_density(density_over_mean - 1,&(Splined_Fcoll));
@@ -2287,6 +2363,8 @@ int main(int argc, char ** argv){
   // uncomment below if you want to keep the Nion boxes, which is a lot...
   sprintf(cmnd, "rm -r ../Boxes/Nion_evolution/z%06.2f", PREV_REDSHIFT);
   system(cmnd);
+  fftwf_free(deltax_prev_unfiltered);
+  fftwf_free(deltax_prev_filtered);
 #endif
   fclose(LOG);
   fftwf_free(deltax_unfiltered);
