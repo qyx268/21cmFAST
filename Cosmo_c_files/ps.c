@@ -2020,7 +2020,7 @@ void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover,
         }
     }
     fclose(F);
-	F = NULL;
+    F = NULL;
     sprintf(filename, "../Output_files/Splined_results/initialise_Nion_spline_high_2d_z%06.2f_Mmax%06.2f", z, Mmax);
     if (!(F = fopen(filename, "w"))){
         fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
@@ -2037,7 +2037,7 @@ void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover,
         }
     }
     fclose(F);
-	F = NULL;
+    F = NULL;
 #endif
 #else //INHOMO_FEEDBACK
     spline(Overdense_spline_SFR-1,Nion_spline-1,NSFR_high,0,0,second_derivs_Nion-1);
@@ -2059,7 +2059,7 @@ void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover,
         fprintf(F, "%25.20g %25.20g %25.20g\n", overdense_val, True_result, Splined_result);
     }
     fclose(F);
-	F = NULL;
+    F = NULL;
     sprintf(filename, "../Output_files/Splined_results/initialise_Nion_spline_high_1d_z%06.2f_Mmax%06.2f", z, Mmax);
     if (!(F = fopen(filename, "w"))){
         fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
@@ -2073,7 +2073,7 @@ void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover,
         fprintf(F, "%25.20g %25.20g %25.20g\n", overdense_val, True_result, Splined_result);
     }
     fclose(F);
-	F = NULL;
+    F = NULL;
 #endif
 #endif //INHOMO_FEEDBACK
 }
@@ -2186,7 +2186,7 @@ void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, 
         }
     }
     fclose(F);
-	F = NULL;
+    F = NULL;
     sprintf(filename, "../Output_files/Splined_results/initialise_Nion_splinem_high_2d_z%06.2f_Mmax%06.2f", z, Mmax);
     if (!(F = fopen(filename, "w"))){
         fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
@@ -2203,7 +2203,7 @@ void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, 
         }
     }
     fclose(F);
-	F = NULL;
+    F = NULL;
 #endif
 #else //INHOMO_FEEDBACK
     spline(Overdense_spline_SFR-1,Nion_splinem-1,NSFR_high,0,0,second_derivs_Nionm-1);
@@ -2225,7 +2225,7 @@ void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, 
         fprintf(F, "%25.20g %25.20g %25.20g\n", overdense_val, True_result, Splined_result);
     }
     fclose(F);
-	F = NULL;
+    F = NULL;
     sprintf(filename, "../Output_files/Splined_results/initialise_Nion_splinem_high_1d_z%06.2f_Mmax%06.2f", z, Mmax);
     if (!(F = fopen(filename, "w"))){
         fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
@@ -2239,7 +2239,7 @@ void initialise_Nion_splinem(float z, float Mmax, float Mmin, float Alpha_star, 
         fprintf(F, "%25.20g %25.20g %25.20g\n", overdense_val, True_result, Splined_result);
     }
     fclose(F);
-	F = NULL;
+    F = NULL;
 #endif
 #endif //INHOMO_FEEDBACK
 }
@@ -2277,7 +2277,7 @@ void Nion_Spline_density(float Overdensity, float *splined_value)
         // Usage of 0.99*Deltac arises due to the fact that close to the critical density, the collapsed fraction becomes a little unstable
         // However, such densities should always be collapsed, so just set f_coll to unity. 
         // Additionally, the fraction of points in this regime relative to the entire simulation volume is extremely small.
-		// YQ:set it to 0.9 (confirmed by AM)
+        // YQ:set it to 0.9 (confirmed by AM)
 #ifdef INHOMO_FEEDBACK
           if (log10_M_MINa>10) 
             splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFR_float,Nion_spline,second_derivs_Nion,NSFR_high,NMTURN,Overdensity,10,&(returned_value));
@@ -2345,19 +2345,19 @@ void Nion_Spline_densitym(float Overdensity, float *splined_value)
 
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
 double DeltaNion_ST(double z, double zp, double M_Min, double MassTurnover, double Alpha_star, double Alpha_esc, double Fstar10, double Fesc10, double Mlim_Fstar, double Mlim_Fesc){
-	double return_value, return_value_prev;
+    double return_value, return_value_prev;
     return_value = Nion_ST(z, M_Min, MassTurnover, Alpha_star, Alpha_esc, Fstar10, Fesc10, Mlim_Fstar, Mlim_Fesc);
     return_value_prev = Nion_ST(zp, M_Min, MassTurnover, Alpha_star, Alpha_esc, Fstar10, Fesc10, Mlim_Fstar, Mlim_Fesc);
-	return_value -= return_value_prev;
-	return return_value;
+    return_value -= return_value_prev;
+    return return_value;
 }
 #ifdef MINI_HALO
 double DeltaNion_STm(double z, double zp, double M_Min, double MassTurnover_lower, double MassTurnover_upper, double Alpha_star, double Fstar10, double Mlim_Fstar){
-	double return_value, return_value_prev;
-	return_value = Nion_STm(z, M_Min, MassTurnover_lower, MassTurnover_upper, Alpha_star, Fstar10, Mlim_Fstar);
-	return_value_prev = Nion_STm(zp, M_Min, MassTurnover_lower, MassTurnover_upper, Alpha_star, Fstar10, Mlim_Fstar);
-	return_value -= return_value_prev;
-	return return_value;
+    double return_value, return_value_prev;
+    return_value = Nion_STm(z, M_Min, MassTurnover_lower, MassTurnover_upper, Alpha_star, Fstar10, Mlim_Fstar);
+    return_value_prev = Nion_STm(zp, M_Min, MassTurnover_lower, MassTurnover_upper, Alpha_star, Fstar10, Mlim_Fstar);
+    return_value -= return_value_prev;
+    return return_value;
 }
 #endif
 
@@ -2479,7 +2479,7 @@ void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, floa
         for (j=0; j<NMTURN * 100; j++){
             MassTurnover = LogMassTurnover_low + (double)j/((double)NMTURN * 100 -1.)*(LogMassTurnover_high-LogMassTurnover_low);
             True_result = GaussLegendreQuad_Nion(NGL_SFR,z,log(Mmax),Deltac, overdense_val, pow(10., MassTurnover) ,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc)-
-				          GaussLegendreQuad_Nion(NGL_SFR,zp,log(Mmax),Deltac, overdense_val, pow(10., MassTurnover) ,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
+                          GaussLegendreQuad_Nion(NGL_SFR,zp,log(Mmax),Deltac, overdense_val, pow(10., MassTurnover) ,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
             DeltaNion_Spline_density(overdense_val, MassTurnover, &Splined_result);
             fprintf(F, "%25.20g %25.20g %25.20g %25.20g\n", overdense_val, MassTurnover, True_result, Splined_result);
         }
@@ -2495,13 +2495,13 @@ void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, floa
         for (j=0; j<NMTURN * 100; j++){
             MassTurnover = LogMassTurnover_low + (double)j/((double)NMTURN * 100 -1.)*(LogMassTurnover_high-LogMassTurnover_low);
             True_result = Nion_ConditionalM(z,log(Mmin),log(Mmax),Deltac,overdense_val, pow(10., MassTurnover),Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc)-
-				          Nion_ConditionalM(zp,log(Mmin),log(Mmax),Deltac,overdense_val, pow(10., MassTurnover),Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
+                          Nion_ConditionalM(zp,log(Mmin),log(Mmax),Deltac,overdense_val, pow(10., MassTurnover),Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
             DeltaNion_Spline_density(overdense_val, MassTurnover, &Splined_result);
             fprintf(F, "%25.20g %25.20g %25.20g %25.20g\n", overdense_val, MassTurnover, True_result, Splined_result);
         }
     }
     fclose(F);
-	F = NULL;
+    F = NULL;
 #endif
 #else //INHOMO_FEEDBACK
     spline(Overdense_spline_SFR-1,Nion_spline-1,NSFR_high,0,0,second_derivs_Nion-1);
@@ -2520,12 +2520,12 @@ void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, floa
         overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low * 100 -1.) * (log10(1.+overdense_small_high)-log10(1.+overdense_small_low));
         overdense_val = pow(10., overdense_val) - 1.;
         True_result = GaussLegendreQuad_Nion(NGL_SFR,z,log(Mmax),Deltac, overdense_val, MassTurnover ,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc)-
-			          GaussLegendreQuad_Nion(NGL_SFR,zp,log(Mmax),Deltac, overdense_val, MassTurnover ,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
+                      GaussLegendreQuad_Nion(NGL_SFR,zp,log(Mmax),Deltac, overdense_val, MassTurnover ,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
         DeltaNion_Spline_density(overdense_val, &Splined_result);
         fprintf(F, "%25.20g %25.20g %25.20g\n", overdense_val, True_result, Splined_result);
     }
     fclose(F);
-	F = NULL;
+    F = NULL;
     sprintf(filename, "../Output_files/Splined_results/initialise_DeltaNion_spline_high_1d_z%06.2f_zp%06.2f_Mmax%06.2f", z, zp, Mmax);
     if (!(F = fopen(filename, "w"))){
         fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
@@ -2535,12 +2535,12 @@ void initialise_DeltaNion_spline(float z, float zp, float Mmax, float Mmin, floa
     for (i=0; i<NSFR_high * 100; i++){
         overdense_val = overdense_large_low + (float)i/((float)NSFR_high *100-1.)*(overdense_large_high - overdense_large_low);
         True_result = Nion_ConditionalM(z,log(Mmin),log(Mmax),Deltac,overdense_val, MassTurnover,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc)-
-			          Nion_ConditionalM(zp,log(Mmin),log(Mmax),Deltac,overdense_val, MassTurnover,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
+                      Nion_ConditionalM(zp,log(Mmin),log(Mmax),Deltac,overdense_val, MassTurnover,Alpha_star,Alpha_esc,Fstar10,Fesc10,Mlim_Fstar,Mlim_Fesc);
         DeltaNion_Spline_density(overdense_val, &Splined_result);
         fprintf(F, "%25.20g %25.20g %25.20g\n", overdense_val, True_result, Splined_result);
     }
     fclose(F);
-	F = NULL;
+    F = NULL;
 #endif
 #endif //INHOMO_FEEDBACK
 }
@@ -2666,13 +2666,13 @@ void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, flo
         for (j=0; j<NMTURN * 100; j++){
             MassTurnoverm = LogMassTurnover_low + (double)j/((double)NMTURN * 100 -1.)*(LogMassTurnover_high-LogMassTurnover_low);
             True_result = GaussLegendreQuad_Nionm(NGL_SFR,z,log(Mmax),Deltac, overdense_val, Alpha_star,pow(10., MassTurnoverm),Mcrit_atom,Fstar10m,Mlim_Fstarm)-
-				          GaussLegendreQuad_Nionm(NGL_SFR,zp,log(Mmax),Deltac, overdense_val, Alpha_star,pow(10., MassTurnoverm),Mcrit_atom,Fstar10m,Mlim_Fstarm);
+                          GaussLegendreQuad_Nionm(NGL_SFR,zp,log(Mmax),Deltac, overdense_val, Alpha_star,pow(10., MassTurnoverm),Mcrit_atom,Fstar10m,Mlim_Fstarm);
             DeltaNion_Spline_densitym(overdense_val, MassTurnoverm, &Splined_result);
             fprintf(F, "%25.20g %25.20g %25.20g %25.20g\n", overdense_val, MassTurnoverm, True_result, Splined_result);
         }
     }
     fclose(F);
-	F = NULL;
+    F = NULL;
     sprintf(filename, "../Output_files/Splined_results/initialise_DeltaNion_splinem_high_2d_z%06.2f_zp%06.2f_Mmax%06.2f", z, zp, Mmax);
     if (!(F = fopen(filename, "w"))){
         fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
@@ -2684,13 +2684,13 @@ void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, flo
         for (j=0; j<NMTURN * 100; j++){
             MassTurnoverm = LogMassTurnover_low + (double)j/((double)NMTURN * 100 -1.)*(LogMassTurnover_high-LogMassTurnover_low);
             True_result = Nion_ConditionalMm(z,log(Mmin),log(Mmax),Deltac,overdense_val, Alpha_star,pow(10., MassTurnoverm), Mcrit_atom,Fstar10m,Mlim_Fstarm)-
-				          Nion_ConditionalMm(zp,log(Mmin),log(Mmax),Deltac,overdense_val, Alpha_star,pow(10., MassTurnoverm), Mcrit_atom,Fstar10m,Mlim_Fstarm);
+                          Nion_ConditionalMm(zp,log(Mmin),log(Mmax),Deltac,overdense_val, Alpha_star,pow(10., MassTurnoverm), Mcrit_atom,Fstar10m,Mlim_Fstarm);
             DeltaNion_Spline_densitym(overdense_val, MassTurnoverm, &Splined_result);
             fprintf(F, "%25.20g %25.20g %25.20g %25.20g\n", overdense_val, MassTurnoverm, True_result, Splined_result);
         }
     }
     fclose(F);
-	F = NULL;
+    F = NULL;
 #endif
 #else //INHOMO_FEEDBACK
     spline(Overdense_spline_SFR-1,Nion_splinem-1,NSFR_high,0,0,second_derivs_Nionm-1);
@@ -2709,12 +2709,12 @@ void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, flo
         overdense_val = log10(1. + overdense_small_low) + (double)i/((double)NSFR_low * 100 -1.) * (log10(1.+overdense_small_high)-log10(1.+overdense_small_low));
         overdense_val = pow(10., overdense_val) - 1.;
         True_result = GaussLegendreQuad_Nionm(NGL_SFR,z,log(Mmax),Deltac, overdense_val, Alpha_star, MassTurnoverm, Mcrit_atom,Fstar10m,Mlim_Fstarm)-
-			          GaussLegendreQuad_Nionm(NGL_SFR,zp,log(Mmax),Deltac, overdense_val, Alpha_star, MassTurnoverm, Mcrit_atom,Fstar10m,Mlim_Fstarm);
+                      GaussLegendreQuad_Nionm(NGL_SFR,zp,log(Mmax),Deltac, overdense_val, Alpha_star, MassTurnoverm, Mcrit_atom,Fstar10m,Mlim_Fstarm);
         DeltaNion_Spline_densitym(overdense_val, &Splined_result);
         fprintf(F, "%25.20g %25.20g %25.20g\n", overdense_val, True_result, Splined_result);
     }
     fclose(F);
-	F = NULL;
+    F = NULL;
     sprintf(filename, "../Output_files/Splined_results/initialise_DeltaNion_splinem_high_1d_z%06.2f_zp%06.2f_Mmax%06.2f", z, zp, Mmax);
     if (!(F = fopen(filename, "w"))){
         fprintf(stderr, "Cosmo_c_files/ps.c:  ERROR: unable to open file %s for writting!\n", filename);
@@ -2724,12 +2724,12 @@ void initialise_DeltaNion_splinem(float z, float zp, float Mmax, float Mmin, flo
     for (i=0; i<NSFR_high * 100; i++){
         overdense_val = overdense_large_low + (float)i/((float)NSFR_high *100-1.)*(overdense_large_high - overdense_large_low);
         True_result = Nion_ConditionalMm(z,log(Mmin),log(Mmax),Deltac,overdense_val, Alpha_star,MassTurnoverm,Mcrit_atom,Fstar10m,Mlim_Fstarm)-
-			          Nion_ConditionalMm(zp,log(Mmin),log(Mmax),Deltac,overdense_val, Alpha_star,MassTurnoverm,Mcrit_atom,Fstar10m,Mlim_Fstarm);
+                      Nion_ConditionalMm(zp,log(Mmin),log(Mmax),Deltac,overdense_val, Alpha_star,MassTurnoverm,Mcrit_atom,Fstar10m,Mlim_Fstarm);
         DeltaNion_Spline_densitym(overdense_val, &Splined_result);
         fprintf(F, "%25.20g %25.20g %25.20g\n", overdense_val, True_result, Splined_result);
     }
     fclose(F);
-	F = NULL;
+    F = NULL;
 #endif
 #endif //INHOMO_FEEDBACK
 }
@@ -2743,7 +2743,7 @@ void DeltaNion_Spline_density(float Overdensity, float *splined_value)
 #endif //INHOMO_FEEDBACK
 {
     float returned_value;
-	float returned_value_prev;
+    float returned_value_prev;
 
     if(Overdensity<1.5) {
         if(Overdensity<-1.) {
@@ -2755,11 +2755,11 @@ void DeltaNion_Spline_density(float Overdensity, float *splined_value)
             if (log10_M_MINa>10){
                 returned_value = gsl_spline2d_eval(NionLow_spline, log10(Overdensity+1), 10, NionLow_spline_acc, NionLow_spline_acc_Mturn);
                 returned_value_prev = gsl_spline2d_eval(NionLow_prev_spline, log10(Overdensity+1), 10, NionLow_spline_acc, NionLow_spline_acc_Mturn);
-			}
+            }
             else{
                 returned_value = gsl_spline2d_eval(NionLow_spline, log10(Overdensity+1), log10_M_MINa, NionLow_spline_acc, NionLow_spline_acc_Mturn);
                 returned_value_prev = gsl_spline2d_eval(NionLow_prev_spline, log10(Overdensity+1), log10_M_MINa, NionLow_spline_acc, NionLow_spline_acc_Mturn);
-			}
+            }
 #else //INHOMO_FEEDBACK
             returned_value = gsl_spline_eval(NionLow_spline, log10(Overdensity+1.), NionLow_spline_acc);
             returned_value_prev = gsl_spline_eval(NionLow_prev_spline, log10(Overdensity+1.), NionLow_spline_acc);
@@ -2777,21 +2777,25 @@ void DeltaNion_Spline_density(float Overdensity, float *splined_value)
             if (log10_M_MINa>10){
                 splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFR_float,Nion_spline,second_derivs_Nion,NSFR_high,NMTURN,Overdensity,10,&(returned_value));
                 splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFR_float,Nion_prev_spline,second_derivs_Nion_prev,NSFR_high,NMTURN,Overdensity,10,&(returned_value_prev));
-			}
+            }
             else{
                 splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFR_float,Nion_spline,second_derivs_Nion,NSFR_high,NMTURN,Overdensity,log10_M_MINa,&(returned_value));
                 splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFR_float,Nion_prev_spline,second_derivs_Nion_prev,NSFR_high,NMTURN,Overdensity,log10_M_MINa,&(returned_value_prev));
-			}
+            }
 #else //INHOMO_FEEDBACK
             splint(Overdense_spline_SFR-1,Nion_spline-1,second_derivs_Nion-1,NSFR_high,Overdensity,&(returned_value));
             splint(Overdense_spline_SFR-1,Nion_prev_spline-1,second_derivs_Nion_prev-1,NSFR_high,Overdensity,&(returned_value_prev));
 #endif //INHOMO_FEEDBACK
         }
         else {
-            returned_value = 0.;
-            returned_value_prev = 0.;
+            returned_value = 1.;
+            returned_value_prev = 1.;
         }
     }
+    if(returned_value > 1.) returned_value = 1.;
+    if(returned_value_prev > 1.) returned_value_prev = 1.;
+    if(returned_value < 0.) returned_value = 1e-40;
+    if(returned_value_prev < 0.) returned_value_prev = 1e-40;
     *splined_value = returned_value - returned_value_prev;
 }
 
@@ -2815,11 +2819,11 @@ void DeltaNion_Spline_densitym(float Overdensity, float *splined_value)
             if (log10_M_MINm>10){
                 returned_value = gsl_spline2d_eval(NionLow_splinem, log10(Overdensity+1.), 10, NionLow_spline_accm, NionLow_spline_accm_Mturn);
                 returned_value_prev = gsl_spline2d_eval(NionLow_prev_splinem, log10(Overdensity+1.), 10, NionLow_spline_accm, NionLow_spline_accm_Mturn);
-			}
+            }
             else{
                 returned_value = gsl_spline2d_eval(NionLow_splinem, log10(Overdensity+1.), log10_M_MINm, NionLow_spline_accm, NionLow_spline_accm_Mturn);
                 returned_value_prev = gsl_spline2d_eval(NionLow_prev_splinem, log10(Overdensity+1.), log10_M_MINm, NionLow_spline_accm, NionLow_spline_accm_Mturn);
-			}
+            }
 #else //INHOMO_FEEDBACK
             returned_value = gsl_spline_eval(NionLow_splinem, log10(Overdensity+1.), NionLow_spline_accm);
             returned_value_prev = gsl_spline_eval(NionLow_prev_splinem, log10(Overdensity+1.), NionLow_spline_accm);
@@ -2837,21 +2841,25 @@ void DeltaNion_Spline_densitym(float Overdensity, float *splined_value)
             if (log10_M_MINm>10){
                 splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFRm_float,Nion_splinem,second_derivs_Nionm,NSFR_high,NMTURN,Overdensity,10,&(returned_value));
                 splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFRm_float,Nion_prev_splinem,second_derivs_Nionm_prev,NSFR_high,NMTURN,Overdensity,10,&(returned_value_prev));
-			}
+            }
             else{
                 splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFRm_float,Nion_splinem,second_derivs_Nionm,NSFR_high,NMTURN,Overdensity,log10_M_MINm,&(returned_value));
                 splint2d(Overdense_spline_SFR,log10_Mturn_spline_SFRm_float,Nion_prev_splinem,second_derivs_Nionm_prev,NSFR_high,NMTURN,Overdensity,log10_M_MINm,&(returned_value_prev));
-			}
+            }
 #else //INHOMO_FEEDBACK
             splint(Overdense_spline_SFR-1,Nion_splinem-1,second_derivs_Nionm-1,NSFR_high,Overdensity,&(returned_value));
             splint(Overdense_spline_SFR-1,Nion_prev_splinem-1,second_derivs_Nionm_prev-1,NSFR_high,Overdensity,&(returned_value_prev));
 #endif //INHOMO_FEEDBACK
         }
         else {
-            returned_value = 0.;
-            returned_value_prev = 0.;
+            returned_value = 1.;
+            returned_value_prev = 1.;
         }
     }
+    if(returned_value > 1.) returned_value = 1.;
+    if(returned_value_prev > 1.) returned_value_prev = 1.;
+    if(returned_value < 0.) returned_value = 1e-40;
+    if(returned_value_prev < 0.) returned_value_prev = 1e-40;
     *splined_value = returned_value - returned_value_prev;
 }
 #endif //MINI_HALO
