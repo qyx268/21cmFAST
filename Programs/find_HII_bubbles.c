@@ -2364,7 +2364,7 @@ int main(int argc, char ** argv){
   // TODO: in principle, I should rewrite find_HII_bubbles.c to scroll 
   // redshift ifdef CONTEMPORANEOUS_DUTYCYCLE so that I don't need to output 
   // Nion_evolution. Will do if needed in the future
-  sprintf(cmnd, "rm -r ../Boxes/Nion_evolution/z%06.2f", PREV_REDSHIFT);
+  sprintf(cmnd, "rm ../Boxes/Nion_evolution/z%06.2f/f_coll*", PREV_REDSHIFT);
   system(cmnd);
   fftwf_free(deltax_prev_unfiltered);
   fftwf_free(deltax_prev_filtered);
