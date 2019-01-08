@@ -1779,9 +1779,9 @@ int main(int argc, char ** argv){
 #else
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
 #ifdef INHOMO_FEEDBACK
-#pragma omp parallel shared(deltax_filtered,  deltax_prev_filtered, REDSHIFT, flag_first_reionization, Fcoll, Fcollm, Fcoll_prev, Fcollm_prev, log10_M_MINa_filtered, log10_M_MINm_filtered) private(x,y,z, density_over_mean, M_MINa, M_MINm, Splined_Fcoll, Splined_Fcollm) reduction(+:f_coll, f_collm)
+#pragma omp parallel shared(deltax_filtered,  deltax_prev_filtered, REDSHIFT, flag_first_reionization, Fcoll, Fcollm, Fcoll_prev, Fcollm_prev, log10_M_MINa_filtered, log10_M_MINm_filtered) private(x,y,z, prev_density_over_mean, density_over_mean, M_MINa, M_MINm, Splined_Fcoll, Splined_Fcollm) reduction(+:f_coll, f_collm)
 #else
-#pragma omp parallel shared(deltax_filtered,  deltax_prev_filtered, flag_first_reionization, Fcoll, Fcollm) private(x,y,z, density_over_mean, Splined_Fcoll, Splined_Fcollm) reduction(+:f_coll, f_collm)
+#pragma omp parallel shared(deltax_filtered,  deltax_prev_filtered, flag_first_reionization, Fcoll, Fcollm) private(x,y,z, prev_density_over_mean, density_over_mean, Splined_Fcoll, Splined_Fcollm) reduction(+:f_coll, f_collm)
 #endif
 #else//CONTEMPORANEOUS_DUTYCYCLE
 #ifdef INHOMO_FEEDBACK
