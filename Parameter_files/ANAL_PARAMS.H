@@ -141,20 +141,23 @@
   
     #define CONTEMPORANEOUS_DUTYCYCLE 1
     // ifdef CONTEMPORANEOUS_DUTYCYCLE, duty cycle is considered evovling in the calculation of Nion.
+	// This is essential for the following updates including INHOMO_FEEDBACK or REION_SM!
 	
-    #ifdef INHOMO_RECO // need INHOMO_RECO if you want INHOMO_FEEDBACK
-      #define INHOMO_FEEDBACK 1 // operate as a flag, comment this line if homogeneous feedback is adopted
-    #endif // end of ifdef INHOMO_RECO
+    #ifdef CONTEMPORANEOUS_DUTYCYCLE
+      #ifdef INHOMO_RECO // need INHOMO_RECO if you want INHOMO_FEEDBACK
+        #define INHOMO_FEEDBACK 1 // operate as a flag, comment this line if homogeneous feedback is adopted
+      #endif // end of ifdef INHOMO_RECO
 
-    #ifndef INHOMO_FEEDBACK
-      #define REION_SM 1 // operate as a flag, ifdef use Sobacchi & Mesinger 2013b for homogeneous reionization 
+      #ifndef INHOMO_FEEDBACK
+        #define REION_SM 1 // operate as a flag, ifdef use Sobacchi & Mesinger 2013b for homogeneous reionization 
 
-      #ifndef REION_SM
-        #ifdef CONTEMPORANEOUS_DUTYCYCLE
-          #undef CONTEMPORANEOUS_DUTYCYCLE //do not need it in this case, faster!!!
+        #ifndef REION_SM
+          #ifdef CONTEMPORANEOUS_DUTYCYCLE
+            #undef CONTEMPORANEOUS_DUTYCYCLE //do not need it in this case, faster!!!
+	      #endif
 	    #endif
-	  #endif
-    #endif  // end of ifdef INHOMO_FEEDBACK
+      #endif  // end of ifdef INHOMO_FEEDBACK
+    #endif // end if CONTEMPORANEOUS_DUTYCYCLE
   #endif  // end of ifdef MINI_HALO
 #endif // end of ifdef SHARP_CUTOFF
 
