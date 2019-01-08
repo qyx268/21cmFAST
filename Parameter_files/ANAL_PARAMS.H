@@ -151,14 +151,14 @@
 
       #ifndef REION_SM
         #ifdef CONTEMPORANEOUS_DUTYCYCLE
-          #undef CONTEMPORANEOUS_DUTYCYCLE //do not need it in this case
+          #undef CONTEMPORANEOUS_DUTYCYCLE //do not need it in this case, faster!!!
 	    #endif
 	  #endif
     #endif  // end of ifdef INHOMO_FEEDBACK
   #endif  // end of ifdef MINI_HALO
 #endif // end of ifdef SHARP_CUTOFF
 
-#define OUTPUT_SPLINE
+//#define OUTPUT_SPLINE
 // ifdef then output the splined results to ../Output_files/Splined_results/ for accuracy checking
 
 /*

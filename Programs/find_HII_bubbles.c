@@ -2361,6 +2361,9 @@ int main(int argc, char ** argv){
   free(Fcoll_prev);
   free(Fcollm_prev);
   // uncomment below if you want to keep the Nion boxes, which is a lot...
+  // TODO: in principle, I should rewrite find_HII_bubbles.c to scroll 
+  // redshift ifdef CONTEMPORANEOUS_DUTYCYCLE so that I don't need to output 
+  // Nion_evolution. Will do if needed in the future
   sprintf(cmnd, "rm -r ../Boxes/Nion_evolution/z%06.2f", PREV_REDSHIFT);
   system(cmnd);
   fftwf_free(deltax_prev_unfiltered);
