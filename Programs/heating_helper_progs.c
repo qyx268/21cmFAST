@@ -51,7 +51,7 @@ static double zpp_interp_table[zpp_interp_points], M_MINa_interp_table[zpp_inter
 #ifdef MINI_HALO
 double Mcrit_atom_interp_table[zpp_interp_points], Mcrit_RE_interp_table[zpp_interp_points];
 #ifdef INHOMO_FEEDBACK
-double Mcrit_atom_glob, log10_Mcrit_LW_ave;
+double log10_Mcrit_LW_ave;
 double log10_Mturn_interp_table[NMTURN];
 #else
 double Mcrit_LW_interp_table[zpp_interp_points], M_MINm_interp_table[zpp_interp_points];//New in v2.1
