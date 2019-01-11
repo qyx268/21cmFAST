@@ -96,10 +96,17 @@ double T_RECFAST(float z, int flag);
 
 /* Main driver for evolution */
 #ifdef MINI_HALO
+#ifdef INHOMO_FEEDBACK
+void evolveInt(float zp, int arr_num, float curr_delNL0[], float curr_log10_Mcrit_LW[], double freq_int_heat[], 
+           double freq_int_ion[], double freq_int_lya[], 
+           double freq_int_heatm[], double freq_int_ionm[], double freq_int_lyam[],
+           int COMPUTE_Ts, double y[], double deriv[]);
+#else
 void evolveInt(float zp, int arr_num, float curr_delNL0[], double freq_int_heat[], 
            double freq_int_ion[], double freq_int_lya[], 
            double freq_int_heatm[], double freq_int_ionm[], double freq_int_lyam[],
            int COMPUTE_Ts, double y[], double deriv[]);
+#endif
 #else
 void evolveInt(float zp, int arr_num,float curr_delNL0[], double freq_int_heat[], 
            double freq_int_ion[], double freq_int_lya[], 
@@ -402,10 +409,17 @@ double spectral_emissivity(double nu_norm, int flag)
   This function creates the d/dz' integrands
 *********************************************************************/
 #ifdef MINI_HALO
-void evolveInt(float zp, int arr_num,float curr_delNL0[], double freq_int_heat[], 
+#ifdef INHOMO_FEEDBACK
+void evolveInt(float zp, int arr_num, float curr_delNL0[], float curr_log10_Mcrit_LW[], double freq_int_heat[], 
            double freq_int_ion[], double freq_int_lya[], 
            double freq_int_heatm[], double freq_int_ionm[], double freq_int_lyam[],
            int COMPUTE_Ts, double y[], double deriv[])
+#else
+void evolveInt(float zp, int arr_num, float curr_delNL0[], double freq_int_heat[], 
+           double freq_int_ion[], double freq_int_lya[], 
+           double freq_int_heatm[], double freq_int_ionm[], double freq_int_lyam[],
+           int COMPUTE_Ts, double y[], double deriv[])
+#endif
 #else
 void evolveInt(float zp, int arr_num,float curr_delNL0[], double freq_int_heat[], 
            double freq_int_ion[], double freq_int_lya[], 
@@ -479,7 +493,7 @@ void evolveInt(float zp, int arr_num,float curr_delNL0[], double freq_int_heat[]
         fcoll = pow(10., fcoll);
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-        fcollm = gsl_spline2d_eval(SFRDLow_zpp_splinem[zpp_ct], log10(delNL_zpp+1.), log10_Mcrit_LW_ave, SFRDLow_zpp_spline_accm[zpp_ct], SFRDLow_zpp_spline_accm_Mturn[zpp_ct]);
+        fcollm = gsl_spline2d_eval(SFRDLow_zpp_splinem[zpp_ct], log10(delNL_zpp+1.), curr_log10_Mcrit_LW[zpp_ct], SFRDLow_zpp_spline_accm[zpp_ct], SFRDLow_zpp_spline_accm_Mturn[zpp_ct]);
 #else
         fcollm = gsl_spline_eval(SFRDLow_zpp_splinem[zpp_ct], log10(delNL_zpp+1.), SFRDLow_zpp_spline_accm[zpp_ct]);
 #endif
@@ -495,7 +509,7 @@ void evolveInt(float zp, int arr_num,float curr_delNL0[], double freq_int_heat[]
         splint(Overdense_high_table-1,SFRD_z_high_table[arr_num+zpp_ct]-1,second_derivs_Nion_zpp[zpp_ct]-1,NSFR_high,delNL_zpp,&(fcoll));
 #ifdef MINI_HALO
 #ifdef INHOMO_FEEDBACK
-        splint2d(Overdense_high_table,Overdense_high_table_Mturn,SFRD_z_high_tablem[arr_num+zpp_ct],second_derivs_Nion_zppm[zpp_ct],NSFR_high,NMTURN,delNL_zpp,log10_Mcrit_LW_ave,&(fcollm));
+        splint2d(Overdense_high_table,Overdense_high_table_Mturn,SFRD_z_high_tablem[arr_num+zpp_ct],second_derivs_Nion_zppm[zpp_ct],NSFR_high,NMTURN,delNL_zpp,curr_log10_Mcrit_LW[zpp_ct],&(fcollm));
 #else
         splint(Overdense_high_table-1,SFRD_z_high_tablem[arr_num+zpp_ct]-1,second_derivs_Nion_zppm[zpp_ct]-1,NSFR_high,delNL_zpp,&(fcollm));
 #endif
