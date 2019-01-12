@@ -704,10 +704,22 @@ int main(int argc, char ** argv){
       fprintf(LOG, "Error in memory allocation\nAborting...\n");
       fclose(LOG); fclose(GLOBAL_EVOL);fftwf_free(box);  fftwf_free(unfiltered_box);
       for(ct=0; ct<R_ct; ct++)
-    free(delNL0[ct]);
+        free(delNL0[ct]);
       destruct_heat();
       return -1;
     }
+
+#ifdef INHOMO_FEEDBACK
+    if (! (log10_Mcrit_LW[R_ct] = (float *) malloc(sizeof(float)*HII_TOT_NUM_PIXELS))){
+      fprintf(stderr, "Error in memory allocation\nAborting...\n");
+      fprintf(LOG, "Error in memory allocation\nAborting...\n");
+      fclose(LOG); fclose(GLOBAL_EVOL);fftwf_free(log10_Mcrit_LW_filtered);  fftwf_free(log10_Mcrit_LW_unfiltered);
+      for(ct=0; ct<R_ct; ct++)
+        free(log10_Mcrit_LW[ct]);
+      destruct_heat();
+      return -1;
+    }
+#endif
 
     // copy over unfiltered box
     memcpy(box, unfiltered_box, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
@@ -1246,15 +1258,6 @@ int main(int argc, char ** argv){
       fftwf_destroy_plan(plan);
       fftwf_cleanup();
 
-      if (! (log10_Mcrit_LW[R_ct] = (float *) malloc(sizeof(float)*HII_TOT_NUM_PIXELS))){
-        fprintf(stderr, "Error in memory allocation\nAborting...\n");
-        fprintf(LOG, "Error in memory allocation\nAborting...\n");
-        fclose(LOG); fclose(GLOBAL_EVOL);fftwf_free(log10_Mcrit_LW_filtered);  fftwf_free(log10_Mcrit_LW_unfiltered);
-        for(ct=0; ct<R_ct; ct++)
-          free(log10_Mcrit_LW[ct]);
-        destruct_heat();
-        return -1;
-      }
 #pragma omp parallel shared(log10_Mcrit_LW, R_ct, log10_Mcrit_LW_filtered, log10_Mcrit_mol) private(i, j, k)
 {
 #pragma omp for
