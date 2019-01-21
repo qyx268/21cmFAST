@@ -2030,7 +2030,11 @@ int main(int argc, char ** argv){
           // if this is the last filter step, prepare to account for poisson fluctuations in the sub grid halo number...
           // this is very approximate as it doesn't sample the halo mass function but merely samples a number of halos of a characterisic mass
           if (LAST_FILTER_STEP){
+#ifdef MINI_HALO
+            ave_M_coll_cell = ( f_coll + f_collm) * pixel_mass * density_over_mean;
+#else
             ave_M_coll_cell = f_coll * pixel_mass * density_over_mean;
+#endif
             ave_N_min_cell = ave_M_coll_cell / M_MIN; // ave # of M_MIN halos in cell
             N_halos_in_cell = (int) gsl_ran_poisson(r, N_POISSON);
           }
