@@ -636,10 +636,10 @@ int main(int argc, char ** argv){
             //fprintf(stderr, "%.2e ", *((float *)box + R_FFT_INDEX((unsigned long long)(i),(unsigned long long)(j),(unsigned long long)(k)) ) ); 
   	        *((float *)box + R_FFT_INDEX((unsigned long long)(i),(unsigned long long)(j),(unsigned long long)(k)) ) /= TOT_NUM_PIXELS;
 
-	        smoothed_box[HII_R_INDEX(i,j,k)] = 
-	          *((float *)box + R_FFT_INDEX((unsigned long long)(i*f_pixel_factor+0.5),
-				       (unsigned long long)(j*f_pixel_factor+0.5),
-				       (unsigned long long)(k*f_pixel_factor+0.5)));
+	        //smoothed_box[HII_R_INDEX(i,j,k)] = 
+	        //  *((float *)box + R_FFT_INDEX((unsigned long long)(i*f_pixel_factor+0.5),
+			//	       (unsigned long long)(j*f_pixel_factor+0.5),
+			//	       (unsigned long long)(k*f_pixel_factor+0.5)));
           }
         }
         //fprintf(stderr, "\n");
