@@ -138,6 +138,7 @@
     #define N_GAMMA_UV_MINI (float) (50000) // number of ionizing photons per stellar baryon for mini halos
     #define STELLAR_BARYON_FRAC_MINI (double) (0.01) // defined for 10^10 Msun mini halos
     #define ESC_FRAC_MINI (double) (0.5)    // ionizing escape fraction for mini halos
+	#define F_H2_SHIELD (double) (0.)
   
     #define CONTEMPORANEOUS_DUTYCYCLE 1
     // ifdef CONTEMPORANEOUS_DUTYCYCLE, duty cycle is considered evovling in the calculation of Nion.
