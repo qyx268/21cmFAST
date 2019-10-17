@@ -492,9 +492,9 @@ int main(int argc, char ** argv){
   int flag_first_reionization = 0;
 #endif
   fftwf_complex *M_coll_unfiltered=NULL, *M_coll_filtered=NULL;
-  fftwf_complex *deltax_unfiltered=NULL, *deltax_filtered=NULL;
+  fftwf_complex *deltax_unfiltered=NULL, *deltax_filtered=NULL, *deltax_unfiltered_original=NULL;
   fftwf_complex *xe_unfiltered=NULL, *xe_filtered=NULL;
-  fftwf_complex *N_rec_unfiltered=NULL, *N_rec_filtered=NULL;
+  fftwf_complex *N_rec_unfiltered=NULL, *N_rec_filtered=NULL, *N_rec_unfiltered_original=NULL;
   fftwf_plan plan;
   double global_xH=0, ave_xHI_xrays, ave_den, ST_over_PS, mean_f_coll_st, f_coll, ave_fcoll, dNrec;
   const gsl_rng_type * T=NULL;
@@ -619,6 +619,7 @@ int main(int argc, char ** argv){
   z_re             = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS); // the redshift at which the cell is ionized
   Gamma12          = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);  // stores the ionizing backgroud
   N_rec_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS); // cumulative number of recombinations
+  N_rec_unfiltered_original = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS); // cumulative number of recombinations
   N_rec_filtered   = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
   if (!z_re || !N_rec_filtered || !N_rec_unfiltered || !Gamma12){
     strcpy(error_message, "find_HII_bubbles.c: Error allocating memory for recombination boxes boxes\nAborting...\n");
@@ -1248,6 +1249,7 @@ int main(int argc, char ** argv){
     
   // ALLOCATE AND READ-IN THE EVOLVED DENSITY FIELD
   deltax_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  deltax_unfiltered_original = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
   deltax_filtered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
   if (!deltax_unfiltered || !deltax_filtered){
     strcpy(error_message, "find_HII_bubbles.c: Error allocating memory for deltax boxes\nAborting...\n");
@@ -1278,6 +1280,10 @@ int main(int argc, char ** argv){
   F = NULL;
   fprintf(stderr, "done\n");
   fprintf(LOG, "done\n");
+
+  // keep the unfiltered density field in an array, to save it for later                             
+  memcpy(deltax_unfiltered_original, deltax_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  memcpy(N_rec_unfiltered_original, N_rec_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
 
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
   // ALLOCATE AND READ-IN THE EVOLVED DENSITY FIELD at PREV_REDSHIFT
@@ -2160,23 +2166,23 @@ int main(int argc, char ** argv){
   // update the N_rec field
 #ifdef INHOMO_RECO
   //fft to get the real N_rec  and delta fields
-  plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)N_rec_unfiltered, (float *)N_rec_unfiltered, FFTW_ESTIMATE);
+  /*plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)N_rec_unfiltered, (float *)N_rec_unfiltered, FFTW_ESTIMATE);
   fftwf_execute(plan);
   plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)deltax_unfiltered, (float *)deltax_unfiltered, FFTW_ESTIMATE);
   fftwf_execute(plan);
-  fftwf_destroy_plan(plan);
+  fftwf_destroy_plan(plan);*/
   fftwf_cleanup();
-#pragma omp parallel shared(deltax_unfiltered, REDSHIFT, Gamma12, fabs_dtdz, ZSTEP, xH, N_rec_unfiltered) private(x,y,z, density_over_mean, z_eff, dNrec)
+#pragma omp parallel shared(deltax_unfiltered_original, REDSHIFT, Gamma12, fabs_dtdz, ZSTEP, xH, N_rec_unfiltered_original) private(x,y,z, density_over_mean, z_eff, dNrec)
 {
 #pragma omp for
   for (x=0; x<HII_DIM; x++){
     for (y=0; y<HII_DIM; y++){
       for (z=0; z<HII_DIM; z++){
 
-        density_over_mean = 1.0 + (*((float *)deltax_unfiltered + HII_R_FFT_INDEX(x,y,z)));
+        density_over_mean = 1.0 + (*((float *)deltax_unfiltered_original + HII_R_FFT_INDEX(x,y,z)));
         z_eff = (1+REDSHIFT) * pow(density_over_mean, 1.0/3.0) - 1;
         dNrec = splined_recombination_rate(z_eff, Gamma12[HII_R_INDEX(x,y,z)]) * fabs_dtdz * ZSTEP * (1 - xH[HII_R_INDEX(x,y,z)]);
-          *((float *)N_rec_unfiltered + HII_R_FFT_INDEX(x,y,z)) += dNrec; 
+          *((float *)N_rec_unfiltered_original + HII_R_FFT_INDEX(x,y,z)) += dNrec; 
 
         /*
         if ((x==0) && (y==19) && (z==107)){ //DEBUGGING
@@ -2209,7 +2215,7 @@ int main(int argc, char ** argv){
     for (i=0; i<HII_DIM; i++){
       for (j=0; j<HII_DIM; j++){
         for (k=0; k<HII_DIM; k++){
-          if(fwrite((float *)N_rec_unfiltered + HII_R_FFT_INDEX(i,j,k), sizeof(float), 1, F)!=1){
+          if(fwrite((float *)N_rec_unfiltered_original + HII_R_FFT_INDEX(i,j,k), sizeof(float), 1, F)!=1){
             sprintf(error_message, "find_HII_bubbles.c: Write error occured while writting N_rec box.\n");
             goto CLEANUP;
           }
@@ -2375,6 +2381,7 @@ int main(int argc, char ** argv){
 #endif
   fclose(LOG);
   fftwf_free(deltax_unfiltered);
+  fftwf_free(deltax_unfiltered_original);
   fftwf_free(deltax_filtered);
   fftwf_free(M_coll_unfiltered);
   fftwf_free(M_coll_filtered);
@@ -2385,6 +2392,7 @@ int main(int argc, char ** argv){
   fftwf_free(xe_filtered);
   fftwf_free(xe_unfiltered);
   fftwf_free(N_rec_unfiltered);
+  fftwf_free(N_rec_unfiltered_original);
   fftwf_free(N_rec_filtered);
 #ifndef SHARP_CUTOFF
   destroy_21cmMC_arrays();
