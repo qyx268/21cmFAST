@@ -2816,6 +2816,7 @@ void DeltaNion_Spline_density(float Overdensity, float Prev_Overdensity, float *
     if(returned_value_prev < 0.) returned_value_prev = 1e-40;
 
     *splined_value = returned_value - returned_value_prev;
+	if(*splined_value < 0) *splined_value = 0.;
 }
 
 #ifdef MINI_HALO
@@ -2900,6 +2901,7 @@ void DeltaNion_Spline_densitym(float Overdensity, float Prev_Overdensity, float 
     if(returned_value_prev < 0.) returned_value_prev = 1e-40;
 
     *splined_value = returned_value - returned_value_prev;
+	if(*splined_value < 0) *splined_value = 0.;
 }
 #endif //MINI_HALO
 #endif //CONTEMPORANEOUS_DUTYCYCLE
