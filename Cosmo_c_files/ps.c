@@ -109,9 +109,8 @@ void initialise_Nion_spline(float z, float Mmax, float Mmin, float log10_MminTur
 void Nion_Spline_density(float Overdensity, float *splined_value);
 void initialise_Nion_spline(float z, float Mmax, float Mmin, float MassTurnover, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10, float Mlim_Fstar, float Mlim_Fesc);
 #endif //INHOMO_FEEDBACK
-float Mass_limit (float logM, float PL, float FRAC);
-void bisection(float *x, float xlow, float xup, int *iter);
-float Mass_limit_bisection(float Mmin, float Mmax, float PL, float FRAC);
+
+float Mass_limit (float PL, float FRAC);
 
 static double Nion_z_val[zpp_interp_points]; // For Ts.c
 static double SFRD_val[zpp_interp_points]; 
@@ -194,6 +193,14 @@ void Nion_Spline_densitym(float Overdensity, float log10_M_MINm, float *splined_
 #else //INHOMO_FEEDBACK
 void Nion_Spline_densitym(float Overdensity, float *splined_value);
 #endif //INHOMO_FEEDBACK
+static gsl_interp_accel *Q_at_z_spline_acc;
+static gsl_spline *Q_at_z_spline;
+static gsl_interp_accel *z_at_Q_spline_acc;
+static gsl_spline *z_at_Q_spline;
+static double Zmin, Zmax, Qmin, Qmax;
+void initialise_Q_value_spline(int NoRec, float MassTurn, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10);
+void Q_at_z(double z, double *splined_value);
+void z_at_Q(double Q, double *splined_value);
 
 struct parameters_gsl_SFR_int_{
     double z_obs;
@@ -1470,54 +1477,14 @@ void initialiseSplinedSigmaM(float M_Min, float M_Max)
 /* New in v2 - part 4 of 4 start */
 
 /*
- FUNCTION Mass_limit_bisection(M_min, M_max, power-law, normalization)
- Compute a threshold of halo mass above/below which f_{\ast}(M)/f_{esc}(M) exceeds unity/zero.
+ FUNCTION Mass_limit(power-law, normalization)
+ Compute a threshold of a halo mass at which the stellar mass fraction (the escape fraction)
+ exceeds unity. If the fraction is larger than unity, set the fraction is unity.
 */
-float Mass_limit (float logM, float PL, float FRAC) {
-    return FRAC*pow(pow(10.,logM)/1e10,PL);
-}
-void bisection(float *x, float xlow, float xup, int *iter){
-    *x=(xlow + xup)/2.;
-    ++(*iter);
+float Mass_limit (float PL, float FRAC) {
+	return 1e10*pow(1./FRAC,1./PL);
 }
 
-float Mass_limit_bisection(float Mmin, float Mmax, float PL, float FRAC){
-  int i, iter, max_iter=200;
-  float rel_tol=0.001;
-  float logMlow, logMupper, x, x1;
-  iter = 0;
-  logMlow = log10(Mmin);
-  logMupper = log10(Mmax);
-  
-  if (PL < 0.) {
-    if (Mass_limit(logMlow,PL,FRAC) < 1.) {
-      return Mmin;
-    }
-  }
-  else if (PL > 0.) {
-    if (Mass_limit(logMupper,PL,FRAC) < 1.) {
-      return Mmax;
-    }
-  }
-  else
-    return 0;
-  bisection(&x, logMlow, logMupper, &iter);
-  do {
-    if((Mass_limit(logMlow,PL,FRAC)-1.)*(Mass_limit(x,PL,FRAC)-1.) < 0.) 
-      logMupper = x;
-    else 
-      logMlow = x;
-    bisection(&x1, logMlow, logMupper, &iter);
-    if(fabs(x1-x) < rel_tol) {
-      return pow(10.,x1);        
-    }
-    x = x1;
-  }
-  while(iter < max_iter);
-  fprintf(stderr, "\n Failed to find a mass limit to regulate stellar fraction/escape fraction is between 0 and 1.\n");
-  fprintf(stderr, " The solution does not converge or iterations are not sufficient\n");
-  return -1;
-}
 
 /*
  FUNCTION Nion_ST(z, Mturn)
@@ -2911,8 +2878,8 @@ void DeltaNion_Spline_densitym(float Overdensity, float Prev_Overdensity, float 
 void initialise_Nion_ST_spline(int Nbin, double z_val[], float Mmin, double M_MINa_interp_table[], float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10){
     int i;
 
-    float Mlim_Fstar = Mass_limit_bisection(Mmin, 1e16, Alpha_star, Fstar10);
-    float Mlim_Fesc  = Mass_limit_bisection(Mmin, 1e16, Alpha_esc, Fesc10);
+	float Mlim_Fstar = Mass_limit(Alpha_star, Fstar10);
+	float Mlim_Fesc = Mass_limit(Alpha_esc, Fesc10);
 
     Nion_z_spline_acc = gsl_interp_accel_alloc ();
     Nion_z_spline = gsl_spline_alloc (gsl_interp_cspline, Nbin);
@@ -2934,8 +2901,7 @@ void initialise_Nion_ST_splinem(int Nbin, double z_val[], float Mmin, double M_M
 #endif
 {
     int i;
-
-    float Mlim_Fstarm = Mass_limit_bisection(Mmin, 1e16, Alpha_star, Fstar10m);
+	float Mlim_Fstarm = Mass_limit(Alpha_star, Fstar10m);
 
     Nion_z_spline_accm = gsl_interp_accel_alloc ();
 #ifdef INHOMO_FEEDBACK
@@ -3006,7 +2972,7 @@ void Nion_ST_zm(float z, float *splined_value)
 void initialise_SFRD_ST_spline(int Nbin, double z_val[], float Mmin, double M_MINa_interp_table[], float Alpha_star, float Fstar10){
     int i;
     
-    float Mlim_Fstar = Mass_limit_bisection(Mmin, 1e16, Alpha_star, Fstar10);
+	float Mlim_Fstar = Mass_limit(Alpha_star, Fstar10);
 
     SFRD_ST_z_spline_acc = gsl_interp_accel_alloc ();
     SFRD_ST_z_spline = gsl_spline_alloc (gsl_interp_cspline, Nbin);
@@ -3028,7 +2994,7 @@ void initialise_SFRD_ST_splinem(int Nbin, double z_val[], float Mmin, double M_M
 {
     int i;
 
-    float Mlim_Fstarm = Mass_limit_bisection(Mmin, 1e16, Alpha_star, Fstar10m);
+    float Mlim_Fstarm = Mass_limit(Alpha_star, Fstar10m);
 
     SFRD_ST_z_spline_accm = gsl_interp_accel_alloc ();
 #ifdef INHOMO_FEEDBACK
@@ -3118,7 +3084,7 @@ void initialise_SFRD_Conditional_table(int Nsteps_zp, int Nfilter, float z[], do
 #endif
 
     Mmax = RtoM(R[Nfilter-1]);
-    Mlim_Fstar = Mass_limit_bisection(Mmin, Mmax, Alpha_star, Fstar10);
+    Mlim_Fstar = Mass_limit(Alpha_star, Fstar10);
     initialiseSplinedSigmaM(Mmin,Mmax);
     fprintf(stderr, "In initialise_Fcollz_SFR_Conditional_table: Rmin = %6.4f, Rmax = %6.4f, Mmin = %.4e, Mmax = %.4e\n",
                                                                 R[0],R[Nfilter-1],RtoM(R[0]),RtoM(R[Nfilter-1]));
@@ -3205,7 +3171,7 @@ void initialise_SFRD_Conditional_tablem(int Nsteps_zp, int Nfilter, float z[], d
     float MassTurn;
 
     Mmax = RtoM(R[Nfilter-1]);
-    Mlim_Fstarm = Mass_limit_bisection(Mmin, Mmax, Alpha_star, Fstar10m);
+    Mlim_Fstarm = Mass_limit(Alpha_star, Fstar10m);
 //    initialiseSplinedSigmaM(Mmin,Mmax);
 //    fprintf(stderr, "In initialise_Fcollz_SFR_Conditional_table: Rmin = %6.4f, Rmax = %6.4f, Mmin = %.4e, Mmax = %.4e\n",
 //                                                                R[0],R[Nfilter-1],RtoM(R[0]),RtoM(R[Nfilter-1]));
@@ -3410,9 +3376,9 @@ I am trying to estimate the redshift and duration of reionization...\n");
       M_MIN  = M_MINa > M_MINm       ? M_MINm : M_MINa;
       M_MIN /= 50;
   
-      Mlim_Fstar  = Mass_limit_bisection(M_MIN, 1e16, ALPHA_STAR, F_STAR10);
-      Mlim_Fesc   = Mass_limit_bisection(M_MIN, 1e16, ALPHA_ESC, F_ESC10);
-      Mlim_Fstarm = Mass_limit_bisection(M_MIN, 1e16, ALPHA_STAR, F_STAR10m);
+	  float Mlim_Fstar = Mass_limit(Alpha_star, Fstar10);
+	  float Mlim_Fesc = Mass_limit(Alpha_esc, Fesc10);
+	  float Mlim_Fstarm = Mass_limit(Alpha_star, Fstar10m);
 
       Nion0[i]  = ION_EFF_FACTOR      * Nion_ST(redshifts[i], M_MIN, M_MINa, ALPHA_STAR, ALPHA_ESC, F_STAR10, F_ESC10, Mlim_Fstar, Mlim_Fesc);
       Nion0[i] += ION_EFF_FACTOR_MINI * Nion_STm(redshifts[i], M_MIN, M_MINm, Mcrit_atom, ALPHA_STAR, F_STAR10m, Mlim_Fstarm);
@@ -3480,5 +3446,162 @@ void reading_reionization_SM13parameters(double *REION_SM13_Z_RE, double *REION_
   fprintf(stderr, "Reading from ../Parameter_files/REION_SM.H...z_re = %g, Delta z_re = %g, Delta z_sc = %g\n", params.Z_RE, params.DELTA_Z_RE, params.DELTA_Z_SC);
 }
 #endif //REION_SM
+/*
+   The volume filling factor at a given redshift, Q(z), or find redshift at a given Q, z(Q).
+ 
+   The evolution of Q can be written as
+   dQ/dt = n_{ion}/dt - Q/t_{rec},
+   where n_{ion} is the number of ionizing photons per baryon. The averaged recombination time is given by
+   t_{rec} ~ 0.93 Gyr * (C_{HII}/3)^-1 * (T_0/2e4 K)^0.7 * ((1+z)/7)^-3.
+   We assume the clumping factor of C_{HII}=3 and the IGM temperature of T_0 = 2e4 K, following
+   Section 2.1 of Kuhlen & Faucher-Gigue`re (2012) MNRAS, 423, 862 and references therein. 
+
+   1) initialise interpolation table
+      -> initialise_Q_value_spline(NoRec, M_TURN, ALPHA_STAR, ALPHA_ESC, F_STAR10, F_ESC10)
+	     NoRec = 0: Compute dQ/dt with the recombination time.
+	     NoRec = 1: Ignore recombination.
+   2) find Q value at a given z -> Q_at_z(z, &(Q)) 
+      or find z at a given Q -> z_at_Q(Q, &(z)).
+   3) free memory allocation -> free_Q_value()
+
+*/
+//   Set up interpolation table for the volume filling factor, Q, at a given redshift z and redshift at a given Q. 
+void initialise_Q_value_spline(int NoRec, float MassTurn, float Alpha_star, float Alpha_esc, float Fstar10, float Fesc10){
+    /*
+    To solve differentail equation, uses Euler's method.
+	NOTE: 
+    (1) With the fiducial parameter set, 
+	    when the Q value is < 0.9, the difference is less than 5% compared with accurate calculation.
+	    When Q ~ 0.98, the difference is ~25%. To increase accuracy one can reduce the step size 'da', but it will increase computing time.
+    (2) With the fiducial parameter set, 
+		the difference for the redshift where the reionization end (Q = 1) is ~0.2 % compared with accurate calculation.
+    */
+	float ION_EFF_FACTOR,Mlim_Fstar, Mlim_Fesc;
+	double a_start = 0.03, a_end = 0.15; // Scale factors of 0.03 and 0.15 correspond to redshifts of ~32 and ~5.7, respectively.
+    double delta_a = 1e-7;
+	double C_HII = 3., T_0 = 2e4;
+	double reduce_ratio = 1.003;
+	double Q0,Q1,Nion0,Nion1,Trec,da,a,z0,z1,zi,dadt,ans;
+	double *z_arr,*Q_arr;
+    int Nmax = 600; // This is the number of step, enough with 'da = 2e-3'. If 'da' is reduced, this number should be checked.
+    int cnt, nbin, i, istart; 
+
+    z_arr = calloc(Nmax,sizeof(double));
+    Q_arr = calloc(Nmax,sizeof(double));
+
+	Mlim_Fstar = Mass_limit(Alpha_star, Fstar10);
+	Mlim_Fesc = Mass_limit(Alpha_esc, Fesc10);
+	ION_EFF_FACTOR = N_GAMMA_UV * Fstar10 * Fesc10;
+
+    a = a_start;
+    da = 2e-3;
+
+    cnt = 0; 
+    Q0 = 0.;
+    while (a < a_end) {
+    
+      zi = 1./a - 1.;
+      z0 = 1./(a+delta_a) - 1.;
+      z1 = 1./(a-delta_a) - 1.;
+
+	  // Ionizing emissivity (num of photons per baryon)
+      Nion0 = ION_EFF_FACTOR*Nion_ST(z0, MassTurn/50., MassTurn, Alpha_star, Alpha_esc, Fstar10, Fesc10, Mlim_Fstar, Mlim_Fesc);
+      Nion1 = ION_EFF_FACTOR*Nion_ST(z1, MassTurn/50., MassTurn, Alpha_star, Alpha_esc, Fstar10, Fesc10, Mlim_Fstar, Mlim_Fesc);
+
+      // With scale factor a, the above equation is written as dQ/da = n_{ion}/da - Q/t_{rec}*(dt/da)
+	  if (NoRec) {
+        Q1 = Q0 + ((Nion0-Nion1)/2/delta_a)*da; // No Recombination
+	  }
+	  else {
+        dadt = Ho*sqrt(OMm/a + OMr/a/a + OMl*a*a); // da/dt = Ho*a*sqrt(OMm/a^3 + OMr/a^4 + OMl)
+        Trec = 0.93 * 1e9 * SperYR * pow(C_HII/3.,-1) * pow(T_0/2e4,0.7) * pow((1.+zi)/7.,-3);
+        Q1 = Q0 + ((Nion0-Nion1)/2./delta_a - Q0/Trec/dadt)*da;
+	  }
+
+      z_arr[cnt] = zi;
+      Q_arr[cnt] = Q1;
+
+      cnt = cnt + 1; 
+      if (Q1 >= 1.0) break; // if fully ionized, stop here.
+	  // As the Q value increases, the bin size decreases gradually because more accurate calculation is required.
+      if (da < 7e-5) da = 7e-5; // set minimum bin size.
+      else da = pow(da,reduce_ratio);
+      Q0 = Q1;
+      a = a + da;
+    }
+	cnt = cnt - 1;
+	istart = 0;
+    for (i=1;i<cnt;i++){
+      if (Q_arr[i-1] == 0. && Q_arr[i] != 0.) istart = i-1;
+	}
+	nbin = cnt - istart;  
+
+	// initialise interploation Q as a function of z
+	double z_Q[nbin],Q_value[nbin];
+
+    Q_at_z_spline_acc = gsl_interp_accel_alloc ();
+    Q_at_z_spline = gsl_spline_alloc (gsl_interp_linear, nbin);
+    for (i=0; i<nbin; i++){
+        z_Q[i] = z_arr[cnt-i];
+        Q_value[i] = Q_arr[cnt-i];
+    }    
+    gsl_spline_init(Q_at_z_spline, z_Q, Q_value, nbin);
+	
+	Zmin = z_Q[0];
+	Zmax = z_Q[nbin-1];
+	Qmin = Q_value[nbin-1];
+	Qmax = Q_value[0];
+
+	// initialise interploation z as a function of Q
+	double Q_z[nbin],z_value[nbin];
+
+    z_at_Q_spline_acc = gsl_interp_accel_alloc ();
+    z_at_Q_spline = gsl_spline_alloc (gsl_interp_linear, nbin);
+    for (i=0; i<nbin; i++){
+        Q_z[i] = Q_value[nbin-1-i];
+        z_value[i] = z_Q[nbin-1-i];
+    }    
+	free(z_arr);
+	free(Q_arr);
+
+    gsl_spline_init(z_at_Q_spline, Q_z, z_value, nbin);
+}
+
+void Q_at_z(double z, double *splined_value){
+    float returned_value;
+
+    if (z >= Zmax) {
+	  *splined_value = 0.;
+	}
+	else if (z <= Zmin) {
+	  *splined_value = 1.;
+	}
+	else {
+      returned_value = gsl_spline_eval(Q_at_z_spline, z, Q_at_z_spline_acc);
+      *splined_value = returned_value;
+	}
+}
+
+void z_at_Q(double Q, double *splined_value){
+    float returned_value;
+
+	if (Q < Qmin) {
+	  fprintf(stderr,"The minimum value of Q is %.4e\n Aborting...\n",Qmin);
+	}
+	else if (Q > Qmax) {
+	  fprintf(stderr,"The maximum value of Q is %.4e\n Reionization ends at ~%.4f\n Aborting...\n",Qmax,Zmin);
+	}
+	else {
+      returned_value = gsl_spline_eval(z_at_Q_spline, Q, z_at_Q_spline_acc);
+      *splined_value = returned_value;
+	}
+}
+
+void free_Q_value() {
+    gsl_spline_free (Q_at_z_spline);
+    gsl_interp_accel_free (Q_at_z_spline_acc);
+    gsl_spline_free (z_at_Q_spline);
+    gsl_interp_accel_free (z_at_Q_spline_acc);
+}
 
 #endif

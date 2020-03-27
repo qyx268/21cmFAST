@@ -613,7 +613,6 @@ int main(int argc, char ** argv){
   }
 
 
-  
  // Then we will have the laplacian of phi_2 (eq. D13b)
  // After that we have to return in Fourier space and generate the Fourier transform of phi_2
 
@@ -634,7 +633,6 @@ int main(int argc, char ** argv){
   	        *((float *)box + R_FFT_INDEX((unsigned long long)(i),(unsigned long long)(j),(unsigned long long)(k)) ) -= ( *((float *)(phi_1[PHI_INDEX(l, m)]) + R_FFT_INDEX((unsigned long long)(i),(unsigned long long) (j),(unsigned long long)(k) ) )  ) * (  *((float *)(phi_1[PHI_INDEX(l, m)]) + R_FFT_INDEX((unsigned long long)(i),(unsigned long long)(j),(unsigned long long)(k) ))  );
   	        //box[R_FFT_INDEX(i,j,k)] -= phi_1[PHI_INDEX(l, m)][R_FFT_INDEX(i,j,k)] *  phi_1[PHI_INDEX(l, m)][R_FFT_INDEX(i,j,k)];
             //fprintf(stderr, "%.2e ", *((float *)box + R_FFT_INDEX((unsigned long long)(i),(unsigned long long)(j),(unsigned long long)(k)) ) ); 
-  	        *((float *)box + R_FFT_INDEX((unsigned long long)(i),(unsigned long long)(j),(unsigned long long)(k)) ) /= TOT_NUM_PIXELS;
 
 	        //smoothed_box[HII_R_INDEX(i,j,k)] = 
 	        //  *((float *)box + R_FFT_INDEX((unsigned long long)(i*f_pixel_factor+0.5),
@@ -642,7 +640,8 @@ int main(int argc, char ** argv){
 			//	       (unsigned long long)(k*f_pixel_factor+0.5)));
           }
         }
-        fprintf(stderr, "\n");
+		//fprintf(stderr, "\n");
+  	    *((float *)box + R_FFT_INDEX((unsigned long long)(i),(unsigned long long)(j),(unsigned long long)(k)) ) /= TOT_NUM_PIXELS;
       }
     }
   }

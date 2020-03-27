@@ -133,7 +133,7 @@
 */
 //#define SHARP_CUTOFF 1
 #ifndef SHARP_CUTOFF
-  #define MINI_HALO 1             // operate as a flag, comment this line if MINI_HALO version is not required
+//  #define MINI_HALO 1             // operate as a flag, comment this line if MINI_HALO version is not required
   #ifdef MINI_HALO
     #define N_GAMMA_UV_MINI (float) (50000) // number of ionizing photons per stellar baryon for mini halos
     #define STELLAR_BARYON_FRAC_MINI (double) (0.01) // defined for 10^10 Msun mini halos
@@ -239,9 +239,10 @@
   then find_HII_bubbles just prints a homogeneous xHI field
   of  1's.
 
-  This is a new option in v1.1. Previous versions had a hardcoded value of 1e-15.
+  Previous versions had a value of 1e-3. In order to avoid discontinuous of redshift evolution in PS, 
+  the threshold is changed to 1e-5, which is a hardcoded value.
 */
-#define HII_ROUND_ERR (float) (1e-3)
+#define HII_ROUND_ERR (float) (1e-5)
 
 
 /*
@@ -270,6 +271,13 @@
   which dominates the collapse fraction field on small scales (i.e. where the mean halo number 
   is small).  However, option (0) is faster as it bypasses the halo finder, and it becomes
   increasingly accurate as the typical bubble size increases.
+
+  NOTE: when using option (1), 
+        i) SET the real space top-hat filter for generating ionization field,
+           i.e. HII_FILTER = 0.
+        ii) BE CAREFUL the resolution is enough to resolve the minumum halo mass.
+            The minumum halo mass should be, at least, M_TURNOVER/3.
+            e.g., if M_TURNOVER = 5e8, BOX_LEN/DIM ~ 0.1
 */
 //#define USE_HALO_FIELD 0
 

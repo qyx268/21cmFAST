@@ -197,7 +197,7 @@ int parse_arguments(int argc, char ** argv, int * num_th, int * arg_offset, floa
     *ALPHA_ESC = ESC_PL;
     *M_TURN = M_TURNOVER;
     *T_AST = t_STAR;
-    *X_LUMINOSITY = 0;
+    *X_LUMINOSITY = pow(10., L_X);
   }
   else{ return 0;} // format is not allowed
 #else //SHARP_CUTOFF
@@ -473,7 +473,7 @@ int main(int argc, char ** argv){
   FILE *F = NULL, *pPipe = NULL;
   float REDSHIFT, PREV_REDSHIFT, mass, R, xf, yf, zf, growth_factor, pixel_mass, cell_length_factor, massofscaleR;
   float ave_M_coll_cell, ave_N_min_cell, ION_EFF_FACTOR, M_MIN;
-  int x,y,z, N_halos_in_cell, N_min_cell, LAST_FILTER_STEP, num_th, arg_offset, i,j,k;
+  int x,y,z, N_halos_in_cell, LAST_FILTER_STEP, num_th, arg_offset, i=0,j,k;
   unsigned long long ct, ion_ct, sample_ct;
   float f_coll_crit, pixel_volume,  density_over_mean, erfc_num, erfc_denom, erfc_denom_cell, res_xH, Splined_Fcoll;
   float *xH=NULL, TVIR_MIN, MFP, xHI_from_xrays, std_xrays, *z_re=NULL, *Gamma12=NULL, *mfp=NULL;
@@ -501,7 +501,7 @@ int main(int argc, char ** argv){
   gsl_rng * r=NULL;
   double t_ast, dfcolldt, Gamma_R_prefactor, rec;
   float nua, dnua, temparg, Gamma_R, z_eff;
-  float F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, Mlim_Fstar, Mlim_Fesc; //New in v2
+  float F_STAR10, ALPHA_STAR, F_ESC10, ALPHA_ESC, M_TURN, Mlim_Fstar, Mlim_Fesc, Fstar, Fesc; //New in v2
 #ifdef MINI_HALO
   float F_STAR10m, F_ESC10m, Mlim_Fstarm, ION_EFF_FACTOR_MINI,Splined_Fcollm, dfcolldtm,Gamma_R_prefactorm,ST_over_PSm,f_collm, Mcrit_atom;
   double mean_f_collm_st; //New in v2.1
@@ -525,8 +525,10 @@ int main(int argc, char ** argv){
 
   double aveR = 0;
   unsigned long long Rct = 0;
+  *error_message = '\0';
 
-    
+
+      
   /*************************************************************************************/  
   /******** BEGIN INITIALIZATION ********/
   /*************************************************************************************/  
@@ -845,13 +847,13 @@ int main(int argc, char ** argv){
   M_MIN  = M_MINa > M_MINm       ? M_MINm : M_MINa;
   M_MIN /= 50;
 #endif //INHOMO_FEEDBACK
-  Mlim_Fstarm         = Mass_limit_bisection(M_MIN, 1e16, ALPHA_STAR, F_STAR10m);
+  Mlim_Fstarm = Mass_limit(ALPHA_STAR, F_STAR10m);
 #else //MINI_HALO
   M_MINa = M_TURN;
   M_MIN  = M_TURN/50;
 #endif //MINI_HALO
-  Mlim_Fstar     = Mass_limit_bisection(M_MIN, 1e16, ALPHA_STAR, F_STAR10);
-  Mlim_Fesc      = Mass_limit_bisection(M_MIN, 1e16, ALPHA_ESC, F_ESC10);
+  Mlim_Fstar = Mass_limit(ALPHA_STAR, F_STAR10);
+  Mlim_Fesc = Mass_limit(ALPHA_ESC, F_ESC10);
 #endif //SHARP_CUTOFF
 
   // check for WDM
@@ -1239,7 +1241,25 @@ int main(int argc, char ** argv){
     x = xf*HII_DIM;
     y = yf*HII_DIM;
     z = zf*HII_DIM;
+#ifdef SHARP_CUTOFF
     *((float *)M_coll_unfiltered + HII_R_FFT_INDEX(x, y, z)) += mass;
+#else
+    if (ALPHA_STAR > 0. && mass > Mlim_Fstar)
+        Fstar = 1./F_STAR10;
+    else if (ALPHA_STAR < 0. && mass < Mlim_Fstar)
+        Fstar = 1/F_STAR10;
+    else 
+        Fstar = pow(mass/1e10,ALPHA_STAR); 
+    
+    if (ALPHA_ESC > 0. && mass > Mlim_Fesc)
+        Fesc = 1./F_ESC10;
+    else if (ALPHA_ESC < 0. && mass < Mlim_Fesc)
+        Fesc = 1/F_ESC10;
+    else  
+        Fesc = pow(mass/1e10,ALPHA_ESC);
+
+    *((float *)M_coll_unfiltered + HII_R_FFT_INDEX(x, y, z)) += mass * Fstar * Fesc * exp(-M_TURN/mass);
+#endif
     fscanf(F, "%e %f %f %f", &mass, &xf, &yf, &zf);
   }
   fclose(F);
@@ -1807,11 +1827,12 @@ int main(int argc, char ** argv){
     for (x=0; x<HII_DIM; x++){
       for (y=0; y<HII_DIM; y++){
         for (z=0; z<HII_DIM; z++){
+          density_over_mean = 1.0 + *((float *)deltax_filtered + HII_R_FFT_INDEX(x,y,z));
 #ifdef USE_HALO_FIELD
           Splined_Fcoll = *((float *)M_coll_filtered + HII_R_FFT_INDEX(x,y,z)) / (massofscaleR*density_over_mean);
           Splined_Fcoll *= (4/3.0)*PI*pow(R,3) / pixel_volume;
+          if (Splined_Fcoll > 1.) Splined_Fcoll = 1.;
 #else //USE_HALO_FIELD
-          density_over_mean = 1.0 + *((float *)deltax_filtered + HII_R_FFT_INDEX(x,y,z));
 #ifdef CONTEMPORANEOUS_DUTYCYCLE
           prev_density_over_mean = 1.0 + *((float *)deltax_prev_filtered + HII_R_FFT_INDEX(x,y,z));
 #endif //CONTEMPORANEOUS_DUTYCYCLE
@@ -1895,10 +1916,10 @@ int main(int argc, char ** argv){
           if (flag_first_reionization == 0){
             Fcoll[HII_R_FFT_INDEX(x,y,z)]  = Fcoll_prev[HII_R_FFT_INDEX(x,y,z)] + Splined_Fcoll;
             Fcollm[HII_R_FFT_INDEX(x,y,z)] = Fcollm_prev[HII_R_FFT_INDEX(x,y,z)] + Splined_Fcollm;
-			if (Fcoll[HII_R_FFT_INDEX(x,y,z)] > 1.)
-				Fcoll[HII_R_FFT_INDEX(x,y,z)] = 1.;
-			if (Fcollm[HII_R_FFT_INDEX(x,y,z)] > 1.)
-				Fcollm[HII_R_FFT_INDEX(x,y,z)] = 1.;
+            if (Fcoll[HII_R_FFT_INDEX(x,y,z)] > 1.)
+                Fcoll[HII_R_FFT_INDEX(x,y,z)] = 1.;
+            if (Fcollm[HII_R_FFT_INDEX(x,y,z)] > 1.)
+                Fcollm[HII_R_FFT_INDEX(x,y,z)] = 1.;
           }
           else{
             Fcoll[HII_R_FFT_INDEX(x,y,z)]  = Splined_Fcoll;
@@ -2028,10 +2049,14 @@ int main(int argc, char ** argv){
 
           density_over_mean = 1.0 + *((float *)deltax_filtered + HII_R_FFT_INDEX(x,y,z));
 
+#ifdef USE_HALO_FIELD
+		  f_coll = Fcoll[HII_R_FFT_INDEX(x,y,z)];
+#else
           f_coll  = ST_over_PS * Fcoll[HII_R_FFT_INDEX(x,y,z)];
 #ifdef MINI_HALO
           f_collm = ST_over_PSm * Fcollm[HII_R_FFT_INDEX(x,y,z)];
 #endif //MINI_HALO
+#endif
       
           // if this is the last filter step, prepare to account for poisson fluctuations in the sub grid halo number...
           // this is very approximate as it doesn't sample the halo mass function but merely samples a number of halos of a characterisic mass

@@ -1008,10 +1008,10 @@ int main(int argc, char ** argv){
   M_MIN  = M_TURN/50;
 #endif //MINI_HALO
 
-  Mlim_Fstar  = Mass_limit_bisection(M_MIN, 1e16, ALPHA_STAR, F_STAR10);
-  Mlim_Fesc   = Mass_limit_bisection(M_MIN, 1e16, ALPHA_ESC, F_ESC10);
+  Mlim_Fstar = Mass_limit(ALPHA_STAR, F_STAR10);
+  Mlim_Fesc = Mass_limit(ALPHA_ESC, F_ESC10); 
 #ifdef MINI_HALO
-  Mlim_Fstarm = Mass_limit_bisection(M_MIN, 1e16, ALPHA_STAR, F_STAR10m);
+  Mlim_Fstarm = Mass_limit(ALPHA_STAR, F_STAR10m);
 #endif //MINI_HALO
   fprintf(stderr, "setting minimum mass for integral at %g\n",M_MIN);
 
@@ -1240,9 +1240,10 @@ int main(int argc, char ** argv){
     
       zpp_edge[R_ct] = prev_zpp - (R_values[R_ct] - prev_R)*CMperMPC / drdz(prev_zpp); // cell size
       zpp = (zpp_edge[R_ct]+prev_zpp)*0.5; // average redshift value of shell: z'' + 0.5 * dz''
-      if (zpp - redshift_interp_table[arr_num+R_ct] > 1e-3) fprintf(stderr, "zpp = %.4f, zpp_array = %.4f\n", zpp, redshift_interp_table[arr_num+R_ct]);
 #ifdef SHARP_CUTOFF 
       sigma_Tmin[R_ct] =  sigma_z0(M_MIN); // In v2 sigma_Tmin doesn't need to be an array, just a constant.
+#else
+      if (zpp - redshift_interp_table[arr_num+R_ct] > 1e-3) printf("zpp = %.4f, zpp_array = %.4f\n", zpp, redshift_interp_table[arr_num+R_ct]);
 #endif
 
 #ifdef INHOMO_FEEDBACK
@@ -1306,6 +1307,7 @@ int main(int argc, char ** argv){
 #ifdef SHARP_CUTOFF
         fcoll_R += sigmaparam_FgtrM_bias(zpp, sigma_Tmin[R_ct], delNL0[R_ct][box_ct], sigma_atR[R_ct]);
 #else //SHARP_CUTOFF
+		// New in v2
         delNL_zpp    = delNL0[R_ct][box_ct]*dicke(zpp);
         //---------- interpolation for fcoll starts ----------
         // Here 'fcoll' is not the collpased fraction, but leave this name as is to simplify the variable name.
@@ -1596,7 +1598,6 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
           xHII_call = x_int_XHII[x_int_NXHII-1]*0.999;
         else if (xHII_call < x_int_XHII[0])
           xHII_call = 1.001*x_int_XHII[0];
- 
         //interpolate to correct nu integral value based on the cell's ionization state
         for (R_ct=0; R_ct<NUM_FILTER_STEPS_FOR_Ts; R_ct++){
           curr_delNL0[R_ct] = delNL0[R_ct][box_ct];
@@ -1649,8 +1650,8 @@ ratios of mean = (atomic:%g, molecular:%g)\n",
                                   (x_int_XHII[m_xHII_high] - x_int_XHII[m_xHII_low]);
             freq_int_lyam[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
             freq_int_lyam[R_ct] += freq_int_lya_tblm[m_xHII_low][R_ct];
-          }
 #endif
+          }
         }
 
         /********  finally compute the redshift derivatives *************/

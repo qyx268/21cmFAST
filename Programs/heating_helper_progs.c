@@ -326,6 +326,12 @@ double spectral_emissivity(double nu_norm, int flag)
   double n0_fac, result;
   int i;
   FILE *F;
+  double factor;
+#ifdef MINI_HALO
+  factor = 1.-F_H2_SHIELD;
+#else
+  factor = 1;
+#endif
 
   switch (flag){
   case 3:
@@ -333,12 +339,17 @@ double spectral_emissivity(double nu_norm, int flag)
     for (i=1;i<(NSPEC_MAX-1);i++) {
       if ((nu_norm >= nu_n[i]) && (nu_norm < nu_n[i+1])) {
         // We are in the correct spectral region
-        if (Population == 2){
-          result = N0_2[i] * (1.-F_H2_SHIELD)/ (alpha_S_2[i] + 1) * ( pow(nu_n[i+1], alpha_S_2[i]+1) - pow(nu_norm, alpha_S_2[i]+1) );
+#ifdef MINI_HALO
+        if (Population == 2)
+#else
+        if (Pop == 2)
+#endif
+		{
+          result = N0_2[i] * factor / (alpha_S_2[i] + 1) * ( pow(nu_n[i+1], alpha_S_2[i]+1) - pow(nu_norm, alpha_S_2[i]+1) );
           return result > 0 ? result:1e-40;
         }
         else{
-          result = N0_3[i] * (1.-F_H2_SHIELD)/ (alpha_S_3[i] + 1) * ( pow(nu_n[i+1], alpha_S_3[i]+1) - pow(nu_norm, alpha_S_3[i]+1) );
+          result = N0_3[i] * factor / (alpha_S_3[i] + 1) * ( pow(nu_n[i+1], alpha_S_3[i]+1) - pow(nu_norm, alpha_S_3[i]+1) );
           return result > 0 ? result:1e-40;
         }
       }
@@ -992,7 +1003,7 @@ double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_fact
          PS_ION_EFF = p.ion_eff;
        }
        else
-       p.ion_eff = PS_ION_EFF; // uses the previous one in post reionization regime
+         p.ion_eff = PS_ION_EFF; // uses the previous one in post reionization regime
 #else //SHARP_CUTOFF
        p.ion_eff = ion_eff;
 #ifdef MINI_HALO
@@ -1022,11 +1033,9 @@ double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_fact
 */
 typedef struct{
   double x_e, zp, zpp, HI_filling_factor_zp;
-#ifndef SHARP_CUTOFF
   double ion_eff;
 #ifdef MINI_HALO
   double ion_effm;
-#endif
 #endif
 } nu_tau_one_params;
 double nu_tau_one_helper(double nu, void * params){
@@ -1100,7 +1109,7 @@ double nu_tau_one(double zp, double zpp, double x_e, double HI_filling_factor_zp
   p.zp = zp;
   p.zpp = zpp;
   p.HI_filling_factor_zp = HI_filling_factor_zp;
-#ifdef SHARP_CUTOFF
+#ifndef SHARP_CUTOFF
   p.ion_eff = ion_eff;
 #ifdef MINI_HALO
   p.ion_effm = ion_effm;
